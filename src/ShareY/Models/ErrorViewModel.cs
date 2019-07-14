@@ -1,5 +1,3 @@
-using System;
-
 namespace ShareY.Models
 {
     public class ErrorViewModel

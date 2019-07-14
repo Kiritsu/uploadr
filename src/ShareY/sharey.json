@@ -1,0 +1,10 @@
+{
+	"Database": {
+    "Hostname": "localhost",
+    "Port": 5432,
+    "Database": "sharey",
+    "Username": "sharey",
+    "Password": "1234",
+    "UseSsl": true
+	}
+}

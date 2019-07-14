@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using ShareY.Database.Models;
 
 namespace ShareY.Database
@@ -10,7 +9,12 @@ namespace ShareY.Database
         public DbSet<Token> Tokens { get; set; }
         public DbSet<User> Users { get; set; }
 
-        private readonly string _connectionString = "Host=localhost;Database=sharey;Username=sharey;Password=1234";
+        private readonly string _connectionString;
+
+        public ShareYContext(ConnectionStringProvider csp)
+        {
+            _connectionString = csp.ConnectionString;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -87,7 +91,7 @@ namespace ShareY.Database
             modelBuilder.Entity<Token>()
                 .HasOne(x => x.User)
                 .WithOne(x => x.Token)
-                .HasForeignKey("fuck if i know what to put there")
+                .HasForeignKey<Token>(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fkey_token_userid");
             #endregion
