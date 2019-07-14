@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ShareY.Authentications;
 using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Services;
@@ -19,7 +20,9 @@ namespace ShareY
         {
             var envVariableConf = Environment.GetEnvironmentVariable("SHAREY_CONFIGURATION");
 
-            var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf) ? envVariableConf : "sharey.json";
+            var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf) 
+                ? envVariableConf 
+                : "sharey.json";
 
             var cfg = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
@@ -47,6 +50,9 @@ namespace ShareY
                 .AddSingleton<ConnectionStringProvider>()
                 .AddDbContext<ShareYContext>(ServiceLifetime.Transient);
 
+            services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
+                .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -66,6 +72,7 @@ namespace ShareY
             app.UseHttpsRedirection()
                 .UseExceptionHandler("/Home/Error")
                 .UseStaticFiles()
+                .UseAuthentication()
                 .UseCookiePolicy()
                 .UseMvc(routes => { });
 
