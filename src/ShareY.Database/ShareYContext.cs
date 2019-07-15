@@ -139,14 +139,14 @@ namespace ShareY.Database
                 .HasColumnName("removed");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.UploadType)
+                .Property(x => x.FileName)
                 .IsRequired()
-                .HasColumnName("upload_type");
+                .HasColumnName("file_name");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.Content)
+                .Property(x => x.ContentType)
                 .IsRequired()
-                .HasColumnName("content");
+                .HasColumnName("content_type");
 
             modelBuilder.Entity<Upload>()
                 .HasOne(x => x.Author)

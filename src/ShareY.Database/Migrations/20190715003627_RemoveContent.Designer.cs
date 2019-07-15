@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShareY.Database;
@@ -9,9 +10,10 @@ using ShareY.Database;
 namespace ShareY.Database.Migrations
 {
     [DbContext(typeof(ShareYContext))]
-    partial class ShareYContextModelSnapshot : ModelSnapshot
+    [Migration("20190715003627_RemoveContent")]
+    partial class RemoveContent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,10 +56,6 @@ namespace ShareY.Database.Migrations
                     b.Property<string>("AuthorId")
                         .IsRequired()
                         .HasColumnName("author_id");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasColumnName("content_type");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()

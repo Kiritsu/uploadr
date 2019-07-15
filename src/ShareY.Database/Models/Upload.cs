@@ -1,5 +1,4 @@
 ﻿using System;
-using ShareY.Database.Enums;
 
 namespace ShareY.Database.Models
 {
@@ -11,8 +10,8 @@ namespace ShareY.Database.Models
         public long DownloadCount { get; set; }
         public bool Visible { get; set; }
         public bool Removed { get; set; }
-        public UploadType UploadType { get; set; }
-        public byte[] Content { get; set; }
+        public string FileName { get; set; }
+        public string ContentType { get; set; }
 
         public User Author { get; set; }
     }

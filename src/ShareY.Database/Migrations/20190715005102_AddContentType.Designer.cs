@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShareY.Database;
@@ -9,9 +10,10 @@ using ShareY.Database;
 namespace ShareY.Database.Migrations
 {
     [DbContext(typeof(ShareYContext))]
-    partial class ShareYContextModelSnapshot : ModelSnapshot
+    [Migration("20190715005102_AddContentType")]
+    partial class AddContentType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
