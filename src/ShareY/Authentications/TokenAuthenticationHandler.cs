@@ -48,14 +48,14 @@ namespace ShareY.Authentications
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, validatedToken.UserId),
+                new Claim(ClaimTypes.Name, validatedToken.UserGuid.ToString()),
                 new Claim(ClaimTypes.Authentication, validatedToken.Guid.ToString("N"))
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", validatedToken.UserId, validatedToken.Guid);
+            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", validatedToken.UserGuid, validatedToken.Guid);
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
     }

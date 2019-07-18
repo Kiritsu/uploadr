@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShareY.Database;
@@ -22,16 +23,36 @@ namespace ShareY.Controllers
         }
 
         [Route("{name}"), HttpGet]
-        public IActionResult GetFile(string name)
+        public async Task<IActionResult> GetFile(string name)
         {
             var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
 
-            if (file is null || !System.IO.File.Exists($"./uploads/{file.FileName}"))
+            if (file is null)
             {
                 return Redirect("/");
             }
 
-            var fileBytes = System.IO.File.ReadAllBytes($"./uploads/{file.FileName}");
+            var path = $"./uploads/{file.FileName}";
+
+            if (file.Removed)
+            {
+                return Json(new { Status = "404", Message = "File is removed."  });
+            }
+
+            if (!System.IO.File.Exists(path))
+            {
+                file.Removed = true;
+                _dbContext.Uploads.Update(file);
+                await _dbContext.SaveChangesAsync();
+
+                return Json(new { Status = "404", Message = "File not found. File has just been marked as removed." });
+            }
+
+            var fileBytes = System.IO.File.ReadAllBytes(path);
+
+            file.ViewCount++;
+            _dbContext.Uploads.Update(file);
+            await _dbContext.SaveChangesAsync();
 
             return File(fileBytes, file.ContentType);
         }

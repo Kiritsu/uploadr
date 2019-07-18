@@ -28,13 +28,14 @@ namespace ShareY.Database
                 .ToTable("users");
 
             modelBuilder.Entity<User>()
-                .Property(x => x.Id)
+                .Property(x => x.Guid)
                 .IsRequired()
-                .HasColumnName("id");
+                .HasColumnType("uuid")
+                .HasColumnName("guid");
 
             modelBuilder.Entity<User>()
-                .HasKey(x => x.Id)
-                .HasName("pk_user_id");
+                .HasKey(x => x.Guid)
+                .HasName("pk_user_guid");
 
             modelBuilder.Entity<User>()
                 .Property(x => x.CreatedAt)
@@ -70,7 +71,7 @@ namespace ShareY.Database
 
             modelBuilder.Entity<Token>()
                 .HasKey(x => x.Guid)
-                .HasName("key_token_guid");
+                .HasName("pk_token_guid");
 
             modelBuilder.Entity<Token>()
                 .Property(x => x.CreatedAt)
@@ -79,19 +80,20 @@ namespace ShareY.Database
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<Token>()
-                .Property(x => x.UserId)
+                .Property(x => x.UserGuid)
                 .IsRequired()
-                .HasColumnName("user_id");
+                .HasColumnType("uuid")
+                .HasColumnName("user_guid");
 
             modelBuilder.Entity<Token>()
-                .HasIndex(x => x.UserId)
+                .HasIndex(x => x.UserGuid)
                 .IsUnique()
                 .HasName("index_user_id");
 
             modelBuilder.Entity<Token>()
                 .HasOne(x => x.User)
                 .WithOne(x => x.Token)
-                .HasForeignKey<Token>(x => x.UserId)
+                .HasForeignKey<Token>(x => x.UserGuid)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fkey_token_userid");
             #endregion
@@ -101,18 +103,20 @@ namespace ShareY.Database
                 .ToTable("uploads");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.Id)
+                .Property(x => x.Guid)
                 .IsRequired()
-                .HasColumnName("id");
+                .HasColumnType("uuid")
+                .HasColumnName("guid");
 
             modelBuilder.Entity<Upload>()
-                .HasKey(x => x.Id)
-                .HasName("key_upload_id");
+                .HasKey(x => x.Guid)
+                .HasName("pk_upload_guid");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.AuthorId)
+                .Property(x => x.AuthorGuid)
                 .IsRequired()
-                .HasColumnName("author_id");
+                .HasColumnType("uuid")
+                .HasColumnName("author_guid");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.CreatedAt)
@@ -121,16 +125,10 @@ namespace ShareY.Database
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.DownloadCount)
+                .Property(x => x.ViewCount)
                 .IsRequired()
                 .HasDefaultValue(0)
-                .HasColumnName("download_count");
-
-            modelBuilder.Entity<Upload>()
-                .Property(x => x.Visible)
-                .IsRequired()
-                .HasDefaultValue(true)
-                .HasColumnName("visible");
+                .HasColumnName("view_count");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.Removed)
@@ -151,7 +149,7 @@ namespace ShareY.Database
             modelBuilder.Entity<Upload>()
                 .HasOne(x => x.Author)
                 .WithMany(x => x.Uploads)
-                .HasForeignKey(x => x.AuthorId)
+                .HasForeignKey(x => x.AuthorGuid)
                 .HasConstraintName("fkey_upload_authorid");
             #endregion
         }

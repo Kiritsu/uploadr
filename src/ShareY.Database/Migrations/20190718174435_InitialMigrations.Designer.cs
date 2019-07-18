@@ -10,7 +10,7 @@ using ShareY.Database;
 namespace ShareY.Database.Migrations
 {
     [DbContext(typeof(ShareYContext))]
-    [Migration("20190714130324_InitialMigrations")]
+    [Migration("20190718174435_InitialMigrations")]
     partial class InitialMigrations
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -18,7 +18,7 @@ namespace ShareY.Database.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.0-rtm-35687")
+                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("ShareY.Database.Models.Token", b =>
@@ -33,14 +33,14 @@ namespace ShareY.Database.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnName("user_id");
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnName("user_guid")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Guid")
-                        .HasName("key_token_guid");
+                        .HasName("pk_token_guid");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("UserGuid")
                         .IsUnique()
                         .HasName("index_user_id");
 
@@ -49,54 +49,52 @@ namespace ShareY.Database.Migrations
 
             modelBuilder.Entity("ShareY.Database.Models.Upload", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnName("guid")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("AuthorId")
-                        .IsRequired()
-                        .HasColumnName("author_id");
+                    b.Property<Guid>("AuthorGuid")
+                        .HasColumnName("author_guid")
+                        .HasColumnType("uuid");
 
-                    b.Property<byte[]>("Content")
+                    b.Property<string>("ContentType")
                         .IsRequired()
-                        .HasColumnName("content");
+                        .HasColumnName("content_type");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<long>("DownloadCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("download_count")
-                        .HasDefaultValue(0L);
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnName("file_name");
 
                     b.Property<bool>("Removed")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("removed")
                         .HasDefaultValue(false);
 
-                    b.Property<int>("UploadType")
-                        .HasColumnName("upload_type");
-
-                    b.Property<bool>("Visible")
+                    b.Property<long>("ViewCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("visible")
-                        .HasDefaultValue(true);
+                        .HasColumnName("view_count")
+                        .HasDefaultValue(0L);
 
-                    b.HasKey("Id")
-                        .HasName("key_upload_id");
+                    b.HasKey("Guid")
+                        .HasName("pk_upload_guid");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorGuid");
 
                     b.ToTable("uploads");
                 });
 
             modelBuilder.Entity("ShareY.Database.Models.User", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("id");
+                        .HasColumnName("guid")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -112,8 +110,8 @@ namespace ShareY.Database.Migrations
                         .IsRequired()
                         .HasColumnName("email");
 
-                    b.HasKey("Id")
-                        .HasName("pk_user_id");
+                    b.HasKey("Guid")
+                        .HasName("pk_user_guid");
 
                     b.HasAlternateKey("Email")
                         .HasName("ak_user_email");
@@ -125,7 +123,7 @@ namespace ShareY.Database.Migrations
                 {
                     b.HasOne("ShareY.Database.Models.User", "User")
                         .WithOne("Token")
-                        .HasForeignKey("ShareY.Database.Models.Token", "UserId")
+                        .HasForeignKey("ShareY.Database.Models.Token", "UserGuid")
                         .HasConstraintName("fkey_token_userid")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
@@ -134,7 +132,7 @@ namespace ShareY.Database.Migrations
                 {
                     b.HasOne("ShareY.Database.Models.User", "Author")
                         .WithMany("Uploads")
-                        .HasForeignKey("AuthorId")
+                        .HasForeignKey("AuthorGuid")
                         .HasConstraintName("fkey_upload_authorid")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

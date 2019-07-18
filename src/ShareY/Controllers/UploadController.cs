@@ -20,6 +20,45 @@ namespace ShareY.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpDelete, Route("delete/{name}")]
+        public async Task<IActionResult> DeleteUpload(string name)
+        {
+            var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
+
+            if (file is null)
+            {
+                return Json(new { Status = "404", Message = "File not found." });
+            }
+
+            if (file.AuthorGuid != Guid.Parse(HttpContext.User.Identity.Name))
+            {
+                return Json(new { Status = "403", Message = "This file doesn't belong to you." });
+            }
+
+            var path = $"./uploads/{file.FileName}";
+
+            if (file.Removed)
+            {
+                return Json(new { Status = "304", Message = "File is already removed." });
+            }
+
+            if (!System.IO.File.Exists(path))
+            {
+                file.Removed = true;
+                _dbContext.Uploads.Update(file);
+                await _dbContext.SaveChangesAsync();
+
+                return Json(new { Status = "404", Message = "File not found. File has just been marked as removed." });
+            }
+
+            System.IO.File.Delete(path);
+            file.Removed = true;
+            _dbContext.Uploads.Update(file);
+            await _dbContext.SaveChangesAsync();
+
+            return Json(new { Status = "200", Message = "File has been successfully removed." });
+        }
+
         [HttpPost]
         public async Task<IActionResult> PostUpload()
         {
@@ -39,12 +78,11 @@ namespace ShareY.Controllers
 
             var upload = new Upload
             {
-                AuthorId = HttpContext.User.Identity.Name,
+                AuthorGuid = Guid.Parse(HttpContext.User.Identity.Name),
                 CreatedAt = DateTime.Now,
-                DownloadCount = 0,
+                ViewCount = 0,
                 Removed = false,
-                Visible = true,
-                Id = Guid.NewGuid().ToString(),
+                Guid = Guid.NewGuid(),
                 FileName = filename,
                 ContentType = file.ContentType
             };

@@ -11,14 +11,14 @@ namespace ShareY.Database.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    id = table.Column<string>(nullable: false),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(nullable: false, defaultValueSql: "now()"),
                     email = table.Column<string>(nullable: false),
                     disabled = table.Column<bool>(nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_user_id", x => x.id);
+                    table.PrimaryKey("pk_user_guid", x => x.guid);
                     table.UniqueConstraint("ak_user_email", x => x.email);
                 });
 
@@ -27,17 +27,17 @@ namespace ShareY.Database.Migrations
                 columns: table => new
                 {
                     guid = table.Column<Guid>(type: "uuid", nullable: false),
-                    user_id = table.Column<string>(nullable: false),
+                    user_guid = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(nullable: false, defaultValueSql: "now()")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("key_token_guid", x => x.guid);
+                    table.PrimaryKey("pk_token_guid", x => x.guid);
                     table.ForeignKey(
                         name: "fkey_token_userid",
-                        column: x => x.user_id,
+                        column: x => x.user_guid,
                         principalTable: "users",
-                        principalColumn: "id",
+                        principalColumn: "guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -45,36 +45,35 @@ namespace ShareY.Database.Migrations
                 name: "uploads",
                 columns: table => new
                 {
-                    id = table.Column<string>(nullable: false),
-                    author_id = table.Column<string>(nullable: false),
+                    guid = table.Column<Guid>(type: "uuid", nullable: false),
+                    author_guid = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(nullable: false, defaultValueSql: "now()"),
-                    download_count = table.Column<long>(nullable: false, defaultValue: 0L),
-                    visible = table.Column<bool>(nullable: false, defaultValue: true),
+                    view_count = table.Column<long>(nullable: false, defaultValue: 0L),
                     removed = table.Column<bool>(nullable: false, defaultValue: false),
-                    upload_type = table.Column<int>(nullable: false),
-                    content = table.Column<byte[]>(nullable: false)
+                    file_name = table.Column<string>(nullable: false),
+                    content_type = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("key_upload_id", x => x.id);
+                    table.PrimaryKey("pk_upload_guid", x => x.guid);
                     table.ForeignKey(
                         name: "fkey_upload_authorid",
-                        column: x => x.author_id,
+                        column: x => x.author_guid,
                         principalTable: "users",
-                        principalColumn: "id",
+                        principalColumn: "guid",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "index_user_id",
                 table: "tokens",
-                column: "user_id",
+                column: "user_guid",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_uploads_author_id",
+                name: "IX_uploads_author_guid",
                 table: "uploads",
-                column: "author_id");
+                column: "author_guid");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
