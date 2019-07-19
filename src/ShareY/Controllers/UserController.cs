@@ -9,7 +9,6 @@ using ShareY.Database.Enums;
 using ShareY.Database.Models;
 using ShareY.Interfaces;
 using ShareY.Models;
-using ShareY.Services;
 
 namespace ShareY.Controllers
 {

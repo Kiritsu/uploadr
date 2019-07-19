@@ -9,5 +9,16 @@
   },
   "Routes": {
     "UserRegisterRoute": true
+  },
+  "Files": {
+    "SizeMin": 0,
+	"SizeMax": 50000000,
+	"FileExtensions": [
+		"jpg",
+		"png",
+		"gif",
+		"mp3",
+		"pdf"
+	]
   }
 }

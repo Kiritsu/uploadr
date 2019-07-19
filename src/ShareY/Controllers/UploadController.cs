@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Database.Models;
+using ShareY.Interfaces;
 
 namespace ShareY.Controllers
 {
@@ -14,10 +16,12 @@ namespace ShareY.Controllers
     public class UploadController : Controller
     {
         private readonly ShareYContext _dbContext;
+        private readonly FilesConfiguration _filesConfiguration;
 
-        public UploadController(ShareYContext dbContext)
+        public UploadController(ShareYContext dbContext, IFilesConfigurationProvider filesConfiguration)
         {
             _dbContext = dbContext;
+            _filesConfiguration = filesConfiguration.GetConfiguration();
         }
 
         [HttpGet, Route("details/{name}")]
@@ -101,7 +105,23 @@ namespace ShareY.Controllers
                 return BadRequest();
             }
 
+            if (file.Length > _filesConfiguration.SizeMax)
+            {
+                return BadRequest(new { Message = $"Size of the file too big. ({_filesConfiguration.SizeMax}B max)" });
+            }
+
+            if (file.Length < _filesConfiguration.SizeMin)
+            {
+                return BadRequest(new { Message = $"Size of the file too low. ({_filesConfiguration.SizeMin}B min)" });
+            }
+
             var extension = Path.GetExtension(file.FileName);
+
+            if (!_filesConfiguration.FileExtensions.Any(x => x == extension.Replace(".", "")))
+            {
+                return BadRequest(new { Message = "Unsupported file extension.", FileExtensions = _filesConfiguration.FileExtensions });
+            }
+
             var filename = $"{GetRandomName()}{extension}";
             while (_dbContext.Uploads.Any(x => x.FileName == filename))
             {
