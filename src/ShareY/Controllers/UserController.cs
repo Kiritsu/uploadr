@@ -49,7 +49,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok();
+            return Json(new { Status = "200", Message = "Account created.", Token = dbToken.Guid });
         }
     }
 }
