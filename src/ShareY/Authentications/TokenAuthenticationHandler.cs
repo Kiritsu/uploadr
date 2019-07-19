@@ -49,7 +49,7 @@ namespace ShareY.Authentications
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, validatedToken.UserGuid.ToString()),
-                new Claim(ClaimTypes.Authentication, validatedToken.Guid.ToString("N"))
+                new Claim(ClaimTypes.Authentication, validatedToken.Guid.ToString())
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
