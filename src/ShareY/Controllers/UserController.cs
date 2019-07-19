@@ -3,10 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Database.Enums;
 using ShareY.Database.Models;
+using ShareY.Interfaces;
 using ShareY.Models;
+using ShareY.Services;
 
 namespace ShareY.Controllers
 {
@@ -14,10 +17,12 @@ namespace ShareY.Controllers
     public class UserController : Controller
     {
         private readonly ShareYContext _dbContext;
+        private readonly RoutesConfiguration _routesConfiguration;
 
-        public UserController(ShareYContext dbContext)
+        public UserController(ShareYContext dbContext, IRoutesConfigurationProvider routesConfiguration)
         {
             _dbContext = dbContext;
+            _routesConfiguration = routesConfiguration.GetConfiguration();
         }
 
         [HttpPatch, Route("block/{guid}"), Authorize(Roles = "Admin")]
@@ -62,6 +67,11 @@ namespace ShareY.Controllers
         [HttpPost, Route("create"), AllowAnonymous]
         public async Task<IActionResult> CreateUser(UserCreateModel user)
         {
+            if (!_routesConfiguration.UserRegisterRoute)
+            {
+                return Forbid();
+            }
+
             if (user is null || string.IsNullOrWhiteSpace(user.Email))
             {
                 return BadRequest();

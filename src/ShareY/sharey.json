@@ -6,5 +6,8 @@
     "Username": "sharey",
     "Password": "1234",
     "UseSsl": true
+  },
+  "Routes": {
+    "UserRegisterRoute": true
   }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using ShareY.Authentications;
 using ShareY.Configurations;
 using ShareY.Database;
+using ShareY.Interfaces;
 using ShareY.Services;
 
 namespace ShareY
@@ -20,8 +21,8 @@ namespace ShareY
         {
             var envVariableConf = Environment.GetEnvironmentVariable("SHAREY_CONFIGURATION");
 
-            var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf) 
-                ? envVariableConf 
+            var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf)
+                ? envVariableConf
                 : "sharey.json";
 
             var cfg = new ConfigurationBuilder()
@@ -38,6 +39,7 @@ namespace ShareY
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<DatabaseConfiguration>(x => Configuration.GetSection("Database").Bind(x));
+            services.Configure<RoutesConfiguration>(x => Configuration.GetSection("Routes").Bind(x));
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -46,9 +48,10 @@ namespace ShareY
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>()
-                .AddSingleton<ConnectionStringProvider>()
-                .AddDbContext<ShareYContext>(ServiceLifetime.Transient);
+            services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
+            services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
+            services.AddSingleton<ConnectionStringProvider>();
+            services.AddDbContext<ShareYContext>(ServiceLifetime.Transient);
 
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
                 .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
