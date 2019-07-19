@@ -52,6 +52,7 @@ namespace ShareY
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
             services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();
+
             services.AddSingleton<ConnectionStringProvider>();
             services.AddDbContext<ShareYContext>(ServiceLifetime.Transient);
 
