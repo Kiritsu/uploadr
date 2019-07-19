@@ -1,4 +1,5 @@
 ﻿using System;
+using ShareY.Database.Enums;
 
 namespace ShareY.Database.Models
 {
@@ -8,5 +9,6 @@ namespace ShareY.Database.Models
         public Guid UserGuid { get; set; }
         public DateTime CreatedAt { get; set; }
         public User User { get; set; }
+        public TokenType TokenType { get; set; }
     }
 }

@@ -27,26 +27,28 @@ namespace ShareY.Controllers
 
             if (file is null)
             {
-                return Json(new { Status = 404, Message = "File not found." });
+                return NotFound(new { Message = "File not found." });
             }
 
             if (file.Removed)
             {
-                return Json(new { Status = 304, Message = "File is removed." });
+                return BadRequest(new { Message = "File is removed." });
             }
 
-            return Json(new { Status = 200,
-                File = new
+            return Ok(
+                new
                 {
-                    Name = file.FileName,
-                    Url = $"{Request.Scheme}://{Request.Host.Value}/{file.FileName}",
-                    Views = file.ViewCount,
-                    Author = file.AuthorGuid,
-                    FileType = file.ContentType,
-                    UploadedAt = file.CreatedAt,
-                    IsRemoved = file.Removed
-                }
-            });
+                    File = new
+                    {
+                        Name = file.FileName,
+                        Url = $"{Request.Scheme}://{Request.Host.Value}/{file.FileName}",
+                        Views = file.ViewCount,
+                        Author = file.AuthorGuid,
+                        FileType = file.ContentType,
+                        UploadedAt = file.CreatedAt,
+                        IsRemoved = file.Removed
+                    }
+                });
         }
 
         [HttpDelete, Route("delete/{name}")]
@@ -56,19 +58,19 @@ namespace ShareY.Controllers
 
             if (file is null)
             {
-                return Json(new { Status = 404, Message = "File not found." });
+                return NotFound(new { Message = "File not found." });
             }
 
             if (file.AuthorGuid != Guid.Parse(HttpContext.User.Identity.Name))
             {
-                return Json(new { Status = 403, Message = "This file doesn't belong to you." });
+                return BadRequest(new { Message = "This file doesn't belong to you." });
             }
 
             var path = $"./uploads/{file.FileName}";
 
             if (file.Removed)
             {
-                return Json(new { Status = 304, Message = "File is already removed." });
+                return BadRequest(new { Message = "File is already removed." });
             }
 
             if (!System.IO.File.Exists(path))
@@ -77,15 +79,16 @@ namespace ShareY.Controllers
                 _dbContext.Uploads.Update(file);
                 await _dbContext.SaveChangesAsync();
 
-                return Json(new { Status = 404, Message = "File not found. File has just been marked as removed." });
+                return NotFound(new { Message = "File not found. File has just been marked as removed." });
             }
 
             System.IO.File.Delete(path);
             file.Removed = true;
             _dbContext.Uploads.Update(file);
+
             await _dbContext.SaveChangesAsync();
 
-            return Json(new { Status = 200, Message = "File has been successfully removed." });
+            return Ok(new { Message = "File has been successfully removed." });
         }
 
         [HttpPost]

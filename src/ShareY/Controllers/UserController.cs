@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShareY.Database;
+using ShareY.Database.Enums;
 using ShareY.Database.Models;
 using ShareY.Models;
 
@@ -19,6 +20,33 @@ namespace ShareY.Controllers
             _dbContext = dbContext;
         }
 
+        [HttpPatch, Route("block/{guid}"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BlockUser(string guid)
+        {
+            if (!Guid.TryParse(guid, out var userGuid))
+            {
+                return BadRequest(new { Message = "Invalid token supplied." });
+            }
+
+            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
+            if (user is null)
+            {
+                return BadRequest(new { Message = "Unknown token supplied." });
+            }
+
+            if (user.Token.TokenType == TokenType.Admin)
+            {
+                return BadRequest(new { Message = "Cannot block admin user." });
+            }
+
+            user.Disabled = true;
+            _dbContext.Update(user);
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { Message = "User blocked." });
+        }
+
         [HttpDelete, Route("delete"), Authorize]
         public async Task<IActionResult> DeleteUser()
         {
@@ -28,7 +56,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Json(new { Status = 200, Message = "This account has been removed." });
+            return Ok(new { Message = "This account has been removed." });
         }
 
         [HttpPost, Route("create"), AllowAnonymous]
@@ -43,7 +71,7 @@ namespace ShareY.Controllers
 
             if (users.Any(x => x.Email == user.Email))
             {
-                return Json(new { Status = 403, Message = "A user with that email already exist." });
+                return BadRequest(new { Message = "A user with that email already exist." });
             }
 
             var dbUser = new User
@@ -58,7 +86,8 @@ namespace ShareY.Controllers
             {
                 CreatedAt = DateTime.Now,
                 Guid = Guid.NewGuid(),
-                UserGuid = dbUser.Guid
+                UserGuid = dbUser.Guid,
+                TokenType = TokenType.User
             };
 
             await _dbContext.AddAsync(dbUser);
@@ -66,7 +95,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Json(new { Status = 200, Message = "Account created.", Token = dbToken.Guid });
+            return Ok(new { Message = "Account created.", Token = dbToken.Guid });
         }
     }
 }

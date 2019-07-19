@@ -36,7 +36,7 @@ namespace ShareY.Controllers
 
             if (file.Removed)
             {
-                return Json(new { Status = 404, Message = "File is removed."  });
+                return NotFound(new { Message = "File is removed."  });
             }
 
             if (!System.IO.File.Exists(path))
@@ -45,7 +45,7 @@ namespace ShareY.Controllers
                 _dbContext.Uploads.Update(file);
                 await _dbContext.SaveChangesAsync();
 
-                return Json(new { Status = 404, Message = "File not found. File has just been marked as removed." });
+                return NotFound(new { Message = "File not found. File has just been marked as removed." });
             }
 
             var fileBytes = System.IO.File.ReadAllBytes(path);

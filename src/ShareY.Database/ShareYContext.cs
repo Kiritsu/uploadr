@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ShareY.Database.Enums;
 using ShareY.Database.Models;
 
 namespace ShareY.Database
@@ -78,6 +79,12 @@ namespace ShareY.Database
                 .IsRequired()
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
+
+            modelBuilder.Entity<Token>()
+                .Property(x => x.TokenType)
+                .IsRequired()
+                .HasDefaultValue(TokenType.User)
+                .HasColumnName("token_type");
 
             modelBuilder.Entity<Token>()
                 .Property(x => x.UserGuid)
