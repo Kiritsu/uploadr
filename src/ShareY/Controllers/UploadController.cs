@@ -152,7 +152,7 @@ namespace ShareY.Controllers
                 await file.CopyToAsync(fs);
             }
 
-            return Redirect($"/{filename}");
+            return Ok(new { Filename = filename }); //return Redirect($"/{filename}");
         }
 
         private static string GetRandomName()
