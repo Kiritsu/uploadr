@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ShareY.Database;
@@ -39,7 +40,7 @@ namespace ShareY.Authentications
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Token Format."));
             }
 
-            var validatedToken = _database.Tokens.FirstOrDefault(x => x.Guid == tokenGuid);
+            var validatedToken = _database.Tokens.Include(x => x.User).FirstOrDefault(x => x.Guid == tokenGuid);
             if (validatedToken is null)
             {
                 _logger.LogWarning("Invalid Token.");

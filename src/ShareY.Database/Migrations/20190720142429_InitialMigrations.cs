@@ -28,7 +28,9 @@ namespace ShareY.Database.Migrations
                 {
                     guid = table.Column<Guid>(type: "uuid", nullable: false),
                     user_guid = table.Column<Guid>(type: "uuid", nullable: false),
-                    created_at = table.Column<DateTime>(nullable: false, defaultValueSql: "now()")
+                    created_at = table.Column<DateTime>(nullable: false, defaultValueSql: "now()"),
+                    token_type = table.Column<int>(nullable: false, defaultValue: 0),
+                    revoked = table.Column<bool>(nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {

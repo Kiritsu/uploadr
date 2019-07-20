@@ -10,7 +10,7 @@ using ShareY.Database;
 namespace ShareY.Database.Migrations
 {
     [DbContext(typeof(ShareYContext))]
-    [Migration("20190718174435_InitialMigrations")]
+    [Migration("20190720142429_InitialMigrations")]
     partial class InitialMigrations
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,6 +32,16 @@ namespace ShareY.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("Revoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("revoked")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("TokenType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("token_type")
+                        .HasDefaultValue(0);
 
                     b.Property<Guid>("UserGuid")
                         .HasColumnName("user_guid")

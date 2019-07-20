@@ -12,7 +12,7 @@ namespace ShareY
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
-            return WebHost.CreateDefaultBuilder(args).UseStartup<Startup>();
+            return WebHost.CreateDefaultBuilder(args).UseStartup<Startup>().UseUrls("https://*:8899");
         }
     }
 }
