@@ -24,6 +24,33 @@ namespace ShareY.Controllers
             _routesConfiguration = routesConfiguration.GetConfiguration();
         }
 
+        [HttpPatch, Route("unblock/{guid}"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnblockUser(string guid)
+        {
+            if (!Guid.TryParse(guid, out var userGuid))
+            {
+                return BadRequest(new { Message = "Invalid token supplied." });
+            }
+
+            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
+            if (user is null)
+            {
+                return BadRequest(new { Message = "Unknown token supplied." });
+            }
+
+            if (user.Token.TokenType == TokenType.Admin)
+            {
+                return BadRequest(new { Message = "Cannot modify admin token." });
+            }
+
+            user.Disabled = false;
+            _dbContext.Update(user);
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { Message = "User unblocked." });
+        }
+
         [HttpPatch, Route("block/{guid}"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> BlockUser(string guid)
         {
@@ -40,7 +67,7 @@ namespace ShareY.Controllers
 
             if (user.Token.TokenType == TokenType.Admin)
             {
-                return BadRequest(new { Message = "Cannot block admin user." });
+                return BadRequest(new { Message = "Cannot modify admin token." });
             }
 
             user.Disabled = true;
@@ -96,7 +123,8 @@ namespace ShareY.Controllers
                 CreatedAt = DateTime.Now,
                 Guid = Guid.NewGuid(),
                 UserGuid = dbUser.Guid,
-                TokenType = TokenType.User
+                TokenType = TokenType.User,
+                Revoked = false
             };
 
             await _dbContext.AddAsync(dbUser);

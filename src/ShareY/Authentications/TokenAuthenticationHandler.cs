@@ -46,6 +46,18 @@ namespace ShareY.Authentications
                 return Task.FromResult(AuthenticateResult.Fail("Invalid Token."));
             }
 
+            if (validatedToken.Revoked)
+            {
+                _logger.LogWarning("Token revoked.");
+                return Task.FromResult(AuthenticateResult.Fail("Token revoked."));
+            }
+
+            if (validatedToken.User.Disabled)
+            {
+                _logger.LogWarning("User blocked.");
+                return Task.FromResult(AuthenticateResult.Fail("User blocked."));
+            }
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, validatedToken.UserGuid.ToString()),

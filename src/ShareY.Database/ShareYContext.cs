@@ -87,6 +87,12 @@ namespace ShareY.Database
                 .HasColumnName("token_type");
 
             modelBuilder.Entity<Token>()
+                .Property(x => x.Revoked)
+                .IsRequired()
+                .HasDefaultValue(false)
+                .HasColumnName("revoked");
+
+            modelBuilder.Entity<Token>()
                 .Property(x => x.UserGuid)
                 .IsRequired()
                 .HasColumnType("uuid")

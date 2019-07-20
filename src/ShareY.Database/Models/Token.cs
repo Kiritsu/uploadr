@@ -8,7 +8,8 @@ namespace ShareY.Database.Models
         public Guid Guid { get; set; }
         public Guid UserGuid { get; set; }
         public DateTime CreatedAt { get; set; }
-        public User User { get; set; }
         public TokenType TokenType { get; set; }
+        public bool Revoked { get; set; }
+        public User User { get; set; }
     }
 }
