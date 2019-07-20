@@ -4,6 +4,23 @@ ShareY is a simple server-side uploading service made with ASP.NET Core 2.2.
 
 ShareY contains an API where you can create/remove/block users, which have a token for authentication. It also has an endpoint which is used to upload files to the server.
 
+# Routes
+
+- `GET /` returns a view of the main page.
+- `GET /{file_name}` returns a file if it exists.
+- `GET /api/upload/details/{file_name}` returns as a `JSON` details of the specified file. Requires `user` authorization.
+- `DELETE /api/upload/delete/{file_name}` deletes the specified file. Requires `user` authorization. Only the author can delete its upload.
+- `POST /api/upload` uploads the given file in the body of the request. Requires `user` authorization. Redirects to `GET /{file_name}`.
+- `PATCH /api/user/unblock/{guid}` unblocks a user by it's guid. Requires `admin` authorization.
+- `PATCH /api/user/block/{guid}` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
+- `DELETE /api/user/delete` deletes the authenticated account. Requires `user` authorization.
+- `POST /api/user/create` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
+```json
+{
+  "Email": "your.email@exemple.com"
+}
+```
+
 # Requirements
 
 In order to use ShareY, you need the following components:
@@ -24,11 +41,11 @@ Follow these instructions if you need help to setup your PostgreSQL database for
 
 - Connect to your PostgreSQL database as a super-user.
 - Create a user. In our case, its name will be `sharey`. Replace `your_password` by a strong password.
-```
+```sql
 CREATE USER sharey WITH CREATEDB PASSWORD 'your_password';
 ```
 - Create a database. In our case, its name will be `sharey`. Don't forget to change the owner name if you set something else than `sharey`.
-```
+```sql
 CREATE DATABASE sharey WITH OWNER = 'sharey';
 ```
 - Disconnect from your PostgreSQL database.
