@@ -48,7 +48,7 @@ CREATE USER sharey WITH CREATEDB PASSWORD 'your_password';
 ```
 - Create a database. In our case, its name will be `sharey`. Don't forget to change the owner name if you set something else than `sharey`.
 ```sql
-CREATE DATABASE sharey WITH OWNER = 'sharey';
+CREATE DATABASE sharey WITH OWNER 'sharey';
 ```
 - Disconnect from your PostgreSQL database.
 
