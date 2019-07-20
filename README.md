@@ -4,6 +4,8 @@ ShareY is a simple server-side uploading service made with ASP.NET Core 2.2.
 
 ShareY contains an API where you can create/remove/block users, which have a token for authentication. It also has an endpoint which is used to upload files to the server.
 
+ShareY can be used as a ShareX custom upload server.
+
 # Routes
 
 - `GET /` returns a view of the main page.
