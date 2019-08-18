@@ -1,0 +1,7 @@
+﻿@{
+    var error = (string)ViewData["ErrorMessage"];
+    if (!string.IsNullOrWhiteSpace(error))
+    {
+        <p class="alert alert-danger">@error</p>
+    }
+}

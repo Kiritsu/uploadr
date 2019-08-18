@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareY", "src\ShareY\ShareY.csproj", "{070C4574-7337-47EC-A40B-EFB778BC7D1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShareY.Database", "src\ShareY.Database\ShareY.Database.csproj", "{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShareY.Database", "src\ShareY.Database\ShareY.Database.csproj", "{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

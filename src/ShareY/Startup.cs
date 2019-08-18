@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShareY.Authentications;
@@ -59,6 +58,12 @@ namespace ShareY
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
                 .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
 
+            services.AddSession(options =>
+            {
+                options.Cookie.IsEssential = true;
+                options.Cookie.HttpOnly = true;
+            });
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
@@ -78,6 +83,7 @@ namespace ShareY
                 .UseStaticFiles()
                 .UseAuthentication()
                 .UseCookiePolicy()
+                .UseSession()
                 .UseMvc(routes => { });
 
             using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())

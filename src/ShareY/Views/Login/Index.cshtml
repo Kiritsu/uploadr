@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<form method="post">
+    @{
+      if (Model.IsAuthenticated){
+        <p class="alert alert-danger">You are already logged in as '@Model.UserToken'</p>
+      }
+    }
+
+    <div class="form-group">
+        <label for="userToken">User token:</label>
+        <input type="password" class="form-control" name="userToken" id="userToken">
+    </div>
+
+    <button type="submit" class="btn btn-light">Login!</button>
+</form>

@@ -7,7 +7,7 @@ using ShareY.Database;
 namespace ShareY.Controllers
 {
     [Route(""), ApiController, AllowAnonymous]
-    public class IndexController : Controller
+    public class IndexController : ShareYController
     {
         private readonly ShareYContext _dbContext;
 
@@ -16,10 +16,16 @@ namespace ShareY.Controllers
             _dbContext = dbContext;
         }
 
+        [Route("privacy"), HttpGet]
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
         [Route(""), HttpGet]
         public IActionResult Index()
         {
-            return View();
+            return View(Model);
         }
 
         [Route("{name}"), HttpGet]
@@ -36,7 +42,7 @@ namespace ShareY.Controllers
 
             if (file.Removed)
             {
-                return NotFound(new { Message = "File is removed."  });
+                return NotFound(new { Message = "File is removed." });
             }
 
             if (!System.IO.File.Exists(path))
