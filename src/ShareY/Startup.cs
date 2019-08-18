@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ShareY.Authentications;
@@ -89,7 +90,7 @@ namespace ShareY
             using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             using (var db = scope.ServiceProvider.GetRequiredService<ShareYContext>())
             {
-                //db.Database.Migrate();
+                db.Database.Migrate();
             }
         }
     }
