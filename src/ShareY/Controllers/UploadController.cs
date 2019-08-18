@@ -95,7 +95,7 @@ namespace ShareY.Controllers
             return Ok("File has been successfully removed.");
         }
 
-        [HttpPost]
+        [HttpPost, DisableRequestSizeLimit]
         public async Task<IActionResult> PostUpload()
         {
             var file = Request.Form.Files.FirstOrDefault();
