@@ -71,12 +71,10 @@ namespace ShareY
             }
             else
             {
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection()
-                .UseExceptionHandler("/Home/Error")
                 .UseStaticFiles()
                 .UseAuthentication()
                 .UseCookiePolicy()
@@ -85,7 +83,7 @@ namespace ShareY
             using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             using (var db = scope.ServiceProvider.GetRequiredService<ShareYContext>())
             {
-                db.Database.Migrate();
+                //db.Database.Migrate();
             }
         }
     }

@@ -29,18 +29,18 @@ namespace ShareY.Controllers
         {
             if (!Guid.TryParse(guid, out var userGuid))
             {
-                return BadRequest(new { Message = "Invalid token supplied." });
+                return BadRequest("Invalid token supplied.");
             }
 
             var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
             if (user is null)
             {
-                return BadRequest(new { Message = "Unknown token supplied." });
+                return BadRequest("Unknown token supplied.");
             }
 
             if (user.Token.TokenType == TokenType.Admin)
             {
-                return BadRequest(new { Message = "Cannot modify admin token." });
+                return BadRequest("Cannot modify admin token.");
             }
 
             user.Disabled = false;
@@ -48,7 +48,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { Message = "User unblocked." });
+            return Ok("User unblocked.");
         }
 
         [HttpPatch, Route("block/{guid}"), Authorize(Roles = "Admin")]
@@ -56,18 +56,18 @@ namespace ShareY.Controllers
         {
             if (!Guid.TryParse(guid, out var userGuid))
             {
-                return BadRequest(new { Message = "Invalid token supplied." });
+                return BadRequest("Invalid token supplied.");
             }
 
             var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
             if (user is null)
             {
-                return BadRequest(new { Message = "Unknown token supplied." });
+                return BadRequest("Unknown token supplied.");
             }
 
             if (user.Token.TokenType == TokenType.Admin)
             {
-                return BadRequest(new { Message = "Cannot modify admin token." });
+                return BadRequest("Cannot modify admin token.");
             }
 
             user.Disabled = true;
@@ -75,7 +75,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { Message = "User blocked." });
+            return Ok("User blocked.");
         }
 
         [HttpDelete, Route("delete"), Authorize]
@@ -87,7 +87,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { Message = "This account has been removed." });
+            return Ok("This account has been removed.");
         }
 
         [HttpPost, Route("create"), AllowAnonymous]
@@ -100,14 +100,14 @@ namespace ShareY.Controllers
 
             if (user is null || string.IsNullOrWhiteSpace(user.Email))
             {
-                return BadRequest();
+                return BadRequest("Invalid form.");
             }
 
             var users = _dbContext.Users;
 
             if (users.Any(x => x.Email == user.Email))
             {
-                return BadRequest(new { Message = "A user with that email already exist." });
+                return BadRequest("A user with that email already exist.");
             }
 
             var dbUser = new User
@@ -132,7 +132,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { Message = "Account created.", Token = dbToken.Guid });
+            return Ok(new { Token = dbToken.Guid });
         }
     }
 }

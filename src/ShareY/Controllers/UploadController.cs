@@ -31,12 +31,12 @@ namespace ShareY.Controllers
 
             if (file is null)
             {
-                return NotFound(new { Message = "File not found." });
+                return NotFound("File not found.");
             }
 
             if (file.Removed)
             {
-                return BadRequest(new { Message = "File is removed." });
+                return BadRequest("File is removed.");
             }
 
             return Ok(
@@ -62,19 +62,19 @@ namespace ShareY.Controllers
 
             if (file is null)
             {
-                return NotFound(new { Message = "File not found." });
+                return NotFound("File not found.");
             }
 
             if (file.AuthorGuid != Guid.Parse(HttpContext.User.Identity.Name))
             {
-                return BadRequest(new { Message = "This file doesn't belong to you." });
+                return BadRequest("This file doesn't belong to you.");
             }
 
             var path = $"./uploads/{file.FileName}";
 
             if (file.Removed)
             {
-                return BadRequest(new { Message = "File is already removed." });
+                return BadRequest("File is already removed.");
             }
 
             if (!System.IO.File.Exists(path))
@@ -83,7 +83,7 @@ namespace ShareY.Controllers
                 _dbContext.Uploads.Update(file);
                 await _dbContext.SaveChangesAsync();
 
-                return NotFound(new { Message = "File not found. File has just been marked as removed." });
+                return NotFound("File not found. File has just been marked as removed.");
             }
 
             System.IO.File.Delete(path);
@@ -92,7 +92,7 @@ namespace ShareY.Controllers
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok(new { Message = "File has been successfully removed." });
+            return Ok("File has been successfully removed.");
         }
 
         [HttpPost]
@@ -107,12 +107,12 @@ namespace ShareY.Controllers
 
             if (file.Length > _filesConfiguration.SizeMax)
             {
-                return BadRequest(new { Message = $"Size of the file too big. ({_filesConfiguration.SizeMax}B max)" });
+                return BadRequest($"Size of the file too big. ({_filesConfiguration.SizeMax}B max)");
             }
 
             if (file.Length < _filesConfiguration.SizeMin)
             {
-                return BadRequest(new { Message = $"Size of the file too low. ({_filesConfiguration.SizeMin}B min)" });
+                return BadRequest($"Size of the file too low. ({_filesConfiguration.SizeMin}B min)");
             }
 
             var extension = Path.GetExtension(file.FileName);
@@ -152,7 +152,7 @@ namespace ShareY.Controllers
                 await file.CopyToAsync(fs);
             }
 
-            return Ok(new { Filename = filename }); //return Redirect($"/{filename}");
+            return Ok(new { Filename = filename, Type = upload.ContentType });
         }
 
         private static string GetRandomName()
