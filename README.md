@@ -1,5 +1,7 @@
 # ShareY
 
+[![Build Status](https://dev.azure.com/allanmercou/ShareY/_apis/build/status/Kiritsu.ShareY?branchName=master)](https://dev.azure.com/allanmercou/ShareY/_build/latest?definitionId=2&branchName=master)
+
 ShareY is a simple server-side uploading service made with ASP.NET Core 2.2. 
 
 ShareY contains an API where you can create/remove/block users, which have a token for authentication. It also has an endpoint which is used to upload files to the server.
