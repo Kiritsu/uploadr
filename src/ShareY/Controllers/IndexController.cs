@@ -25,7 +25,7 @@ namespace ShareY.Controllers
         [Route(""), HttpGet]
         public IActionResult Index()
         {
-            return View(Model);
+            return View();
         }
 
         [Route("{name}"), HttpGet]

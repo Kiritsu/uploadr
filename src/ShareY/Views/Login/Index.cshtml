@@ -4,9 +4,10 @@
 
 <form method="post">
     @{
-      if (Model.IsAuthenticated){
-        <p class="alert alert-danger">You are already logged in as '@Model.UserToken'</p>
-      }
+        if (Model.IsAuthenticated)
+        {
+            <p class="alert alert-danger">You are already logged in as '@Model.UserToken'.</p>
+        }
     }
 
     <div class="form-group">

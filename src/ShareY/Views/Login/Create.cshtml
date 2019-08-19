@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Create a new account.";
+
+    var token = ViewData["Token"] as Guid?;
+    var error = ViewData["RegisterError"] as string;
+    var routeEnabled = ViewData["RouteEnabled"] as bool?;
+}
+
+@{
+    if (Model.IsAuthenticated)
+    {
+        <p class="alert alert-danger">You are already logged in as '@Model.UserToken'</p>
+    }
+    else if (token.HasValue)
+    {
+        <p class="alert alert-info">Welcome and thank you for using ShareY! Your unique token is @token.Value. You must <span class="alert-danger">NOT</span> share it.</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <p class="alert alert-danger">@error</p>
+    }
+    else if (routeEnabled.HasValue && routeEnabled.Value)
+    {
+        <form method="post">
+            <div class="form-group">
+                <label for="email">Email: (facultative)</label>
+                <input type="email" class="form-control" name="email" id="email">
+            </div>
+
+            <button type="submit" class="btn btn-light">Create account</button>
+        </form>
+    }
+    else
+    {
+        <p class="alert-warning">Creating an account is not enabled.</p>
+    }
+}
