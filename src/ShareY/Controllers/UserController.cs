@@ -113,7 +113,7 @@ namespace ShareY.Controllers
             var dbUser = new User
             {
                 Guid = Guid.NewGuid(),
-                Email = user?.Email ?? "Ano@nymou.s",
+                Email = user?.Email ?? "",
                 CreatedAt = DateTime.Now,
                 Disabled = false
             };
