@@ -98,14 +98,14 @@ namespace ShareY.Controllers
                 return Forbid();
             }
 
-            if (user is null || string.IsNullOrWhiteSpace(user.Email))
+            if (user is null)
             {
                 return BadRequest("Invalid form.");
             }
 
             var users = _dbContext.Users;
 
-            if (users.Any(x => x.Email == user.Email))
+            if (!string.IsNullOrWhiteSpace(user.Email) && users.Any(x => x.Email == user.Email))
             {
                 return BadRequest("A user with that email already exist.");
             }
@@ -113,7 +113,7 @@ namespace ShareY.Controllers
             var dbUser = new User
             {
                 Guid = Guid.NewGuid(),
-                Email = user.Email,
+                Email = user?.Email ?? "Ano@nymou.s",
                 CreatedAt = DateTime.Now,
                 Disabled = false
             };
