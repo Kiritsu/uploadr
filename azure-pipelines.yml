@@ -11,7 +11,6 @@ pool:
 
 variables:
   solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
 steps:
@@ -25,3 +24,17 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: true
+    arguments: '--framework netcoreapp2.2 --configuration $(buildConfiguration) --runtime ubuntu.16.04-x64 --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: sharey
+
+- task: DownloadBuildArtifacts@0
+  inputs:
+    buildType: 'current'
+    downloadType: 'single'
+    artifactName: 'sharey'
+    downloadPath: '$(System.ArtifactsDirectory)'
