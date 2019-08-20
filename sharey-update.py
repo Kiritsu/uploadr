@@ -68,7 +68,7 @@ def downloadAndUnzipLatestBuild(downloadUrl, buildId):
     zippedFile.extractall()
     zippedFile.close()
 
-def startShareY()
+def startShareY():
     subprocess.call(['nohup', './sharey/ShareY/ShareY', '&'])
     
 if __name__ == '__main__':
