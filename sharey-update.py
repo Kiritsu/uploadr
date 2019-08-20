@@ -39,7 +39,7 @@ def getLatestBuildId():
 
 def isUpdateNecessary(buildId):
     localBuildId = os.environ.get('SHAREY_BUILD')
-    os.environ["SHAREY_BUILD"] = str(buildId)
+    subprocess.call(['export', f'SHAREY_BUILD={buildId}'])
     
     if localBuildId == None:
         return True
