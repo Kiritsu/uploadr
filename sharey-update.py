@@ -1,5 +1,6 @@
 import requests
 import os
+import stat
 import urllib
 import zipfile
 import shutil
@@ -20,8 +21,12 @@ def main():
     url = getArtifactDownloadUrl(buildId)
 
     cleanAndShutdownShareY()
+    print('ShareY instance has been killed and removed.')
+    print('Downloading and installing ShareY')
     downloadAndUnzipLatestBuild(url, buildId)
+    print('Authorizing and starting ShareY')
     startShareY()
+    print('OK!')
 
 def getLatestBuildId():
     buildsRoute = 'https://dev.azure.com/allanmercou/sharey/_apis/build/builds?api-version=4.1'
@@ -68,8 +73,11 @@ def downloadAndUnzipLatestBuild(downloadUrl, buildId):
     zippedFile.extractall()
     zippedFile.close()
 
-def startShareY()
-    subprocess.call(['nohup', './sharey/ShareY/ShareY', '&'])
+def startShareY():
+    path = './sharey/ShareY/ShareY';
+    permissions = os.stat(path)
+    os.chmod(path, permissions.st_mode | stat.S_IEXEC)
+    subprocess.call(['nohup', path, '&'])
     
 if __name__ == '__main__':
     main()
