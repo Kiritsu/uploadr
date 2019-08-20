@@ -74,7 +74,7 @@ def downloadAndUnzipLatestBuild(downloadUrl, buildId):
     zippedFile.close()
 
 def startShareY():
-    path = './sharey/ShareY/ShareY';
+    path = './sharey/ShareY/ShareY'
     permissions = os.stat(path)
     os.chmod(path, permissions.st_mode | stat.S_IEXEC)
     subprocess.call(['nohup', path, '&'])
