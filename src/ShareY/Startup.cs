@@ -61,6 +61,7 @@ namespace ShareY
 
             services.AddSession(options =>
             {
+                options.Cookie.Name = "ShareYSession";
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
             });

@@ -40,12 +40,22 @@ namespace ShareY.Controllers
                 if (user != null)
                 {
                     HttpContext.Session.Set("userToken", userToken);
+                    TempData["InfoMessage"] = "You have successfully logged in.";
                     return Redirect("/");
                 }
             }
 
             ViewData["ErrorMessage"] = "The provided token was not valid.";
             return View();
+        }
+
+        [Route("logout"), HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            Response.Cookies.Delete("ShareYSession");
+            TempData["InfoMessage"] = "You have successfully logged out.";
+            return Redirect("/");
         }
 
         [Route("new"), HttpGet]

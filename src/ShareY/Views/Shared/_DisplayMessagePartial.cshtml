@@ -1,0 +1,7 @@
+﻿@{
+    var msg = ViewData["InfoMessage"] as string ?? TempData["InfoMessage"] as string;
+    if (!string.IsNullOrWhiteSpace(msg))
+    {
+        <p class="alert alert-info">@msg</p>
+    }
+}

@@ -50,10 +50,6 @@ namespace ShareY.Database
                 .HasColumnName("email");
 
             modelBuilder.Entity<User>()
-                .HasAlternateKey(x => x.Email)
-                .HasName("ak_user_email");
-
-            modelBuilder.Entity<User>()
                 .Property(x => x.Disabled)
                 .IsRequired()
                 .HasDefaultValue(false)
