@@ -9,7 +9,7 @@
 @{
     if (Model.IsAuthenticated)
     {
-        <p class="alert alert-danger">You are already logged in as '@Model.UserToken'</p>
+        <p class="alert alert-warning">You are already logged in as '@Model.UserToken'</p>
     }
     else if (token.HasValue)
     {
@@ -32,6 +32,6 @@
     }
     else
     {
-        <p class="alert-warning">Creating an account is not enabled.</p>
+        <p class="alert alert-warning">Creating an account is not enabled.</p>
     }
 }
