@@ -8,7 +8,7 @@
     "UseSsl": true
   },
   "Routes": {
-    "UserRegisterRoute": true
+    "UserRegisterRoute": false
   },
   "Files": {
     "SizeMin": 0,
