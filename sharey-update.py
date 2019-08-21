@@ -63,8 +63,6 @@ def cleanAndShutdownShareY():
     for processus in psutil.process_iter():
         if processus.name() == processName:
             processus.kill()
-            
-    shutil.rmtree('./sharey', ignore_errors = True)
 
 def downloadAndUnzipLatestBuild(downloadUrl, buildId):
     download = urllib.request.urlopen(downloadUrl)
@@ -77,7 +75,8 @@ def downloadAndUnzipLatestBuild(downloadUrl, buildId):
     zippedFile.close()
 
 def startShareY():
-    path = './sharey/ShareY/ShareY'
+    os.chdir('./sharey/ShareY')
+    path = './ShareY'
     permissions = os.stat(path)
     os.chmod(path, permissions.st_mode | stat.S_IEXEC)
     subprocess.call(['nohup', path, '&'])
