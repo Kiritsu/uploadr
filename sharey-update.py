@@ -44,6 +44,7 @@ def isUpdateNecessary(buildId):
 
     newVerFile = open('./sharey_build_ver', 'w')
     newVerFile.write(str(buildId))
+    newVerFile.close()
     
     return localBuildId < buildId
 
