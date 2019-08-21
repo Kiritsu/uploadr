@@ -18,6 +18,7 @@ ShareY can be used as a ShareX custom upload server.
 - `PATCH /api/user/unblock/{guid}` unblocks a user by it's guid. Requires `admin` authorization.
 - `PATCH /api/user/block/{guid}` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
 - `DELETE /api/user/delete` deletes the authenticated account. Requires `user` authorization.
+- `PATCH /api/routes/{routeName}?state={boolean}` enables or disables a configurable route. Requires `admin` authorization. Unknown `routeName` returns every available routes.
 - `POST /api/user/create` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
 ```json
 {
@@ -81,3 +82,16 @@ If you are building from a terminal, use the following command:
 dotnet publish -c Release -f netcoreapp2.2 -r [RUNTIME]
 ```
 You can replace [RUNTIME] by either `win-x64` or `linux-x64` depending on the target operating system. See Microsoft documentation for .NET Core runtime if you have troubles.
+
+# Auto update script
+
+## Requirements
+- Python 3.7 or higher
+
+## Summary
+
+There's an auto-update script made in python which pull the latest build in Azure Pipelines and download the right artifact if your version of ShareY is outdated. It will shutdown your app, replace the files (config included for now!) and restart it. 
+
+You can use this script in a cronjob to automatically update the app.
+
+It has not been tested very well for now.
