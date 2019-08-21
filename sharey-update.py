@@ -38,13 +38,14 @@ def getLatestBuildId():
     return jsonData['value'][0]['id']
 
 def isUpdateNecessary(buildId):
-    localBuildId = os.environ.get('SHAREY_BUILD')
-    subprocess.call(['export', f'SHAREY_BUILD={buildId}'])
-    
-    if localBuildId == None:
-        return True
+    verFile = open('./sharey_build_ver', 'r')
+    localBuildId = int(verFile.read())
+    verFile.close()
 
-    return int(localBuildId) < buildId
+    newVerFile = open('./sharey_build_ver', 'w')
+    newVerFile.write(str(buildId))
+    
+    return localBuildId < buildId
 
 def getArtifactDownloadUrl(buildId):
     artifactRoute = f'https://dev.azure.com/allanmercou/sharey/_apis/build/builds/{buildId}/artifacts?artifactName=sharey&api-version=4.1'
