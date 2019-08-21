@@ -27,6 +27,7 @@ def main():
     print('Authorizing and starting ShareY')
     startShareY()
     print('OK!')
+    quit()
 
 def getLatestBuildId():
     buildsRoute = 'https://dev.azure.com/allanmercou/sharey/_apis/build/builds?api-version=4.1'
