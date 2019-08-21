@@ -42,7 +42,7 @@ namespace ShareY.Controllers
 
             if (file.Removed)
             {
-                return NotFound(new { Message = "File is removed." });
+                return NotFound("File is removed.");
             }
 
             if (!System.IO.File.Exists(path))
@@ -51,7 +51,7 @@ namespace ShareY.Controllers
                 _dbContext.Uploads.Update(file);
                 await _dbContext.SaveChangesAsync();
 
-                return NotFound(new { Message = "File not found. File has just been marked as removed." });
+                return NotFound("File not found. File has just been marked as removed.");
             }
 
             var fileBytes = System.IO.File.ReadAllBytes(path);
