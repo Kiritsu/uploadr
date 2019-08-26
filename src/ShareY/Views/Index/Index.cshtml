@@ -12,19 +12,22 @@
     @if (Model.IsAuthenticated)
     {
         <div class="form-group">
-            <div class="col-md-10">
+            <div>
                 <p>Upload the file you want. Supported file extensions: <code>@string.Join(", ", filesConfig.FileExtensions)</code>.</p>
                 <p>Size of the file must not exceed <code>@Math.Round((filesConfig.SizeMax / 1024f) / 1024f)MB</code></p>
                 <input id="file_upload" type="file" required>
             </div>
         </div>
         <div class="form-group">
-            <div class="col-md-10">
+            <div>
                 <input type="submit" value="Upload" onclick="uploadFile('@Model.UserToken')">
             </div>
         </div>
 
-        <p class="col-md-10" id="after_upload_p" hidden></p>
+        <div class="d-flex align-items-lg-start">
+            <div id="loading" class="spinner-border text-dark" hidden></div>
+            <p id="loading_upload" hidden>Loading...</p>
+        </div>
     }
     else
     {
@@ -51,6 +54,12 @@
             var data = new FormData();
             data.append(file.name, file);
 
+            var responseElement = $('#loading_upload');
+            responseElement.removeAttr('hidden');
+
+            var loadingElement = $('#loading');
+            loadingElement.removeAttr('hidden');
+
             $.ajax({
                 type: 'POST',
                 url: '/api/upload',
@@ -59,13 +68,16 @@
                 },
                 data: data,
                 success: function (result) {
-                    var element = $('#after_upload_p');
-                    element.html('Your file has successfully been uploaded: <a class="alert-link" href="' + window.location.href + result['filename'] + '">' + window.location.href + result['filename'] + '</a>');
-                    element.removeAttr('hidden');
+                    loadingElement.attr('hidden', true);
+                    responseElement.html('Your file has successfully been uploaded: <a class="alert-link" href="' + window.location.href + result['filename'] + '">' + window.location.href + result['filename'] + '</a>');
                 },
                 processData: false,
                 contentType: false,
-                cache: false
+                cache: false,
+                error: function (jqXHR, textStatus, errorMessage) {
+                    loadingElement.attr('hidden', true);
+                    responseElement.text('An error occured. The server responded: ' + errorMessage);
+                }
             })
         }
     </script>
