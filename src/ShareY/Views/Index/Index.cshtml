@@ -2,15 +2,71 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    @{
-      if (Model.IsAuthenticated)
-      {
-        <p>You are logged in.</p>
-      }
-      else
-      {
-        <p>You are not logged in.</p>
-      }
+@using ShareY.Interfaces
+@inject IFilesConfigurationProvider files
+@{
+    var filesConfig = files.GetConfiguration();
+}
+
+<div class="container">
+    @if (Model.IsAuthenticated)
+    {
+        <div class="form-group">
+            <div class="col-md-10">
+                <p>Upload the file you want. Supported file extensions: <code>@string.Join(", ", filesConfig.FileExtensions)</code>.</p>
+                <p>Size of the file must not exceed <code>@Math.Round((filesConfig.SizeMax / 1024f) / 1024f)MB</code></p>
+                <input id="file_upload" type="file" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-10">
+                <input type="submit" value="Upload" onclick="uploadFile('@Model.UserToken')">
+            </div>
+        </div>
+
+        <p class="col-md-10" id="after_upload_p" hidden></p>
+    }
+    else
+    {
+        <p>You're not logged in yet!</p>
     }
 </div>
+
+@if (Model.IsAuthenticated)
+{
+    <script type="text/javascript">
+        function uploadFile(token) {
+            var fileElem = $('#file_upload');
+            if (fileElem.length != 1) {
+                alert('Element not found.');
+            }
+
+            var files = fileElem[0].files;
+            if (files.length != 1) {
+                alert('File not found.');
+            }
+
+            var file = files[0];
+
+            var data = new FormData();
+            data.append(file.name, file);
+
+            $.ajax({
+                type: 'POST',
+                url: '/api/upload',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-Token', token);
+                },
+                data: data,
+                success: function (result) {
+                    var element = $('#after_upload_p');
+                    element.html('Your file has successfully been uploaded: <a class="alert-link" href="' + window.location.href + result['filename'] + '">' + window.location.href + result['filename'] + '</a>');
+                    element.removeAttr('hidden');
+                },
+                processData: false,
+                contentType: false,
+                cache: false
+            })
+        }
+    </script>
+}
