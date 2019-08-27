@@ -1,1 +1,11 @@
-﻿
+﻿@{
+    ViewData["Title"] = "Admin Area";
+}
+
+<div class="container">
+    <div class="btn-group" role="group" aria-label="Settings">
+        <a asp-area="" asp-controller="Admin" asp-action="Settings" type="button" class="btn btn-secondary">Settings</a>
+        <a asp-area="" asp-controller="Admin" asp-action="Users" type="button" class="btn btn-secondary">Users</a>
+        <a asp-area="" asp-controller="Admin" asp-action="Uploads" type="button" class="btn btn-secondary">Uploads</a>
+    </div>
+</div>

@@ -11,32 +11,30 @@ using ShareY.Models;
 
 namespace ShareY.Controllers
 {
-    [Route("login"), AllowAnonymous]
-    public class LoginController : ShareYController
+    [Route("auth"), AllowAnonymous]
+    public class AuthController : ShareYController
     {
-        private readonly ShareYContext _dbContext;
         private readonly UserController _userController;
         private readonly RoutesConfiguration _routesConfiguration;
 
-        public LoginController(ShareYContext dbContext, UserController userController, IRoutesConfigurationProvider routesConfiguration)
+        public AuthController(ShareYContext dbContext, UserController userController, IRoutesConfigurationProvider routesConfiguration) : base(dbContext)
         {
-            _dbContext = dbContext;
             _userController = userController;
             _routesConfiguration = routesConfiguration.GetConfiguration();
         }
 
-        [Route(""), HttpGet]
-        public IActionResult Index()
+        [Route("login"), HttpGet]
+        public IActionResult Login()
         {
             return View();
         }
 
-        [Route(""), HttpPost]
-        public async Task<IActionResult> Index(Guid? userToken)
+        [Route("login"), HttpPost]
+        public async Task<IActionResult> Login(Guid? userToken)
         {
             if (userToken.HasValue)
             {
-                var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Token.Guid == userToken);
+                var user = await _dbContext.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Token.Guid == userToken);
                 if (user != null)
                 {
                     HttpContext.Session.Set("userToken", userToken);
@@ -58,16 +56,16 @@ namespace ShareY.Controllers
             return Redirect("/");
         }
 
-        [Route("new"), HttpGet]
-        public IActionResult Create()
+        [Route("signup"), HttpGet]
+        public IActionResult Signup()
         {
             ViewData["RouteEnabled"] = _routesConfiguration.UserRegisterRoute;
 
             return View();
         }
 
-        [Route("new"), HttpPost]
-        public async Task<IActionResult> Create(string email)
+        [Route("signup"), HttpPost]
+        public async Task<IActionResult> Signup(string email)
         {
             ViewData["RouteEnabled"] = _routesConfiguration.UserRegisterRoute;
 

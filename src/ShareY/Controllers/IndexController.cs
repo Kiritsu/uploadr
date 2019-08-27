@@ -9,11 +9,8 @@ namespace ShareY.Controllers
     [Route(""), AllowAnonymous]
     public class IndexController : ShareYController
     {
-        private readonly ShareYContext _dbContext;
-
-        public IndexController(ShareYContext dbContext)
+        public IndexController(ShareYContext dbContext) : base(dbContext)
         {
-            _dbContext = dbContext;
         }
 
         [Route("privacy"), HttpGet]
