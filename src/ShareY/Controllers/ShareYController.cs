@@ -1,38 +1,65 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using ShareY.Attributes;
 using ShareY.Database;
 using ShareY.Database.Enums;
 using ShareY.Database.Models;
 using ShareY.Extensions;
-using ShareY.Models;
 
 namespace ShareY.Controllers
 {
     public class ShareYController : Controller
     {
-        private BaseViewModel Model => new BaseViewModel { IsAuthenticated = IsAuthenticated, UserToken = UserToken, IsAdmin = IsAdmin };
-
         protected readonly ShareYContext _dbContext;
 
-        public Guid? UserToken => HttpContext?.Session?.Get<Guid?>("userToken");
+        public Guid? UserToken { get; private set; }
 
-        public bool IsAuthenticated => DbUser != null;
-
-        public bool IsAdmin => DbUser != null && DbUser.Token.TokenType == TokenType.Admin;
-
-        public User DbUser => _dbContext.Users.Include(x => x.Token).FirstOrDefault(x => x.Token.Guid == UserToken);
+        public User DbUser { get; private set; }
 
         public ShareYController(ShareYContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public override ViewResult View()
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            return base.View(Model);
+            await base.OnActionExecutionAsync(context, next);
+
+            UserToken = context.HttpContext.Session.Get<Guid?>("userToken");
+
+            DbUser = await _dbContext.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Token.Guid == UserToken);
+
+            ViewData["IsAuthenticated"] = DbUser != null;
+            ViewData["IsAdmin"] = DbUser != null && DbUser.Token.TokenType == TokenType.Admin;
+
+            if (DbUser != null)
+            {
+                ViewData["UserToken"] = DbUser.Token.Guid.ToString();
+            }
+
+            if (context.ActionDescriptor is ControllerActionDescriptor actionDescriptor)
+            {
+                var controller = actionDescriptor.ControllerTypeInfo;
+                var method = actionDescriptor.MethodInfo;
+
+                var attributes = controller.CustomAttributes.ToList();
+                attributes.AddRange(method.CustomAttributes);
+
+                if (attributes.Any(x => x.AttributeType == typeof(RequiresAdminAuthentication)) && !(bool)ViewData["IsAdmin"])
+                {
+                    throw new Exception("Admin authentication required.");
+                }
+
+                if (attributes.Any(x => x.AttributeType == typeof(RequiresAuthentication)) && DbUser == null)
+                {
+                    throw new Exception("Authentication required.");
+                }
+            }
         }
     }
 }

@@ -9,7 +9,7 @@
 }
 
 <div class="container">
-    @if (Model.IsAuthenticated)
+    @if ((bool)ViewData["IsAuthenticated"])
     {
         <div class="form-group">
             <div>
@@ -20,7 +20,7 @@
         </div>
         <div class="form-group">
             <div>
-                <input type="submit" value="Upload" onclick="uploadFile('@Model.UserToken')">
+                <input type="submit" value="Upload" onclick="uploadFile('@ViewData["UserToken"]')">
             </div>
         </div>
 
@@ -35,7 +35,7 @@
     }
 </div>
 
-@if (Model.IsAuthenticated)
+@if ((bool)ViewData["IsAuthenticated"])
 {
     <script type="text/javascript">
         function uploadFile(token) {

@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShareY.Attributes;
 using ShareY.Database;
-using ShareY.Database.Enums;
+using ShareY.Models;
 
 namespace ShareY.Controllers
 {
-    [Route("admin"), AllowAnonymous]
+    [Route("admin"), RequiresAdminAuthentication]
     public class AdminController : ShareYController
     {
         public AdminController(ShareYContext dbContext) : base(dbContext)
@@ -15,13 +15,32 @@ namespace ShareY.Controllers
         }
 
         [Route(""), HttpGet]
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            if (!IsAuthenticated || !IsAdmin)
-            {
-                return LocalRedirect("/exception/unauthorized");
-            }
+            return View();
+        }
 
+        [Route("uploads"), HttpGet]
+        public IActionResult Uploads()
+        {
+            return View();
+        }
+
+        [Route("users"), HttpGet]
+        public IActionResult Users()
+        {
+            var model = new AdminUsersViewModel
+            {
+                Users = _dbContext.Users
+                    .Include(x => x.Token)
+                    .ToList()
+            };
+            return View(model);
+        }
+
+        [Route("settings"), HttpGet]
+        public IActionResult Settings()
+        {
             return View();
         }
     }

@@ -25,19 +25,31 @@ namespace ShareY.Authentications
             _logger = logger.CreateLogger<TokenAuthenticationHandler>();
         }
 
+        private bool TryGetTokenByHeader(out Guid? token)
+        {
+            token = null;
+
+            if ((!Request.Headers.TryGetValue("X-Token", out var values) || values.Count == 0))
+            {
+               return false;
+            }
+
+            var tokenStr = values.First();
+            if (!Guid.TryParse(tokenStr, out var tokenPrs))
+            {
+                return false;
+            }
+
+            token = tokenPrs;
+            return true;
+        }
+
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!Request.Headers.TryGetValue("X-Token", out var values) || values.Count == 0)
+            if (!TryGetTokenByHeader(out var tokenGuid))
             {
                 _logger.LogWarning("Missing Authorization.");
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization."));
-            }
-
-            var token = values.First();
-            if (!Guid.TryParse(token, out var tokenGuid))
-            {
-                _logger.LogWarning("Missing Authorization.");
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Token Format."));
             }
 
             var validatedToken = _database.Tokens.Include(x => x.User).FirstOrDefault(x => x.Guid == tokenGuid);

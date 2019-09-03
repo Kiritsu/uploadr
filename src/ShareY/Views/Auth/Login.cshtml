@@ -4,9 +4,9 @@
 
 <form method="post">
     @{
-        if (Model.IsAuthenticated)
+        if ((bool)ViewData["IsAuthenticated"])
         {
-            <p class="alert alert-danger">You are already logged in as '@Model.UserToken'.</p>
+            <p class="alert alert-danger">You are already logged in as '@ViewData["UserToken"]'.</p>
         }
     }
 

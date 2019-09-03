@@ -7,9 +7,9 @@
 }
 
 @{
-    if (Model.IsAuthenticated)
+    if ((bool)ViewData["IsAuthenticated"])
     {
-        <p class="alert alert-warning">You are already logged in as '@Model.UserToken'</p>
+        <p class="alert alert-warning">You are already logged in as '@ViewData["UserToken"]'</p>
     }
     else if (token.HasValue)
     {

@@ -9,7 +9,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ShareY</title>
+    <title>@ViewData["Title"]</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
@@ -34,20 +34,20 @@
                         </li>
                     </ul>
                     <ul class="nav navbar-nav">
-                        @if (routesConfig.UserRegisterRoute && !Model.IsAuthenticated)
+                        @if (routesConfig.UserRegisterRoute && !(bool)ViewData["IsAuthenticated"])
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Signup">Signin</a>
                             </li>
                         }
                         <li class="nav-item">
-                            @if (Model.IsAdmin)
+                            @if ((bool)ViewData["IsAdmin"])
                             {
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin Area</a>
                             }
                         </li>
                         <li class="nav-item">
-                            @if (!Model.IsAuthenticated)
+                            @if (!(bool)ViewData["IsAuthenticated"])
                             {
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
                             }

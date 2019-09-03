@@ -59,6 +59,8 @@ namespace ShareY
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
                 .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
 
+            services.AddHttpContextAccessor();
+
             services.AddSession(options =>
             {
                 options.Cookie.Name = "ShareYSession";
@@ -80,6 +82,7 @@ namespace ShareY
             }
             else
             {
+                app.UseExceptionHandler("/");
                 app.UseHsts();
             }
 

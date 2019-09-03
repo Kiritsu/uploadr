@@ -1,0 +1,47 @@
+﻿@{
+    ViewData["Title"] = "Users - Admin Area";
+}
+
+<div class="container">
+    <div class="btn-group" role="group" aria-label="Settings">
+        <a asp-area="" asp-controller="Admin" asp-action="Settings" type="button" class="btn btn-secondary">Settings</a>
+        <a asp-area="" asp-controller="Admin" asp-action="Users" type="button" class="btn btn-secondary">Users</a>
+        <a asp-area="" asp-controller="Admin" asp-action="Uploads" type="button" class="btn btn-secondary">Uploads</a>
+    </div>
+
+    <table id="userTable" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>User guid</th>
+                <th>Email (facultative)</th>
+                <th>Creation date</th>
+                <th>Account disabled</th>
+                <th>Token guid</th>
+                <th>Token revoked / Token type</th>
+                <th>Uploads</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                foreach (User user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Guid</td>
+                        <td>@(user.Email ?? "Anonymous")</td>
+                        <td>@user.CreatedAt.ToString("G")</td>
+                        <td>@user.Disabled</td>
+                        <td>@user.Token.Guid</td>
+                        <td>@user.Token.Revoked / @user.Token.TokenType</td>
+                        <td>@user.Uploads?.Length</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#userTable').DataTable();
+    });
+</script>

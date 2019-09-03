@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ShareY.Attributes;
 using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Extensions;
@@ -11,7 +12,7 @@ using ShareY.Models;
 
 namespace ShareY.Controllers
 {
-    [Route("auth"), AllowAnonymous]
+    [Route("auth")]
     public class AuthController : ShareYController
     {
         private readonly UserController _userController;
@@ -47,7 +48,7 @@ namespace ShareY.Controllers
             return View();
         }
 
-        [Route("logout"), HttpGet]
+        [Route("logout"), HttpGet, RequiresAuthentication]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
@@ -80,7 +81,7 @@ namespace ShareY.Controllers
                     ViewData["Token"] = ((dynamic)oor.Value).Token;
                     break;
                 case ObjectResult or:
-                    ViewData["RegisterError"] = or.Value != null ? ((string) or.Value) : "";
+                    ViewData["RegisterError"] = or.Value != null ? ((string)or.Value) : "";
                     break;
             }
 
