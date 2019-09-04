@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShareY.Attributes;
@@ -23,7 +24,26 @@ namespace ShareY.Controllers
         [Route("uploads"), HttpGet]
         public IActionResult Uploads()
         {
-            return View();
+            var model = new AdminUploadsViewModel
+            {
+                Uploads = _dbContext.Uploads
+                    .Include(x => x.Author)
+                    .ToList()
+            };
+            return View(model);
+        }
+
+        [Route("uploads/{userGuid}"), HttpGet]
+        public IActionResult Uploads(Guid? userGuid)
+        {
+            var model = new AdminUploadsViewModel
+            {
+                Uploads = _dbContext.Uploads
+                    .Include(x => x.Author)
+                    .Where(x => x.AuthorGuid == userGuid)
+                    .ToList()
+            };
+            return View(model);
         }
 
         [Route("users"), HttpGet]
@@ -33,9 +53,16 @@ namespace ShareY.Controllers
             {
                 Users = _dbContext.Users
                     .Include(x => x.Token)
+                    .Include(x => x.Uploads)
                     .ToList()
             };
             return View(model);
+        }
+
+        [Route("users/{userGuid}"), HttpGet]
+        public IActionResult UserByGuid(Guid? userGuid)
+        {
+            return View();
         }
 
         [Route("settings"), HttpGet]

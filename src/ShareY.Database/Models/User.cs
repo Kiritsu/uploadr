@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ShareY.Database.Models
 {
@@ -9,6 +10,6 @@ namespace ShareY.Database.Models
         public string Email { get; set; }
         public bool Disabled { get; set; }
         public Token Token { get; set; }
-        public Upload[] Uploads { get; set; }
+        public ICollection<Upload> Uploads { get; set; }
     }
 }

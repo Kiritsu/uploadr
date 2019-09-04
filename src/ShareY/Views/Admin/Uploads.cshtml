@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Uploads - Admin Area";
+}
+
+<input hidden id="token" value="@ViewData[" UserToken"]" />
+<div class="container">
+    <h1>Upload list</h1>
+    <table id="uploadTable" class="table table-striped table-bordered  table-responsive-md">
+        <thead>
+            <tr>
+                <th>Upload id</th>
+                <th>Name</th>
+                <th>Author id</th>
+                <th>Added at</th>
+                <th>Views</th>
+                <th>Removed</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                foreach (Upload upload in Model.Uploads)
+                {
+                    <tr>
+                        <td align="center" valign="middle">@upload.Guid</td>
+                        <td align="center" valign="middle"><a target="_blank" asp-area="" asp-controller="Index" asp-action="GetFile" asp-route-name="@upload.FileName">@upload.FileName</a></td>
+                        <td align="center" valign="middle"><a class="btn btn-info" asp-area="" asp-controller="Admin" asp-action="UserByGuid" asp-route-userGuid="@upload.AuthorGuid">View user</a></td>
+                        <td align="center" valign="middle">@upload.CreatedAt.ToString("G")</td>
+                        <td align="center" valign="middle">@upload.ViewCount</td>
+                        @if (upload.Removed)
+                        {
+                            <td align="center" valign="middle">Removed</td>
+                        }
+                        else
+                        {
+                            <td align="center" valign="middle"><button class="btn btn-danger" value="@upload.FileName">Remove</button></td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(':button').click(function (e) {
+            var filename = e.target.getAttribute('value');
+            var token = $('#token');
+
+            $.ajax({
+                type: 'DELETE',
+                url: '/api/upload/delete/' + filename,
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-Token', token.val().toString());
+                },
+                success: function () {
+                    e.target.classList.remove('btn-danger');
+                    e.target.classList.add('btn-info');
+                    e.target.innerText = "Removed!";
+                },
+                error: function (jqXHR, textStatus, errorMessage) {
+                    if (errorMessage == 'Unauthorized') {
+                        window.alert('An error occured. The server responded: ' + errorMessage);
+                    } else {
+                        e.target.classList.remove('btn-danger');
+                        e.target.classList.add('btn-info');
+                        e.target.innerText = "Removed!";
+                    }
+                }
+            });
+        });
+    });
+</script>
