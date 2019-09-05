@@ -32,6 +32,11 @@ namespace ShareY.Services
         /// <param name="hashIp">Hash of the user's ip.</param>
         public bool IncrementAndValidateRateLimits(int hashIp)
         {
+            if (!_ottConfiguration.AntiSpam.Enabled)
+            {
+                return true;
+            }
+
             if (!_rateLimitHitPerIpHash.TryGetValue(hashIp, out var rate))
             {
                 _rateLimitHitPerIpHash.TryAdd(hashIp, (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), 1));
