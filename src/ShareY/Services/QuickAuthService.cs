@@ -37,15 +37,17 @@ namespace ShareY.Services
                 return true;
             }
 
+            var mins = TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout);
+
             if (!_rateLimitHitPerIpHash.TryGetValue(hashIp, out var rate))
             {
-                _rateLimitHitPerIpHash.TryAdd(hashIp, (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), 1));
+                _rateLimitHitPerIpHash.TryAdd(hashIp, (DateTimeOffset.Now + mins, 1));
             }
             else
             {
                 if (rate.Item1 - DateTimeOffset.Now <= TimeSpan.Zero)
                 {
-                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), 1);
+                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + mins, 1);
                 }
                 else if (_rateLimitHitPerIpHash[hashIp].Item2 > _ottConfiguration.AntiSpam.MaxTry)
                 {
@@ -53,7 +55,7 @@ namespace ShareY.Services
                 }
                 else
                 {
-                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), rate.Item2 + 1);
+                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + mins, rate.Item2 + 1);
                 }
             }
 
