@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Login";
+    var ott = (bool)ViewData["EnableOttButton"];
 }
 
 <form method="post">
@@ -11,10 +12,13 @@
     }
 
     <div class="form-group">
-        <label for="auth">Enter your token or request a one-time-token by entering your e-mail:</label>
+        <label for="auth">Enter your token @(ott ? "or request a one-time-token by entering your e-mail" : ""):</label>
         <input type="text" class="form-control" name="auth" id="auth">
     </div>
 
     <button type="submit" class="btn btn-light">Login</button>
-    <a asp-action="LoginByOtt" asp-controller="Auth" class="btn btn-light">Enter One-Time-Token</a>
+    @if (ott)
+    {
+        <a asp-action="LoginByOtt" asp-controller="Auth" class="btn btn-light">Enter One-Time-Token</a>
+    }
 </form>

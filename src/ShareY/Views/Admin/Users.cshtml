@@ -23,7 +23,7 @@
                 {
                     <tr>
                         <td align="center" valign="middle">@user.Guid</td>
-                        <td align="center" valign="middle">@(user.Email ?? "Anonymous")</td>
+                        <td align="center" valign="middle">@(string.IsNullOrWhiteSpace(user.Email) ? user.Email : "Anonymous")</td>
                         <td align="center" valign="middle">@user.CreatedAt.ToString("G")</td>
                         <td align="center" valign="middle">@user.Disabled</td>
                         <td align="center" valign="middle">@user.Token.Guid</td>

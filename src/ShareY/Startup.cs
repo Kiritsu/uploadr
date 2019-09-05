@@ -41,6 +41,8 @@ namespace ShareY
             services.Configure<DatabaseConfiguration>(x => Configuration.GetSection("Database").Bind(x));
             services.Configure<RoutesConfiguration>(x => Configuration.GetSection("Routes").Bind(x));
             services.Configure<FilesConfiguration>(x => Configuration.GetSection("Files").Bind(x));
+            services.Configure<OneTimeTokenConfiguration>(x => Configuration.GetSection("OneTimeToken").Bind(x));
+            services.Configure<ReCaptchaConfiguration>(x => Configuration.GetSection("reCAPTCHA").Bind(x));
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -54,6 +56,8 @@ namespace ShareY
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
             services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();
+            services.AddSingleton<IOneTimeTokenConfigurationProvider, OneTimeTokenConfigurationProvider>();
+            services.AddSingleton<IReCaptchaConfigurationProvider, ReCaptchaConfigurationProvider>();
 
             services.AddSingleton<ConnectionStringProvider>();
             services.AddDbContext<ShareYContext>(ServiceLifetime.Transient);

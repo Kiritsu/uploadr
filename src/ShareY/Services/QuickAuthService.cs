@@ -2,53 +2,93 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Database.Models;
+using ShareY.Interfaces;
 
 namespace ShareY.Services
 {
     public sealed class QuickAuthService
     {
         private readonly ShareYContext _dbContext;
+        private readonly OneTimeTokenConfiguration _ottConfiguration;
 
         private readonly ConcurrentDictionary<Guid, OneTimeToken> _oneTimeTokens;
+        private readonly ConcurrentDictionary<int, (DateTimeOffset, int)> _rateLimitHitPerIpHash;
 
-        public QuickAuthService(ShareYContext dbContext)
+        public QuickAuthService(ShareYContext dbContext, IOneTimeTokenConfigurationProvider ottConfiguration)
         {
             _dbContext = dbContext;
+            _ottConfiguration = ottConfiguration.GetConfiguration();
 
             _oneTimeTokens = new ConcurrentDictionary<Guid, OneTimeToken>();
+            _rateLimitHitPerIpHash = new ConcurrentDictionary<int, (DateTimeOffset, int)>();
+        }
+
+        /// <summary>
+        ///     Increments and checks if the user's ip is being rate limited.
+        /// </summary>
+        /// <param name="hashIp">Hash of the user's ip.</param>
+        public bool IncrementAndValidateRateLimits(int hashIp)
+        {
+            if (!_rateLimitHitPerIpHash.TryGetValue(hashIp, out var rate))
+            {
+                _rateLimitHitPerIpHash.TryAdd(hashIp, (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), 1));
+            }
+            else
+            {
+                if (rate.Item1 - DateTimeOffset.Now <= TimeSpan.Zero)
+                {
+                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), 1);
+                }
+                else if (_rateLimitHitPerIpHash[hashIp].Item2 > _ottConfiguration.AntiSpam.MaxTry)
+                {
+                    return false;
+                }
+                else
+                {
+                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout), rate.Item2 + 1);
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
         ///     Gets or create a new <see cref="OneTimeToken"/> for the specified user.
         /// </summary>
         /// <param name="userGuid">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
-        public OneTimeToken GetOrCreate(Guid userGuid)
+        public OneTimeToken GetOrCreate(Guid userGuid, int hashIp)
         {
-            return GetOrCreate(_dbContext.Users.Find(userGuid));
+            return GetOrCreate(_dbContext.Users.Find(userGuid), hashIp);
         }
 
         /// <summary>
         ///     Gets or create a new <see cref="OneTimeToken"/> for the specified user.
         /// </summary>
         /// <param name="user">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
-        public OneTimeToken GetOrCreate(User user)
+        public OneTimeToken GetOrCreate(User user, int hashIp)
         {
             if (user == null)
             {
                 throw new NullReferenceException("Provided user is null.");
             }
 
+            if (!IncrementAndValidateRateLimits(hashIp))
+            {
+                throw new InvalidOperationException($"You are being rate limited. Retry in {Math.Round((_rateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes)} minutes.");
+            }
+
             if (!_oneTimeTokens.TryGetValue(user.Guid, out var ott))
             {
-                ott = OneTimeToken.New(user.Guid);
+                ott = OneTimeToken.New(user.Guid, TimeSpan.FromMinutes(_ottConfiguration.Timeout));
                 _oneTimeTokens.TryAdd(user.Guid, ott);
             }
 
             if (ott.IsUsed || ott.ExpiresAt < DateTimeOffset.Now)
             {
-                ott = OneTimeToken.New(user.Guid);
+                ott = OneTimeToken.New(user.Guid, TimeSpan.FromMinutes(_ottConfiguration.Timeout));
                 _oneTimeTokens[user.Guid] = ott;
             }
 

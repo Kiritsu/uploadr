@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShareY.Attributes;
 using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Extensions;
@@ -18,36 +17,51 @@ namespace ShareY.Controllers
     {
         private readonly UserController _userController;
         private readonly RoutesConfiguration _routesConfiguration;
+        private readonly OneTimeTokenConfiguration _ottConfiguration;
         private readonly QuickAuthService _qas;
 
-        public AuthController(ShareYContext dbContext, UserController userController, IRoutesConfigurationProvider routesConfiguration, QuickAuthService qas) : base(dbContext)
+        public AuthController(ShareYContext dbContext, UserController userController, IRoutesConfigurationProvider routesConfiguration, QuickAuthService qas, IOneTimeTokenConfigurationProvider ottConfiguration) : base(dbContext)
         {
             _userController = userController;
             _routesConfiguration = routesConfiguration.GetConfiguration();
+            _ottConfiguration = ottConfiguration.GetConfiguration();
             _qas = qas;
         }
 
         [Route("login"), HttpGet]
         public IActionResult Login()
         {
+            ViewData["EnableOttButton"] = _ottConfiguration.Enabled;
+
             return View();
         }
 
         [Route("login/ott"), HttpGet]
         public IActionResult LoginByOtt()
         {
+            ViewData["OttEnabled"] = _ottConfiguration.Enabled;
+
             return View();
         }
 
         [Route("login/ott"), HttpPost]
         public IActionResult LoginByOttPost(Guid? ottGuid)
         {
+            ViewData["OttEnabled"] = _ottConfiguration.Enabled;
+
             return LoginByOtt(ottGuid);
         }
 
         [Route("login/ott/{ottGuid}"), HttpGet]
         public IActionResult LoginByOtt(Guid? ottGuid)
         {
+            ViewData["OttEnabled"] = _ottConfiguration.Enabled;
+
+            if (!_ottConfiguration.Enabled)
+            {
+                return View("LoginByOtt");
+            }
+
             if (!ottGuid.HasValue || ottGuid.Value == default)
             {
                 ViewData["ErrorMessage"] = "The given one-time-token was not valid.";
@@ -72,23 +86,39 @@ namespace ShareY.Controllers
         [Route("login"), HttpPost]
         public async Task<IActionResult> Login(string auth)
         {
+            ViewData["EnableOttButton"] = _ottConfiguration.Enabled;
+
             if (string.IsNullOrWhiteSpace(auth))
             {
-                ViewData["ErrorMessage"] = "The field is required buddy.";
+                ViewData["ErrorMessage"] = "The field is required.";
                 return View();
             }
 
             if (!Guid.TryParse(auth, out var guid))
             {
-                var potentialUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email.Equals(auth, StringComparison.OrdinalIgnoreCase));
-                if (potentialUser == null)
+                if (!_ottConfiguration.Enabled)
                 {
-                    ViewData["ErrorMessage"] = $"Couldn't find any user with email '{auth}'. Please enter a valid e-mail or token to log-in.";
+                    ViewData["ErrorMessage"] = "The provided token was not valid, is revoked, or your account has been disabled.";
                     return View();
                 }
 
-                var ott = _qas.GetOrCreate(potentialUser);
-                ViewData["InfoMessage"] = $"A One-Time-Token for the account '{auth}' has been generated. Please check your e-mails and click the magick-url. (debug: {ott.Token})";
+                var potentialUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email.Equals(auth, StringComparison.OrdinalIgnoreCase));
+
+                OneTimeToken ott = null;
+                if (potentialUser != null)
+                {
+                    try
+                    {
+                        ott = _qas.GetOrCreate(potentialUser, HttpContext.Connection.RemoteIpAddress.GetHashCode());
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        ViewData["ErrorMessage"] = ex.Message;
+                        return View();
+                    }
+                }
+
+                ViewData["InfoMessage"] = $"A One-Time-Token for the account '{auth}' has been generated. If the account exists, please check your e-mails and click the magick-url. (debug: {ott?.Token.ToString() ?? "invalid email"})";
                 return View();
             }
 
