@@ -70,7 +70,7 @@ namespace ShareY.Controllers
 
             try
             {
-                var user = _qas.GetAndValidateUserOtt(ottGuid.Value);
+                var user = _qas.GetAndValidateUserOtt(ottGuid.Value, HttpContext.Connection.RemoteIpAddress.GetHashCode());
                 _qas.Invalidate(user);
 
                 HttpContext.Session.Set("userToken", user.Token.Guid);

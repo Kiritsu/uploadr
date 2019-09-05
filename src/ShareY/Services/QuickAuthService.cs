@@ -106,8 +106,14 @@ namespace ShareY.Services
         ///     Returns the User depending on the <see cref="OneTimeToken"/>.
         /// </summary>
         /// <param name="ottGuid"><see cref="Guid"/> of the <see cref="OneTimeToken"/>.</param>
-        public User GetAndValidateUserOtt(Guid ottGuid)
+        /// <param name="hashIp">User's ip hash.</param>
+        public User GetAndValidateUserOtt(Guid ottGuid, int hashIp)
         {
+            if (!IncrementAndValidateRateLimits(hashIp))
+            {
+                throw new InvalidOperationException($"You are being rate limited. Retry in {Math.Round((_rateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes)} minutes.");
+            }
+
             if (!_oneTimeTokens.Values.Any(x => x.Token == ottGuid))
             {
                 throw new InvalidOperationException("The given one-time-token isn't valid.");
