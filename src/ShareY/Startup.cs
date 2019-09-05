@@ -49,6 +49,8 @@ namespace ShareY
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddSingleton<QuickAuthService>();
+
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
             services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();

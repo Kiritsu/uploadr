@@ -11,9 +11,10 @@
     }
 
     <div class="form-group">
-        <label for="userToken">User token:</label>
-        <input type="password" class="form-control" name="userToken" id="userToken">
+        <label for="auth">Enter your token or request a one-time-token by entering your e-mail:</label>
+        <input type="text" class="form-control" name="auth" id="auth">
     </div>
 
-    <button type="submit" class="btn btn-light">Login!</button>
+    <button type="submit" class="btn btn-light">Login</button>
+    <a asp-action="LoginByOtt" asp-controller="Auth" class="btn btn-light">Enter One-Time-Token</a>
 </form>
