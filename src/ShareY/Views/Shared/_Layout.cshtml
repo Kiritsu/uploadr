@@ -54,22 +54,30 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Signup">Signin</a>
                             </li>
                         }
-                        <li class="nav-item">
-                            @if ((bool)ViewData["IsAdmin"])
-                            {
+
+                        @if ((bool)ViewData["IsAdmin"])
+                        {
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin Area</a>
-                            }
-                        </li>
-                        <li class="nav-item">
-                            @if (!(bool)ViewData["IsAuthenticated"])
-                            {
+                            </li>
+                        }
+
+
+                        @if (!(bool)ViewData["IsAuthenticated"])
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="LoginByOtt">One-Time-Token Login</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
-                            }
-                            else
-                            {
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
-                            }
-                        </li>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
