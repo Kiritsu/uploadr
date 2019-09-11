@@ -21,6 +21,13 @@
       "pdf"
     ]
   },
+  "Email": {
+    "Server": "localhost",
+    "Port": 587,
+    "UseSsl": true,
+    "Auth": "noob@example.com",
+    "Password": "h4x0rdr0wss4p"
+  },
   "OneTimeToken": {
     "Enabled": true,
     "Timeout": 1,

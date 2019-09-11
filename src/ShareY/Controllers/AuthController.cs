@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Extensions;
@@ -19,13 +20,22 @@ namespace ShareY.Controllers
         private readonly RoutesConfiguration _routesConfiguration;
         private readonly OneTimeTokenConfiguration _ottConfiguration;
         private readonly QuickAuthService _qas;
+        private readonly EmailService _emails;
+        private readonly ILogger<AuthController> _logger;
+        private readonly Random _rng;
 
-        public AuthController(ShareYContext dbContext, UserController userController, IRoutesConfigurationProvider routesConfiguration, QuickAuthService qas, IOneTimeTokenConfigurationProvider ottConfiguration) : base(dbContext)
+        public AuthController(ShareYContext dbContext, UserController userController, 
+            IRoutesConfigurationProvider routesConfiguration, QuickAuthService qas, 
+            IOneTimeTokenConfigurationProvider ottConfiguration, EmailService emails,
+            ILogger<AuthController> logger, Random rng) : base(dbContext)
         {
             _userController = userController;
             _routesConfiguration = routesConfiguration.GetConfiguration();
             _ottConfiguration = ottConfiguration.GetConfiguration();
             _qas = qas;
+            _emails = emails;
+            _logger = logger;
+            _rng = rng;
         }
 
         [Route("login"), HttpGet]
@@ -118,7 +128,21 @@ namespace ShareY.Controllers
                     }
                 }
 
-                ViewData["InfoMessage"] = $"A One-Time-Token for the account '{auth}' has been generated. If the account exists, please check your e-mails and click the magick-url. (debug: {ott?.Token.ToString() ?? "invalid email"})";
+                try
+                {
+                    await _emails.SendMagickUrlAsync(ott, $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
+                }
+                catch (Exception e)
+                {
+                    var debugId = $"#{_rng.Next(100, 9999)}-{DateTimeOffset.Now.Ticks}";
+                    _logger.LogError($"An error happened with email service (debug id {debugId}): {e.Message}. Stack trace: {e.StackTrace}");
+
+                    ViewData["ErrorMessage"] = $"Something really bad happened. Please report this issue with the following id: {debugId}";
+                    return View();
+                }
+
+                ViewData["InfoMessage"] = $"A One-Time-Token for the account '{auth}' has been generated. If the account exists, please check your e-mails and click the magick-url.";
+
                 return View();
             }
 

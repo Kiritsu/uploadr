@@ -1,7 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
-
-namespace ShareY.Configurations
+﻿namespace ShareY.Configurations
 {
     public class OneTimeTokenConfiguration
     {

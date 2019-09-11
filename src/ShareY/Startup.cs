@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -43,6 +44,7 @@ namespace ShareY
             services.Configure<FilesConfiguration>(x => Configuration.GetSection("Files").Bind(x));
             services.Configure<OneTimeTokenConfiguration>(x => Configuration.GetSection("OneTimeToken").Bind(x));
             services.Configure<ReCaptchaConfiguration>(x => Configuration.GetSection("reCAPTCHA").Bind(x));
+            services.Configure<EmailConfiguration>(x => Configuration.GetSection("Email").Bind(x));
 
             services.Configure<CookiePolicyOptions>(options =>
             {
@@ -52,12 +54,16 @@ namespace ShareY
             });
 
             services.AddSingleton<QuickAuthService>();
+            services.AddSingleton<EmailService>();
+            services.AddSingleton<SmtpClient>();
+            services.AddSingleton<Random>();
 
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
             services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();
             services.AddSingleton<IOneTimeTokenConfigurationProvider, OneTimeTokenConfigurationProvider>();
             services.AddSingleton<IReCaptchaConfigurationProvider, ReCaptchaConfigurationProvider>();
+            services.AddSingleton<IEmailConfigurationProvider, EmailConfigurationProvider>();
 
             services.AddSingleton<ConnectionStringProvider>();
             services.AddDbContext<ShareYContext>(ServiceLifetime.Transient);
