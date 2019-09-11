@@ -41,7 +41,7 @@ namespace ShareY.Services
                 await _smtpClient.ConnectAsync(_emailConfiguration.Server, _emailConfiguration.Port, _emailConfiguration.UseSsl);
             }
 
-            if (!_smtpClient.IsAuthenticated)
+            if (!_smtpClient.IsAuthenticated && !string.IsNullOrWhiteSpace(_emailConfiguration.Auth))
             {
                 await _smtpClient.AuthenticateAsync(_emailConfiguration.Auth, _emailConfiguration.Password);
             }
