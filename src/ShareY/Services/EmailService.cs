@@ -20,6 +20,8 @@ namespace ShareY.Services
             _emailConfiguration = emailConfig.GetConfiguration();
             _smtpClient = smtpClient;
             _dbContext = dbContext;
+
+            smtpClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
         }
 
         public async Task SendMagickUrlAsync(OneTimeToken ott, string baseUrl)
@@ -36,7 +38,7 @@ namespace ShareY.Services
             };
 
             if (!_smtpClient.IsConnected)
-            {
+            { 
                 await _smtpClient.ConnectAsync(_emailConfiguration.Server, _emailConfiguration.Port, _emailConfiguration.UseSsl);
             }
 
