@@ -106,6 +106,12 @@ namespace ShareY.Controllers
 
             if (!Guid.TryParse(auth, out var guid))
             {
+                if (!auth.IsValidEmail())
+                {
+                    ViewData["ErrorMessage"] = "The field has to contain a valid e-mail or token.";
+                    return View();
+                }
+
                 if (!_ottConfiguration.Enabled)
                 {
                     ViewData["ErrorMessage"] = "The provided token was not valid, is revoked, or your account has been disabled.";

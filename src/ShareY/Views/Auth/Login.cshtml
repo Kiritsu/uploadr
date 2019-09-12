@@ -16,9 +16,21 @@
         <input type="text" class="form-control" name="auth" id="auth">
     </div>
 
-    <button type="submit" class="btn btn-light">Login</button>
-    @if (ott)
-    {
-        <a asp-action="LoginByOtt" asp-controller="Auth" class="btn btn-light">Enter One-Time-Token</a>
-    }
+    <button type="submit" class="btn btn-light">Login or request One-Time-Token</button>
 </form>
+<hr />
+@if (ott)
+{
+    <form method="post" asp-controller="Auth" asp-action="LoginByOttPost">
+        <div class="form-group">
+            <label for="ottGuid">Enter a valid one-time-token:</label>
+            <input type="text" class="form-control" name="ottGuid" id="ottGuid">
+        </div>
+
+        <button type="submit" class="btn btn-light">Login with One-Time-Token</button>
+    </form>
+}
+else
+{
+    <p class="alert alert-danger">One-Time-Token feature is disabled.</p>
+}

@@ -62,12 +62,8 @@
                             </li>
                         }
 
-
                         @if (!(bool)ViewData["IsAuthenticated"])
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="LoginByOtt">One-Time-Token Login</a>
-                            </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
                             </li>
