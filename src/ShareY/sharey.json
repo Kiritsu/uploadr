@@ -23,6 +23,7 @@
   },
   "Email": {
     "Server": "localhost",
+    "Sender": "noreply@alnmrc.com",
     "Port": 587,
     "UseSsl": true,
     "Auth": null,

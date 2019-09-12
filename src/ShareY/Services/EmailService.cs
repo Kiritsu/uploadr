@@ -29,7 +29,7 @@ namespace ShareY.Services
             var user = await _dbContext.Users.FindAsync(ott.UserGuid);
 
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_emailConfiguration.Auth));
+            email.From.Add(new MailboxAddress(_emailConfiguration.Sender));
             email.To.Add(new MailboxAddress(user.Email));
             email.Subject = "A Magick-Url has been requested on your account.";
             email.Body = new TextPart(TextFormat.Html)
