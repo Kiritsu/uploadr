@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -98,61 +99,70 @@ namespace ShareY.Controllers
         [HttpPost, DisableRequestSizeLimit]
         public async Task<IActionResult> PostUpload()
         {
-            var file = Request.Form.Files.FirstOrDefault();
-
-            if (file is null)
+            foreach (var file in Request.Form.Files)
             {
-                return BadRequest();
+                if (file is null)
+                {
+                    return BadRequest();
+                }
+
+                if (file.Length > _filesConfiguration.SizeMax)
+                {
+                    return BadRequest($"Size of the file too big. ({_filesConfiguration.SizeMax}B max)");
+                }
+
+                if (file.Length < _filesConfiguration.SizeMin)
+                {
+                    return BadRequest($"Size of the file too low. ({_filesConfiguration.SizeMin}B min)");
+                }
+
+                var extension = Path.GetExtension(file.FileName);
+
+                if (!_filesConfiguration.FileExtensions.Any(x => x == extension.Replace(".", "")))
+                {
+                    return BadRequest(new { Message = "Unsupported file extension.", FileExtensions = _filesConfiguration.FileExtensions });
+                }
             }
 
-            if (file.Length > _filesConfiguration.SizeMax)
+            var uploads = new List<object>();
+            foreach (var file in Request.Form.Files)
             {
-                return BadRequest($"Size of the file too big. ({_filesConfiguration.SizeMax}B max)");
+                var extension = Path.GetExtension(file.FileName);
+                var filename = $"{GetRandomName()}{extension}";
+
+                while (_dbContext.Uploads.Any(x => x.FileName == filename))
+                {
+                    filename = $"{GetRandomName()}{extension}";
+                }
+
+                var upload = new Upload
+                {
+                    AuthorGuid = Guid.Parse(HttpContext.User.Identity.Name),
+                    CreatedAt = DateTime.Now,
+                    ViewCount = 0,
+                    Removed = false,
+                    Guid = Guid.NewGuid(),
+                    FileName = filename,
+                    ContentType = file.ContentType
+                };
+
+                await _dbContext.Uploads.AddAsync(upload);
+                await _dbContext.SaveChangesAsync();
+
+                if (!Directory.Exists("./uploads"))
+                {
+                    Directory.CreateDirectory("./uploads");
+                }
+
+                using (var fs = System.IO.File.Create($"./uploads/{filename}"))
+                {
+                    await file.CopyToAsync(fs);
+                }
+
+                uploads.Add(new { Filename = filename, Type = upload.ContentType });
             }
 
-            if (file.Length < _filesConfiguration.SizeMin)
-            {
-                return BadRequest($"Size of the file too low. ({_filesConfiguration.SizeMin}B min)");
-            }
-
-            var extension = Path.GetExtension(file.FileName);
-
-            if (!_filesConfiguration.FileExtensions.Any(x => x == extension.Replace(".", "")))
-            {
-                return BadRequest(new { Message = "Unsupported file extension.", FileExtensions = _filesConfiguration.FileExtensions });
-            }
-
-            var filename = $"{GetRandomName()}{extension}";
-            while (_dbContext.Uploads.Any(x => x.FileName == filename))
-            {
-                filename = $"{GetRandomName()}{extension}";
-            }
-
-            var upload = new Upload
-            {
-                AuthorGuid = Guid.Parse(HttpContext.User.Identity.Name),
-                CreatedAt = DateTime.Now,
-                ViewCount = 0,
-                Removed = false,
-                Guid = Guid.NewGuid(),
-                FileName = filename,
-                ContentType = file.ContentType
-            };
-
-            await _dbContext.Uploads.AddAsync(upload);
-            await _dbContext.SaveChangesAsync();
-
-            if (!Directory.Exists("./uploads"))
-            {
-                Directory.CreateDirectory("./uploads");
-            }
-
-            using (var fs = System.IO.File.Create($"./uploads/{filename}"))
-            {
-                await file.CopyToAsync(fs);
-            }
-
-            return Ok(new { Filename = filename, Type = upload.ContentType });
+            return Json(uploads.Count == 1 ? uploads.First() : uploads);
         }
 
         private static string GetRandomName()

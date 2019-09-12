@@ -12,13 +12,34 @@
   },
   "Files": {
     "SizeMin": 0,
-	"SizeMax": 50000000,
-	"FileExtensions": [
-		"jpg",
-		"png",
-		"gif",
-		"mp3",
-		"pdf"
-	]
+    "SizeMax": 50000000,
+    "FileExtensions": [
+      "jpg",
+      "png",
+      "gif",
+      "mp3",
+      "pdf"
+    ]
+  },
+  "Email": {
+    "Server": "localhost",
+    "Port": 587,
+    "UseSsl": true,
+    "Auth": null,
+    "Password": null
+  },
+  "OneTimeToken": {
+    "Enabled": true,
+    "Timeout": 1,
+    "AntiSpam": {
+      "Enabled": true,
+      "MaxTry": 5,
+      "Timeout": 30
+    }
+  },
+  "reCAPTCHA": {
+    "Enabled": false,
+    "Secret": "",
+    "SiteKey": ""
   }
 }

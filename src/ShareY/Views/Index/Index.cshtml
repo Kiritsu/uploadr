@@ -15,7 +15,7 @@
             <div>
                 <p>Upload the file you want. Supported file extensions: <code>@string.Join(", ", filesConfig.FileExtensions)</code>.</p>
                 <p>Size of the file must not exceed <code>@Math.Round((filesConfig.SizeMax / 1024f) / 1024f)MB</code></p>
-                <input id="file_upload" type="file" required>
+                <input id="file_upload" type="file" required />
             </div>
         </div>
         <div class="form-group">

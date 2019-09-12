@@ -13,7 +13,7 @@
     }
     else if (token.HasValue)
     {
-        <p class="alert alert-info">Welcome and thank you for using ShareY! Your unique token is @token.Value. You must <span class="alert-danger">NOT</span> share it.</p>
+        <p class="alert alert-info">Welcome and thank you for using ShareY! Your unique token is @token.Value. You must <span class="alert-danger">NOT</span> share it. If you registered as anonymous (no e-mail), you won't be able to reset your token if you have lost it!</p>
     }
     else if (!string.IsNullOrWhiteSpace(error))
     {
