@@ -192,7 +192,16 @@ namespace ShareY.Controllers
             switch (content)
             {
                 case OkObjectResult oor:
-                    ViewData["Token"] = ((dynamic)oor.Value).Token;
+                    var token = ((dynamic)oor.Value).Token;
+                    ViewData["Token"] = token;
+                    try
+                    {
+                        await _emails.SendSignupSuccessAsync(token, $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
+                    }
+                    catch
+                    {
+                        //ignored
+                    }
                     break;
                 case ObjectResult or:
                     ViewData["RegisterError"] = or.Value != null ? ((string)or.Value) : "";
