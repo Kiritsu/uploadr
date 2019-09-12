@@ -1,7 +1,5 @@
 ﻿using System.Threading.Tasks;
-using MailKit;
 using MailKit.Net.Smtp;
-using Microsoft.Extensions.Logging;
 using MimeKit;
 using MimeKit.Text;
 using ShareY.Configurations;

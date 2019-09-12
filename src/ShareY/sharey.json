@@ -25,8 +25,8 @@
     "Server": "localhost",
     "Port": 587,
     "UseSsl": true,
-    "Auth": "noob@example.com",
-    "Password": "h4x0rdr0wss4p"
+    "Auth": null,
+    "Password": null
   },
   "OneTimeToken": {
     "Enabled": true,
