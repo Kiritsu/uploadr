@@ -2,6 +2,9 @@
     ViewData["Title"] = "Uploads - Admin Area";
 }
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" />
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
 <input hidden id="token" value="@ViewData["UserToken"]" />
 <div class="container">
     <h1>Upload list</h1>
@@ -43,6 +46,8 @@
 
 <script type="text/javascript">
     $(document).ready(function () {
+        $('#uploadTable').DataTable();
+
         $(':button').click(function (e) {
             var filename = e.target.getAttribute('value');
             var token = $('#token');
