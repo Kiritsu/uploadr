@@ -34,8 +34,8 @@ namespace ShareY.Controllers
 
             DbUser = await _dbContext.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Token.Guid == UserToken);
 
-            ViewData["IsAuthenticated"] = DbUser != null;
-            ViewData["IsAdmin"] = DbUser != null && DbUser.Token.TokenType == TokenType.Admin;
+            ViewData["IsAuthenticated"] = DbUser != null && !DbUser.Token.Revoked;
+            ViewData["IsAdmin"] = DbUser != null && !DbUser.Token.Revoked && DbUser.Token.TokenType == TokenType.Admin;
 
             if (DbUser != null)
             {
@@ -55,7 +55,7 @@ namespace ShareY.Controllers
                     throw new Exception("Admin authentication required.");
                 }
 
-                if (attributes.Any(x => x.AttributeType == typeof(RequiresAuthentication)) && DbUser == null)
+                if (attributes.Any(x => x.AttributeType == typeof(RequiresAuthentication)) && DbUser == null && !DbUser.Token.Revoked)
                 {
                     throw new Exception("Authentication required.");
                 }
