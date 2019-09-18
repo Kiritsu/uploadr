@@ -43,7 +43,6 @@ namespace ShareY
             services.Configure<RoutesConfiguration>(x => Configuration.GetSection("Routes").Bind(x));
             services.Configure<FilesConfiguration>(x => Configuration.GetSection("Files").Bind(x));
             services.Configure<OneTimeTokenConfiguration>(x => Configuration.GetSection("OneTimeToken").Bind(x));
-            services.Configure<ReCaptchaConfiguration>(x => Configuration.GetSection("reCAPTCHA").Bind(x));
             services.Configure<EmailConfiguration>(x => Configuration.GetSection("Email").Bind(x));
 
             services.Configure<CookiePolicyOptions>(options =>
@@ -62,7 +61,6 @@ namespace ShareY
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
             services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();
             services.AddSingleton<IOneTimeTokenConfigurationProvider, OneTimeTokenConfigurationProvider>();
-            services.AddSingleton<IReCaptchaConfigurationProvider, ReCaptchaConfigurationProvider>();
             services.AddSingleton<IEmailConfigurationProvider, EmailConfigurationProvider>();
 
             services.AddSingleton<ConnectionStringProvider>();
