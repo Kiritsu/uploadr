@@ -37,10 +37,5 @@
       "MaxTry": 5,
       "Timeout": 30
     }
-  },
-  "reCAPTCHA": {
-    "Enabled": false,
-    "Secret": "",
-    "SiteKey": ""
   }
 }

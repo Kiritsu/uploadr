@@ -118,11 +118,17 @@ namespace ShareY.Controllers
                     return View();
                 }
 
-                var potentialUser = await _dbContext.Users.FirstOrDefaultAsync(x => x.Email.Equals(auth, StringComparison.OrdinalIgnoreCase));
+                var potentialUser = await _dbContext.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Email.Equals(auth, StringComparison.OrdinalIgnoreCase));
 
                 OneTimeToken ott = null;
                 if (potentialUser != null)
                 {
+                    if (potentialUser.Disabled || potentialUser.Token.Revoked)
+                    {
+                        ViewData["ErrorMessage"] = "This account is either disabled or your token has not been renewed.";
+                        return View();
+                    }
+
                     try
                     {
                         ott = _qas.GetOrCreate(potentialUser, HttpContext.Connection.RemoteIpAddress.GetHashCode());
