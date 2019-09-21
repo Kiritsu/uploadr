@@ -18,6 +18,8 @@ ShareY can be used as a ShareX custom upload server.
 - `PATCH /api/user/unblock/{guid}` unblocks a user by it's guid. Requires `admin` authorization.
 - `PATCH /api/user/block/{guid}` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
 - `DELETE /api/user/delete` deletes the authenticated account. Requires `user` authorization.
+- `PATCH /api/user/token/reset` resets the current user's token and returns the new generated one. Requires `user` authorization.
+- `DELETE /api/user/token/revoke` revokes the token of the current's user. Requires `user` authorization.
 - `PATCH /api/routes/{routeName}?state={boolean}` enables or disables a configurable route. Requires `admin` authorization. Unknown `routeName` returns every available routes.
 - `POST /api/user/create` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
 ```json

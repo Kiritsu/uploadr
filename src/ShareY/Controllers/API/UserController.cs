@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ShareY.Configurations;
 using ShareY.Database;
 using ShareY.Database.Enums;
@@ -22,6 +23,44 @@ namespace ShareY.Controllers
         {
             _dbContext = dbContext;
             _routesConfiguration = routesConfiguration.GetConfiguration();
+        }
+
+        [HttpPatch, Route("token/reset"), Authorize]
+        public async Task<IActionResult> ResetAsync()
+        {
+            var guid = Guid.Parse(HttpContext.User.Identity.Name);
+
+            var token = await _dbContext.Tokens.Include(x => x.User).FirstOrDefaultAsync(x => x.UserGuid == guid);
+            _dbContext.Remove(token);
+
+            var dbToken = new Token
+            {
+                CreatedAt = DateTime.Now,
+                Guid = Guid.NewGuid(),
+                UserGuid = guid,
+                TokenType = TokenType.User,
+                Revoked = false
+            };
+
+            await _dbContext.AddAsync(dbToken);
+            await _dbContext.SaveChangesAsync();
+
+            return Json(new { Token = dbToken.Guid.ToString() });
+        }
+
+        [HttpDelete, Route("token/revoke"), Authorize]
+        public async Task<IActionResult> RevokeToken()
+        {
+            var guid = Guid.Parse(User.Identity.Name);
+
+            var token = await _dbContext.Tokens.Include(x => x.User).FirstOrDefaultAsync(x => x.UserGuid == guid);
+            token.Revoked = true;
+
+            _dbContext.Update(token);
+
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Token revoked");
         }
 
         [HttpPatch, Route("unblock/{guid}"), Authorize(Roles = "Admin")]
