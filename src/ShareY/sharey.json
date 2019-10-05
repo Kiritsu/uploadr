@@ -27,7 +27,8 @@
     "Port": 587,
     "UseSsl": true,
     "Auth": null,
-    "Password": null
+    "Password": null,
+    "Timeout": 10
   },
   "OneTimeToken": {
     "Enabled": true,

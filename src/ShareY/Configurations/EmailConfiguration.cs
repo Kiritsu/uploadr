@@ -9,5 +9,7 @@
 
         public string Auth { get; set; }
         public string Password { get; set; }
+
+        public int Timeout { get; set; }
     }
 }

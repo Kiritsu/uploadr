@@ -11,26 +11,22 @@
         }
     }
 
-    <div class="form-group">
-        <label for="auth">Enter your token @(ott ? "or request a one-time-token by entering your e-mail" : ""):</label>
-        <input type="text" class="form-control" name="auth" id="auth">
-    </div>
-
+<div class="form-group col-sm-7">
+    <label for="auth">Enter your token @(ott ? "or request a one-time-token by entering your e-mail" : ""):</label>
+    <input type="text" class="form-control" name="auth" id="auth" placeholder="Token or Email">
+    <p>Either enter a valid email or your token.</p>
     <button type="submit" class="btn btn-light">Login or request One-Time-Token</button>
+</div>
 </form>
 <hr />
 @if (ott)
 {
     <form method="post" asp-controller="Auth" asp-action="LoginByOttPost">
-        <div class="form-group">
+        <div class="form-group col-sm-7">
             <label for="ottGuid">Enter a valid one-time-token:</label>
-            <input type="text" class="form-control" name="ottGuid" id="ottGuid">
+            <input type="text" class="form-control" name="ottGuid" id="ottGuid" placeholder="One-Time-Token">
+            <p>Put the one-time-token you have received by email here.</p>
+            <button type="submit" class="btn btn-light">Login with One-Time-Token</button>
         </div>
-
-        <button type="submit" class="btn btn-light">Login with One-Time-Token</button>
     </form>
-}
-else
-{
-    <p class="alert alert-danger">One-Time-Token feature is disabled.</p>
 }

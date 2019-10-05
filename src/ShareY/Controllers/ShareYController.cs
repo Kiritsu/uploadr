@@ -13,7 +13,7 @@ using ShareY.Extensions;
 
 namespace ShareY.Controllers
 {
-    public class ShareYController : Controller
+    public abstract class ShareYController : Controller
     {
         protected readonly ShareYContext _dbContext;
 

@@ -48,7 +48,6 @@ namespace ShareY.Authentications
         {
             if (!TryGetTokenByHeader(out var tokenGuid))
             {
-                _logger.LogWarning("Missing Authorization.");
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization."));
             }
 

@@ -21,6 +21,7 @@ namespace ShareY.Services
             _smtpClient = smtpClient;
             _dbContext = dbContext;
 
+            smtpClient.Timeout = _emailConfiguration.Timeout * 1000;
             smtpClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
         }
 

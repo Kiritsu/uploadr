@@ -6,7 +6,7 @@ using ShareY.Database;
 
 namespace ShareY.Controllers
 {
-    [Route(""), AllowAnonymous]
+    [Route("")]
     public class IndexController : ShareYController
     {
         public IndexController(ShareYContext dbContext) : base(dbContext)
