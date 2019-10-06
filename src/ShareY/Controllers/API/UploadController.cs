@@ -128,12 +128,7 @@ namespace ShareY.Controllers
             foreach (var file in Request.Form.Files)
             {
                 var extension = Path.GetExtension(file.FileName);
-                var filename = $"{GetRandomName()}{extension}";
-
-                while (_dbContext.Uploads.Any(x => x.FileName == filename))
-                {
-                    filename = $"{GetRandomName()}{extension}";
-                }
+                var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
 
                 var upload = new Upload
                 {
@@ -147,6 +142,7 @@ namespace ShareY.Controllers
                 };
 
                 await _dbContext.Uploads.AddAsync(upload);
+
                 await _dbContext.SaveChangesAsync();
 
                 if (!Directory.Exists("./uploads"))
@@ -163,13 +159,6 @@ namespace ShareY.Controllers
             }
 
             return Json(uploads.Count == 1 ? uploads.First() : uploads);
-        }
-
-        private static string GetRandomName()
-        {
-            const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random(DateTime.Now.Millisecond);
-            return new string(Enumerable.Repeat(chars, 10).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }
