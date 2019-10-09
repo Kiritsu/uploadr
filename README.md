@@ -12,16 +12,16 @@ ShareY can be used as a ShareX custom upload server.
 
 - `GET /` returns a view of the main page.
 - `GET /{file_name}` returns a file if it exists.
-- `GET /api/upload/details/{file_name}` returns as a `JSON` details of the specified file. Requires `user` authorization.
-- `DELETE /api/upload/delete/{file_name}` deletes the specified file. Requires `user` authorization. Only the author can delete its upload.
+- `GET /api/upload/{file_name}` returns as a `JSON` details of the specified file. Requires `user` authorization.
+- `DELETE /api/upload/{file_name}` deletes the specified file. Requires `user` authorization. Only the author can delete its upload.
 - `POST /api/upload` uploads the given file in the body of the request. Requires `user` authorization. Redirects to `GET /{file_name}`.
-- `PATCH /api/user/unblock/{guid}` unblocks a user by it's guid. Requires `admin` authorization.
-- `PATCH /api/user/block/{guid}` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
-- `DELETE /api/user/delete` deletes the authenticated account. Requires `user` authorization.
-- `PATCH /api/user/token/reset` resets the current user's token and returns the new generated one. Requires `user` authorization.
-- `DELETE /api/user/token/revoke` revokes the token of the current's user. Requires `user` authorization.
+- `PATCH /api/user/{guid}/block?block=false` unblocks a user by it's guid. Requires `admin` authorization.
+- `PATCH /api/user/{guid}/block?block=true` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
+- `DELETE /api/user` deletes the authenticated account. Requires `user` authorization.
+- `DELETE /api/user/token?reset=true` resets the current user's token and returns the new generated one. Requires `user` authorization.
+- `DELETE /api/user/token` revokes the token of the current's user. Requires `user` authorization.
 - `PATCH /api/routes/{routeName}?state={boolean}` enables or disables a configurable route. Requires `admin` authorization. Unknown `routeName` returns every available routes.
-- `POST /api/user/create` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
+- `POST /api/user` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
 ```json
 {
   "Email": "your.email@exemple.com"

@@ -25,7 +25,7 @@ namespace ShareY.Controllers
             _filesConfiguration = filesConfiguration.GetConfiguration();
         }
 
-        [HttpGet, Route("details/{name}")]
+        [HttpGet, Route("{name}")]
         public IActionResult DetailsUpload(string name)
         {
             var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
@@ -56,7 +56,7 @@ namespace ShareY.Controllers
                 });
         }
 
-        [HttpDelete, Route("delete/{name}")]
+        [HttpDelete, Route("{name}")]
         public async Task<IActionResult> DeleteUpload(string name)
         {
             var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
@@ -96,7 +96,7 @@ namespace ShareY.Controllers
             return Ok("File has been successfully removed.");
         }
 
-        [HttpPost, DisableRequestSizeLimit]
+        [HttpPost, Route(""), DisableRequestSizeLimit]
         public async Task<IActionResult> PostUpload()
         {
             foreach (var file in Request.Form.Files)
