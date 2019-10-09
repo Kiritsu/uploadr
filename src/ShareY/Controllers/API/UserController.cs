@@ -25,46 +25,43 @@ namespace ShareY.Controllers
             _routesConfiguration = routesConfiguration.GetConfiguration();
         }
 
-        [HttpPatch, Route("token/reset"), Authorize]
-        public async Task<IActionResult> ResetAsync()
+        [HttpDelete, Route("token"), Authorize]
+        public async Task<IActionResult> ResetAsync([FromQuery] bool reset = false)
         {
             var guid = Guid.Parse(HttpContext.User.Identity.Name);
 
             var token = await _dbContext.Tokens.Include(x => x.User).FirstOrDefaultAsync(x => x.UserGuid == guid);
-            _dbContext.Remove(token);
 
-            var dbToken = new Token
+            if (reset)
             {
-                CreatedAt = DateTime.Now,
-                Guid = Guid.NewGuid(),
-                UserGuid = guid,
-                TokenType = TokenType.User,
-                Revoked = false
-            };
+                _dbContext.Remove(token);
 
-            await _dbContext.AddAsync(dbToken);
+                token = new Token
+                {
+                    CreatedAt = DateTime.Now,
+                    Guid = Guid.NewGuid(),
+                    UserGuid = guid,
+                    TokenType = TokenType.User,
+                    Revoked = false
+                };
+
+                await _dbContext.AddAsync(token);
+            }
+            else
+            {
+                token.Revoked = true;
+                _dbContext.Update(token);
+            }
+            
             await _dbContext.SaveChangesAsync();
 
-            return Json(new { Token = dbToken.Guid.ToString() });
+            return reset
+                ? Json(new { Token = token.Guid.ToString() }) as IActionResult
+                : Ok("Token revoked");
         }
 
-        [HttpDelete, Route("token/revoke"), Authorize]
-        public async Task<IActionResult> RevokeToken()
-        {
-            var guid = Guid.Parse(User.Identity.Name);
-
-            var token = await _dbContext.Tokens.Include(x => x.User).FirstOrDefaultAsync(x => x.UserGuid == guid);
-            token.Revoked = true;
-
-            _dbContext.Update(token);
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Token revoked");
-        }
-
-        [HttpPatch, Route("unblock/{guid}"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UnblockUser(string guid)
+        [HttpPatch, Route("{guid}/block"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnblockUser(string guid, [FromQuery] bool block)
         {
             if (!Guid.TryParse(guid, out var userGuid))
             {
@@ -82,42 +79,17 @@ namespace ShareY.Controllers
                 return BadRequest("Cannot modify admin token.");
             }
 
-            user.Disabled = false;
+            user.Disabled = !block;
             _dbContext.Update(user);
 
             await _dbContext.SaveChangesAsync();
 
-            return Ok("User unblocked.");
+            return Ok(block
+                ? "User blocked."
+                : "User unblocked.");
         }
 
-        [HttpPatch, Route("block/{guid}"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> BlockUser(string guid)
-        {
-            if (!Guid.TryParse(guid, out var userGuid))
-            {
-                return BadRequest("Invalid token supplied.");
-            }
-
-            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
-            if (user is null)
-            {
-                return BadRequest("Unknown token supplied.");
-            }
-
-            if (user.Token.TokenType == TokenType.Admin)
-            {
-                return BadRequest("Cannot modify admin token.");
-            }
-
-            user.Disabled = true;
-            _dbContext.Update(user);
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("User blocked.");
-        }
-
-        [HttpDelete, Route("delete"), Authorize]
+        [HttpDelete, Route(""), Authorize]
         public async Task<IActionResult> DeleteUser()
         {
             var user = _dbContext.Users.FirstOrDefault(x => x.Guid == Guid.Parse(HttpContext.User.Identity.Name));
@@ -129,7 +101,7 @@ namespace ShareY.Controllers
             return Ok("This account has been removed.");
         }
 
-        [HttpPost, Route("create"), AllowAnonymous]
+        [HttpPost, Route(""), AllowAnonymous]
         public async Task<IActionResult> CreateUser(UserCreateModel user)
         {
             if (!_routesConfiguration.UserRegisterRoute)
