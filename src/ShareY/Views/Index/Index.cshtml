@@ -2,14 +2,13 @@
     ViewData["Title"] = "Home Page";
 }
 
-@using ShareY.Interfaces
 @inject IFilesConfigurationProvider files
 @{
     var filesConfig = files.GetConfiguration();
 }
 
 <div class="container">
-    @if ((bool)ViewData["IsAuthenticated"])
+    @if (User.Identity.IsAuthenticated)
     {
         <div class="form-group">
             <div>
@@ -20,7 +19,7 @@
         </div>
         <div class="form-group">
             <div>
-                <input type="submit" value="Upload" onclick="uploadFile('@ViewData["UserToken"]')">
+                <input type="submit" value="Upload" onclick="uploadFile('@User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken)?.Value')">
             </div>
         </div>
 
@@ -35,7 +34,7 @@
     }
 </div>
 
-@if ((bool)ViewData["IsAuthenticated"])
+@if (User.Identity.IsAuthenticated)
 {
     <script type="text/javascript">
         function uploadFile(token) {

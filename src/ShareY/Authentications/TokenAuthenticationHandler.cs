@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ShareY.Database;
+using ShareY.Extensions;
 
 namespace ShareY.Authentications
 {
@@ -15,10 +16,12 @@ namespace ShareY.Authentications
     {
         public const string AuthenticationSchemeName = "TokenAuthenticationScheme";
 
+        public const string ClaimToken = "https://schemas.alnmrc.com/claims/token";
+
         private readonly ShareYContext _database;
         private readonly ILogger<TokenAuthenticationHandler> _logger;
 
-        public TokenAuthenticationHandler(IOptionsMonitor<TokenAuthenticationOptions> options, ILoggerFactory logger, 
+        public TokenAuthenticationHandler(IOptionsMonitor<TokenAuthenticationOptions> options, ILoggerFactory logger,
             UrlEncoder encoder, ISystemClock clock, ShareYContext database) : base(options, logger, encoder, clock)
         {
             _database = database;
@@ -31,7 +34,7 @@ namespace ShareY.Authentications
 
             if ((!Request.Headers.TryGetValue("X-Token", out var values) || values.Count == 0))
             {
-               return false;
+                return false;
             }
 
             var tokenStr = values.First();
@@ -44,9 +47,20 @@ namespace ShareY.Authentications
             return true;
         }
 
+        private bool TryGetTokenFromSession(out Guid? token)
+        {
+            token = null;
+
+            if (!Request.HttpContext.Session.IsAvailable)
+                return false;
+
+            token = Request.HttpContext.Session.Get<Guid?>("userToken");
+            return token != null;
+        }
+
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!TryGetTokenByHeader(out var tokenGuid))
+            if (!TryGetTokenByHeader(out var tokenGuid) && !TryGetTokenFromSession(out tokenGuid))
             {
                 return Task.FromResult(AuthenticateResult.Fail("Missing Authorization."));
             }
@@ -72,8 +86,10 @@ namespace ShareY.Authentications
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, validatedToken.UserGuid.ToString()),
-                new Claim(ClaimTypes.Authentication, validatedToken.Guid.ToString()),
+                new Claim(ClaimTypes.Name, validatedToken.User.Email),
+                new Claim(ClaimTypes.NameIdentifier, validatedToken.UserGuid.ToString()),
+                new Claim(ClaimTypes.Email, validatedToken.User.Email),
+                new Claim(ClaimToken, validatedToken.Guid.ToString()),
                 new Claim(ClaimTypes.Role, validatedToken.TokenType.ToString())
             };
 
