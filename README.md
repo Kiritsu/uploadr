@@ -37,10 +37,12 @@ In order to use ShareY, you need the following components:
 # Configuration
 
 Use the pre-made file `sharey.json` to create your configuration. This file must be in the same directory as the executable. You can also set an environment variable `SHAREY_CONFIGURATION`.
-The configuration is made in 3 parts:
+The configuration is made in multiple parts:
 - Database: used to make the connection to your PostgreSQL database.
 - Routes: used to block endpoints from being used.
 - Files: configuration and requirements of uploads (size, type of file, etc.)
+- Email: configuration for the SMTP server for sending emails.
+- OneTimeToken: configuration for one-time duration tokens for login
 
 ## Database setup
 
