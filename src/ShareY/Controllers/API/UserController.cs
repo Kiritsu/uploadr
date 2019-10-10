@@ -68,7 +68,7 @@ namespace ShareY.Controllers
                 return BadRequest("Invalid token supplied.");
             }
 
-            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == userGuid);
+            var user = _dbContext.Users.Include(x => x.Token).FirstOrDefault(x => x.Guid == userGuid);
             if (user is null)
             {
                 return BadRequest("Unknown token supplied.");
