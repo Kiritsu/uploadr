@@ -133,7 +133,7 @@ namespace ShareY.Controllers
 
                 var upload = new Upload
                 {
-                    AuthorGuid = Guid.Parse(HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value),
+                    AuthorGuid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value),
                     CreatedAt = DateTime.Now,
                     ViewCount = 0,
                     Removed = false,

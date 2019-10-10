@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,7 +29,7 @@ namespace ShareY.Controllers
         [HttpDelete, Route("token"), Authorize]
         public async Task<IActionResult> ResetAsync([FromQuery] bool reset = false)
         {
-            var guid = Guid.Parse(HttpContext.User.Identity.Name);
+            var guid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
 
             var token = await _dbContext.Tokens.Include(x => x.User).FirstOrDefaultAsync(x => x.UserGuid == guid);
 
@@ -79,7 +80,7 @@ namespace ShareY.Controllers
                 return BadRequest("Cannot modify admin token.");
             }
 
-            user.Disabled = !block;
+            user.Disabled = block;
             _dbContext.Update(user);
 
             await _dbContext.SaveChangesAsync();
@@ -92,7 +93,8 @@ namespace ShareY.Controllers
         [HttpDelete, Route(""), Authorize]
         public async Task<IActionResult> DeleteUser()
         {
-            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == Guid.Parse(HttpContext.User.Identity.Name));
+            var guid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
+            var user = _dbContext.Users.FirstOrDefault(x => x.Guid == guid);
 
             _dbContext.Remove(user);
 
