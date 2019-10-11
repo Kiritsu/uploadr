@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <Content Update="sharey.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

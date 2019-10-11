@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -69,6 +70,16 @@ namespace ShareY
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
                 .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
 
+            services.AddSingleton<IAuthorizationHandler, AdminRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, UserRequirementHandler>();
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy(AdminRequirement.PolicyName, policy => policy.Requirements.Add(new AdminRequirement()));
+                auth.AddPolicy(UserRequirement.PolicyName, policy => policy.Requirements.Add(new UserRequirement()));
+
+                auth.DefaultPolicy = auth.GetPolicy(UserRequirement.PolicyName);
+            });
+
             services.AddHttpContextAccessor();
 
             services.AddSession(options =>
@@ -96,18 +107,17 @@ namespace ShareY
                 app.UseHsts();
             }
 
+            // order matters
             app.UseHttpsRedirection()
                 .UseStaticFiles()
-                .UseAuthentication()
                 .UseCookiePolicy()
                 .UseSession()
+                .UseAuthentication()
                 .UseMvc(routes => { });
 
             using (var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             using (var db = scope.ServiceProvider.GetRequiredService<ShareYContext>())
-            {
                 db.Database.Migrate();
-            }
         }
     }
 }

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShareY.Attributes;
+using ShareY.Authentications;
 using ShareY.Database;
 using ShareY.Models;
 
 namespace ShareY.Controllers
 {
-    [Route("admin"), RequiresAdminAuthentication]
+    [Route("admin"), Authorize(Policy = AdminRequirement.PolicyName)]
     public class AdminController : ShareYController
     {
         public AdminController(ShareYContext dbContext) : base(dbContext)

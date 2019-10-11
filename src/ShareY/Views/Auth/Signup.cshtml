@@ -7,9 +7,9 @@
 }
 
 @{
-    if ((bool)ViewData["IsAuthenticated"])
+    if (User.Identity.IsAuthenticated)
     {
-        <p class="alert alert-warning">You are already logged in as '@ViewData["UserToken"]'</p>
+        <p class="alert alert-warning">You are already logged in as '@User.Identity.Name'</p>
     }
     else if (token.HasValue)
     {
@@ -32,6 +32,6 @@
     }
     else
     {
-        <p class="alert alert-warning">Creating an account is not enabled.</p>
+        <p class="alert alert-warning">Account creation is currently disabled.</p>
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -132,7 +133,7 @@ namespace ShareY.Controllers
 
                 var upload = new Upload
                 {
-                    AuthorGuid = Guid.Parse(HttpContext.User.Identity.Name),
+                    AuthorGuid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value),
                     CreatedAt = DateTime.Now,
                     ViewCount = 0,
                     Removed = false,

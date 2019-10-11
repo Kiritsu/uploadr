@@ -1,5 +1,4 @@
-﻿@using ShareY.Interfaces
-@inject IRoutesConfigurationProvider routes
+﻿@inject IRoutesConfigurationProvider routes
 @{
     var routesConfig = routes.GetConfiguration();
 }
@@ -48,21 +47,21 @@
                         </li>
                     </ul>
                     <ul class="nav navbar-nav">
-                        @if (routesConfig.UserRegisterRoute && !(bool)ViewData["IsAuthenticated"])
+                        @if (routesConfig.UserRegisterRoute && !User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Signup">Signin</a>
                             </li>
                         }
 
-                        @if ((bool)ViewData["IsAdmin"])
+                        @if (User.IsInRole(TokenType.Admin.ToString()))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin Area</a>
                             </li>
                         }
 
-                        @if (!(bool)ViewData["IsAuthenticated"])
+                        @if (!User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
