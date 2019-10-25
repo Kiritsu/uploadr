@@ -25,7 +25,7 @@ def main():
     print('Downloading and installing ShareY')
     downloadAndUnzipLatestBuild(url, buildId)
     print('Authorizing and starting ShareY')
-    startShareY()
+    #startShareY()
     print('OK!')
     quit()
 

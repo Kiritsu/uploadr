@@ -1,6 +1,6 @@
 # PsychicPotato
 
-[![Build Status](https://dev.azure.com/allanmercou/ShareY/_apis/build/status/Kiritsu.ShareY?branchName=master)](https://dev.azure.com/allanmercou/ShareY/_build/latest?definitionId=2&branchName=master)
+[![Build Status](https://dev.azure.com/allanmercou/psychic-potato/_apis/build/status/Kiritsu.psychic-potato?branchName=master)](https://dev.azure.com/allanmercou/psychic-potato/_build/latest?definitionId=5&branchName=master)
 
 PsychicPotato is a simple server-side uploading service made with ASP.NET Core 3.0. 
 
