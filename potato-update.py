@@ -30,7 +30,7 @@ def main():
     quit()
 
 def getLatestBuildId():
-    buildsRoute = 'https://dev.azure.com/allanmercou/sharey/_apis/build/builds?api-version=4.1'
+    buildsRoute = 'https://dev.azure.com/allanmercou/psychic-potato/_apis/build/builds?api-version=4.1'
     response = requests.get(url = buildsRoute)
     if not response.ok:
         raise Exception('Response from buildsRoute request failed.')
@@ -50,7 +50,7 @@ def isUpdateNecessary(buildId):
     return localBuildId < buildId
 
 def getArtifactDownloadUrl(buildId):
-    artifactRoute = f'https://dev.azure.com/allanmercou/sharey/_apis/build/builds/{buildId}/artifacts?artifactName=sharey&api-version=4.1'
+    artifactRoute = f'https://dev.azure.com/allanmercou/psychic-potato/_apis/build/builds/{buildId}/artifacts?artifactName=potato&api-version=4.1'
     response = requests.get(url = artifactRoute)
     if not response.ok:
         raise Exception('Response from artifactRoute request failed.')
