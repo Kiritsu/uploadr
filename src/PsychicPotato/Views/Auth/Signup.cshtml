@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Create a new account.";
+
+    var token = ViewData["Token"] as Guid?;
+    var error = ViewData["RegisterError"] as string;
+    var routeEnabled = ViewData["RouteEnabled"] as bool?;
+}
+
+@{
+    if (User.Identity.IsAuthenticated)
+    {
+        <p class="alert alert-warning">You are already logged in as '@User.Identity.Name'</p>
+    }
+    else if (token.HasValue)
+    {
+<p class="alert alert-info">Welcome and thank you for using psychic-potato! Your unique token is @token.Value. You must <span class="alert-danger">NOT</span> share it. If you registered as anonymous (no e-mail), you won't be able to reset your token if you have lost it!</p>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+        <p class="alert alert-danger">@error</p>
+    }
+    else if (routeEnabled.HasValue && routeEnabled.Value)
+    {
+        <form method="post">
+            <div class="form-group">
+                <label for="email">Email: (facultative)</label>
+                <input type="text" class="form-control" name="email" id="email">
+            </div>
+
+            <button type="submit" class="btn btn-light">Create account</button>
+        </form>
+    }
+    else
+    {
+        <p class="alert alert-warning">Account creation is currently disabled.</p>
+    }
+}

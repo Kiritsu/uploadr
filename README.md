@@ -1,12 +1,12 @@
-# ShareY
+# PsychicPotato
 
 [![Build Status](https://dev.azure.com/allanmercou/ShareY/_apis/build/status/Kiritsu.ShareY?branchName=master)](https://dev.azure.com/allanmercou/ShareY/_build/latest?definitionId=2&branchName=master)
 
-ShareY is a simple server-side uploading service made with ASP.NET Core 2.2. 
+PsychicPotato is a simple server-side uploading service made with ASP.NET Core 3.0. 
 
-ShareY contains an API where you can create/remove/block users, which have a token for authentication. It also has an endpoint which is used to upload files to the server.
+PsychicPotato has an API where you can create/remove/block users, which have a token for authentication. It also has an endpoint which is used to upload files to the server.
 
-ShareY can be used as a ShareX custom upload server.
+PsychicPotato can be used as a ShareX custom upload server.
 
 # Routes
 
@@ -30,13 +30,13 @@ ShareY can be used as a ShareX custom upload server.
 
 # Requirements
 
-In order to use ShareY, you need the following components:
-- .NET Core 2.2 (ASP.NET Core)
+In order to use PsychicPotato, you need the following components:
+- ASP.NET Core 3.0
 - PostgreSQL Server
 
 # Configuration
 
-Use the pre-made file `sharey.json` to create your configuration. This file must be in the same directory as the executable. You can also set an environment variable `SHAREY_CONFIGURATION`.
+Use the pre-made file `potato.json` to create your configuration. This file must be in the same directory as the executable. You can also set an environment variable `SHAREY_CONFIGURATION`.
 The configuration is made in multiple parts:
 - Database: used to make the connection to your PostgreSQL database.
 - Routes: used to block endpoints from being used.
@@ -46,16 +46,16 @@ The configuration is made in multiple parts:
 
 ## Database setup
 
-Follow these instructions if you need help to setup your PostgreSQL database for ShareY.
+Follow these instructions if you need help to setup your PostgreSQL database for PsychicPotato.
 
 - Connect to your PostgreSQL database as a super-user.
-- Create a user. In our case, its name will be `sharey`. Replace `your_password` by a strong password.
+- Create a user. In our case, its name will be `potato`. Replace `your_password` by a strong password.
 ```sql
-CREATE USER sharey WITH CREATEDB PASSWORD 'your_password';
+CREATE USER potato WITH CREATEDB PASSWORD 'your_password';
 ```
-- Create a database. In our case, its name will be `sharey`. Don't forget to change the owner name if you set something else than `sharey`.
+- Create a database. In our case, its name will be `potato`. Don't forget to change the owner name if you set something else than `potato`.
 ```sql
-CREATE DATABASE sharey WITH OWNER 'sharey';
+CREATE DATABASE potato WITH OWNER 'potato';
 ```
 - Disconnect from your PostgreSQL database.
 
@@ -78,9 +78,9 @@ CREATE DATABASE sharey WITH OWNER 'sharey';
 - `SizeMax`: defines the maximum size your upload must not reach to be uploaded to the server.
 - `FileExtensions`: array of strings which are file extensions that are supported by the server.
 
-# Building ShareY
+# Building PsychicPotato
 
-You need `Visual Studio 2019` or the `.NET Core 2.2 SDK` in order to build ShareY.
+You need `Visual Studio 2019` or the `.NET Core 2.2 SDK` in order to build PsychicPotato.
 If you are building from a terminal, use the following command:
 ```
 dotnet publish -c Release -f netcoreapp2.2 -r [RUNTIME]
@@ -94,7 +94,7 @@ You can replace [RUNTIME] by either `win-x64` or `linux-x64` depending on the ta
 
 ## Summary
 
-There's an auto-update script made in python which pull the latest build in Azure Pipelines and download the right artifact if your version of ShareY is outdated. It will shutdown your app, replace the files (config included for now!) and restart it. 
+There's an auto-update script made in python which pull the latest build in Azure Pipelines and download the right artifact if your version of PsychicPotato is outdated. It will shutdown your app, replace the files (config included for now!) and restart it. 
 
 You can use this script in a cronjob to automatically update the app.
 

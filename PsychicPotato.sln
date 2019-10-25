@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29025.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PsychicPotato.Database", "src\PsychicPotato.Database\PsychicPotato.Database.csproj", "{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PsychicPotato", "src\PsychicPotato\PsychicPotato.csproj", "{BD1F8225-1994-410E-A595-AEC91F5312F6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {340E7DAB-E0EA-446D-8AC1-6337FCC20C46}
+	EndGlobalSection
+EndGlobal
