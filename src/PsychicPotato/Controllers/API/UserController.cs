@@ -61,8 +61,8 @@ namespace PsychicPotato.Controllers
                 : Ok("Token revoked");
         }
 
-        [HttpPatch, Route("{guid}/block"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UnblockUser(string guid, [FromQuery] bool block)
+        [HttpPatch, Route("{guid}"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleBlockUser(string guid, [FromQuery] bool block)
         {
             if (!Guid.TryParse(guid, out var userGuid))
             {

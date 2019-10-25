@@ -18,7 +18,7 @@ namespace PsychicPotato.Controllers
         }
 
         [HttpPatch, Route("{routeName}"), Authorize(Roles = "Admin")]
-        public IActionResult Signup(string routeName, bool state)
+        public IActionResult ModifyRoute(string routeName, bool state)
         {
             var properties = _routesConfiguration.GetType().GetProperties();
 
