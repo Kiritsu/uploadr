@@ -35,7 +35,7 @@ namespace PsychicPotato.Authentications
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && context.User.IsInRole(TokenType.User.ToString()))
+            if (context.User.Identity.IsAuthenticated)
             {
                 context.Succeed(requirement);
             }
