@@ -80,10 +80,10 @@ CREATE DATABASE potato WITH OWNER 'potato';
 
 # Building PsychicPotato
 
-You need `Visual Studio 2019` or the `.NET Core 2.2 SDK` in order to build PsychicPotato.
+You need `Visual Studio 2019` or the `.NET Core 3.0 SDK` in order to build PsychicPotato.
 If you are building from a terminal, use the following command:
 ```
-dotnet publish -c Release -f netcoreapp2.2 -r [RUNTIME]
+dotnet publish -c Release -f netcoreapp3.0 -r [RUNTIME]
 ```
 You can replace [RUNTIME] by either `win-x64` or `linux-x64` depending on the target operating system. See Microsoft documentation for .NET Core runtime if you have troubles.
 
