@@ -26,7 +26,7 @@ namespace PsychicPotato.Controllers
             _filesConfiguration = filesConfiguration.GetConfiguration();
         }
 
-        [HttpDelete, Route("cleanup?days={days}"), Authorize(Roles = "Admin")]
+        [HttpDelete, Route("cleanup"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> CleanupUploads(int days)
         {
             var dateTime = DateTime.Now - TimeSpan.FromDays(days);
