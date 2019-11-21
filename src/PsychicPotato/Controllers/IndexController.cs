@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PsychicPotato.Database;
@@ -52,6 +53,7 @@ namespace PsychicPotato.Controllers
 
             var fileBytes = System.IO.File.ReadAllBytes(path);
 
+            file.LastSeen = DateTime.Now;
             file.ViewCount++;
             _dbContext.Uploads.Update(file);
             await _dbContext.SaveChangesAsync();

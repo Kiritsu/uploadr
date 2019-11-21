@@ -65,6 +65,12 @@ namespace PsychicPotato.Controllers
         [Route("login/ott/{ottGuid}"), HttpGet]
         public IActionResult LoginByOtt(Guid? ottGuid)
         {
+            var hashIp = HttpContext.Connection.RemoteIpAddress.GetHashCode();
+            if (!_qas.IncrementAndValidateRateLimits(hashIp))
+            {
+                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {Math.Round((_qas.RateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes) + 1} minutes.";
+            }
+
             ViewData["OttEnabled"] = _ottConfiguration.Enabled;
 
             if (!_ottConfiguration.Enabled)
@@ -80,7 +86,7 @@ namespace PsychicPotato.Controllers
 
             try
             {
-                var user = _qas.GetAndValidateUserOtt(ottGuid.Value, HttpContext.Connection.RemoteIpAddress.GetHashCode());
+                var user = _qas.GetAndValidateUserOtt(ottGuid.Value);
                 _qas.Invalidate(user);
 
                 HttpContext.Session.Set("userToken", user.Token.Guid);
@@ -96,6 +102,12 @@ namespace PsychicPotato.Controllers
         [Route("login"), HttpPost]
         public async Task<IActionResult> Login(string auth)
         {
+            var hashIp = HttpContext.Connection.RemoteIpAddress.GetHashCode();
+            if (!_qas.IncrementAndValidateRateLimits(hashIp))
+            {
+                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {Math.Round((_qas.RateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes) + 1} minutes.";
+            }
+
             ViewData["EnableOttButton"] = _ottConfiguration.Enabled;
 
             if (string.IsNullOrWhiteSpace(auth))
@@ -131,7 +143,7 @@ namespace PsychicPotato.Controllers
 
                     try
                     {
-                        ott = _qas.GetOrCreate(potentialUser, HttpContext.Connection.RemoteIpAddress.GetHashCode());
+                        ott = _qas.GetOrCreate(potentialUser);
                     }
                     catch (InvalidOperationException ex)
                     {

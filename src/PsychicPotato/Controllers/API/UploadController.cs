@@ -26,6 +26,31 @@ namespace PsychicPotato.Controllers
             _filesConfiguration = filesConfiguration.GetConfiguration();
         }
 
+        [HttpDelete, Route("cleanup?days={days}"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupUploads(int days)
+        {
+            var dateTime = DateTime.Now - TimeSpan.FromDays(days);
+
+            var files = _dbContext.Uploads;
+            var fileNames = new List<string>();
+
+            foreach (var file in files)
+            {
+                if (file.LastSeen > dateTime)
+                {
+                    continue;
+                }
+
+                file.Removed = true;
+                _dbContext.Uploads.Update(file);
+
+                System.IO.File.Delete($"./uploads/{file.FileName}");
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return Json(new { FilesDeleted = fileNames.Count, FileNames = fileNames });
+        }
+
         [HttpGet, Route("{name}")]
         public IActionResult DetailsUpload(string name)
         {

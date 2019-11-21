@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using PsychicPotato.Configurations;
@@ -17,6 +18,8 @@ namespace PsychicPotato.Services
         private readonly ConcurrentDictionary<Guid, OneTimeToken> _oneTimeTokens;
         private readonly ConcurrentDictionary<int, (DateTimeOffset, int)> _rateLimitHitPerIpHash;
 
+        public ReadOnlyDictionary<int, (DateTimeOffset, int)> RateLimitHitPerIpHash;
+
         public QuickAuthService(PsychicPotatoContext dbContext, IOneTimeTokenConfigurationProvider ottConfiguration)
         {
             _dbContext = dbContext;
@@ -24,6 +27,7 @@ namespace PsychicPotato.Services
 
             _oneTimeTokens = new ConcurrentDictionary<Guid, OneTimeToken>();
             _rateLimitHitPerIpHash = new ConcurrentDictionary<int, (DateTimeOffset, int)>();
+            RateLimitHitPerIpHash = new ReadOnlyDictionary<int, (DateTimeOffset, int)>(_rateLimitHitPerIpHash);
         }
 
         /// <summary>
@@ -66,25 +70,20 @@ namespace PsychicPotato.Services
         ///     Gets or create a new <see cref="OneTimeToken"/> for the specified user.
         /// </summary>
         /// <param name="userGuid">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
-        public OneTimeToken GetOrCreate(Guid userGuid, int hashIp)
+        public OneTimeToken GetOrCreate(Guid userGuid)
         {
-            return GetOrCreate(_dbContext.Users.Find(userGuid), hashIp);
+            return GetOrCreate(_dbContext.Users.Find(userGuid));
         }
 
         /// <summary>
         ///     Gets or create a new <see cref="OneTimeToken"/> for the specified user.
         /// </summary>
         /// <param name="user">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
-        public OneTimeToken GetOrCreate(User user, int hashIp)
+        public OneTimeToken GetOrCreate(User user)
         {
             if (user == null)
             {
                 throw new NullReferenceException("Provided user is null.");
-            }
-
-            if (!IncrementAndValidateRateLimits(hashIp))
-            {
-                throw new InvalidOperationException($"You are being rate limited. Retry in {Math.Round((_rateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes)} minutes.");
             }
 
             if (!_oneTimeTokens.TryGetValue(user.Guid, out var ott))
@@ -106,14 +105,8 @@ namespace PsychicPotato.Services
         ///     Returns the User depending on the <see cref="OneTimeToken"/>.
         /// </summary>
         /// <param name="ottGuid"><see cref="Guid"/> of the <see cref="OneTimeToken"/>.</param>
-        /// <param name="hashIp">User's ip hash.</param>
-        public User GetAndValidateUserOtt(Guid ottGuid, int hashIp)
+        public User GetAndValidateUserOtt(Guid ottGuid)
         {
-            if (!IncrementAndValidateRateLimits(hashIp))
-            {
-                throw new InvalidOperationException($"You are being rate limited. Retry in {Math.Round((_rateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes)} minutes.");
-            }
-
             if (!_oneTimeTokens.Values.Any(x => x.Token == ottGuid))
             {
                 throw new InvalidOperationException("The given one-time-token isn't valid.");

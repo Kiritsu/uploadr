@@ -11,6 +11,7 @@ using PsychicPotato.Database.Enums;
 using PsychicPotato.Database.Models;
 using PsychicPotato.Interfaces;
 using PsychicPotato.Models;
+using PsychicPotato.Services;
 
 namespace PsychicPotato.Controllers
 {
@@ -18,11 +19,13 @@ namespace PsychicPotato.Controllers
     public class UserController : Controller
     {
         private readonly PsychicPotatoContext _dbContext;
+        private readonly EmailService _emails;
         private readonly RoutesConfiguration _routesConfiguration;
 
-        public UserController(PsychicPotatoContext dbContext, IRoutesConfigurationProvider routesConfiguration)
+        public UserController(PsychicPotatoContext dbContext, IRoutesConfigurationProvider routesConfiguration, EmailService emails)
         {
             _dbContext = dbContext;
+            _emails = emails;
             _routesConfiguration = routesConfiguration.GetConfiguration();
         }
 
@@ -56,6 +59,8 @@ namespace PsychicPotato.Controllers
 
             await _dbContext.SaveChangesAsync();
 
+            await _emails.SendCustomActionAsync(token.User, "TOKEN_REVOKED");
+
             return reset
                 ? Json(new { Token = token.Guid.ToString() }) as IActionResult
                 : Ok("Token revoked");
@@ -85,6 +90,8 @@ namespace PsychicPotato.Controllers
 
             await _dbContext.SaveChangesAsync();
 
+            await _emails.SendCustomActionAsync(user, "ACCOUNT_BLOCKED");
+
             return Ok(block
                 ? "User blocked."
                 : "User unblocked.");
@@ -99,6 +106,8 @@ namespace PsychicPotato.Controllers
             _dbContext.Remove(user);
 
             await _dbContext.SaveChangesAsync();
+
+            await _emails.SendCustomActionAsync(user, "ACCOUNT_REMOVED");
 
             return Ok("This account has been removed.");
         }

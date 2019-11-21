@@ -134,6 +134,12 @@ namespace PsychicPotato.Database
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<Upload>()
+                .Property(x => x.LastSeen)
+                .IsRequired()
+                .HasDefaultValueSql("now()")
+                .HasColumnName("last_seen");
+
+            modelBuilder.Entity<Upload>()
                 .Property(x => x.ViewCount)
                 .IsRequired()
                 .HasDefaultValue(0)
