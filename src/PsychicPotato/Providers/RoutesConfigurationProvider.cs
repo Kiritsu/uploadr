@@ -2,7 +2,7 @@
 using PsychicPotato.Configurations;
 using PsychicPotato.Interfaces;
 
-namespace PsychicPotato.Services
+namespace PsychicPotato.Providers
 {
     public class RoutesConfigurationProvider : IRoutesConfigurationProvider
     {

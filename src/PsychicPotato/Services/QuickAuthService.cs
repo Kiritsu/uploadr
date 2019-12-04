@@ -14,26 +14,19 @@ namespace PsychicPotato.Services
     {
         private readonly PsychicPotatoContext _dbContext;
         private readonly OneTimeTokenConfiguration _ottConfiguration;
+        private readonly RateLimiterService<QuickAuthService> _rl;
 
         private readonly ConcurrentDictionary<Guid, OneTimeToken> _oneTimeTokens;
-        private readonly ConcurrentDictionary<int, (DateTimeOffset, int)> _rateLimitHitPerIpHash;
 
-        public ReadOnlyDictionary<int, (DateTimeOffset, int)> RateLimitHitPerIpHash;
-
-        public QuickAuthService(PsychicPotatoContext dbContext, IOneTimeTokenConfigurationProvider ottConfiguration)
+        public QuickAuthService(PsychicPotatoContext dbContext, IOneTimeTokenConfigurationProvider ottConfiguration, RateLimiterService<QuickAuthService> rl)
         {
             _dbContext = dbContext;
             _ottConfiguration = ottConfiguration.GetConfiguration();
+            _rl = rl;
 
             _oneTimeTokens = new ConcurrentDictionary<Guid, OneTimeToken>();
-            _rateLimitHitPerIpHash = new ConcurrentDictionary<int, (DateTimeOffset, int)>();
-            RateLimitHitPerIpHash = new ReadOnlyDictionary<int, (DateTimeOffset, int)>(_rateLimitHitPerIpHash);
         }
 
-        /// <summary>
-        ///     Increments and checks if the user's ip is being rate limited.
-        /// </summary>
-        /// <param name="hashIp">Hash of the user's ip.</param>
         public bool IncrementAndValidateRateLimits(int hashIp)
         {
             if (!_ottConfiguration.AntiSpam.Enabled)
@@ -41,29 +34,10 @@ namespace PsychicPotato.Services
                 return true;
             }
 
-            var mins = TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout);
+            var time = TimeSpan.FromMinutes(_ottConfiguration.AntiSpam.Timeout);
+            var maxTries = _ottConfiguration.AntiSpam.MaxTry;
 
-            if (!_rateLimitHitPerIpHash.TryGetValue(hashIp, out var rate))
-            {
-                _rateLimitHitPerIpHash.TryAdd(hashIp, (DateTimeOffset.Now + mins, 1));
-            }
-            else
-            {
-                if (rate.Item1 - DateTimeOffset.Now <= TimeSpan.Zero)
-                {
-                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + mins, 1);
-                }
-                else if (_rateLimitHitPerIpHash[hashIp].Item2 > _ottConfiguration.AntiSpam.MaxTry)
-                {
-                    return false;
-                }
-                else
-                {
-                    _rateLimitHitPerIpHash[hashIp] = (DateTimeOffset.Now + mins, rate.Item2 + 1);
-                }
-            }
-
-            return true;
+            return _rl.IncrementAndValidateRateLimits(hashIp, time, maxTries);
         }
 
         /// <summary>
@@ -99,6 +73,11 @@ namespace PsychicPotato.Services
             }
 
             return ott;
+        }
+
+        public int GetRemainingTimeout(int hashIp)
+        {
+            return _rl.GetRemainingTimeout(hashIp);
         }
 
         /// <summary>
@@ -148,32 +127,6 @@ namespace PsychicPotato.Services
             }
 
             ott.IsUsed = true;
-        }
-    }
-
-    public class OneTimeToken
-    {
-        public Guid UserGuid;
-        public Guid Token;
-        public bool IsUsed;
-        public DateTimeOffset ExpiresAt;
-
-        public static OneTimeToken New(Guid userGuid, TimeSpan durationTime = default)
-        {
-            if (durationTime == default)
-            {
-                durationTime = TimeSpan.FromMinutes(30);
-            }
-
-            var ott = new OneTimeToken
-            {
-                UserGuid = userGuid,
-                Token = Guid.NewGuid(),
-                ExpiresAt = DateTimeOffset.Now.Add(durationTime),
-                IsUsed = false
-            };
-
-            return ott;
         }
     }
 }

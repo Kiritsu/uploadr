@@ -2,7 +2,7 @@
 using PsychicPotato.Configurations;
 using PsychicPotato.Database;
 
-namespace PsychicPotato.Services
+namespace PsychicPotato.Providers
 {
     public sealed class DatabaseConfigurationProvider : IDatabaseConfigurationProvider
     {

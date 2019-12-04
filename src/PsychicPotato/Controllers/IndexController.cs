@@ -1,16 +1,18 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using PsychicPotato.Database;
+using PsychicPotato.Services;
 
 namespace PsychicPotato.Controllers
 {
     [Route("")]
     public class IndexController : PsychicPotatoController
     {
-        public IndexController(PsychicPotatoContext dbContext) : base(dbContext)
+        private readonly FileService _fs;
+
+        public IndexController(PsychicPotatoContext dbContext, FileService fs) : base(dbContext)
         {
+            _fs = fs;
         }
 
         [Route("privacy"), HttpGet]
@@ -28,37 +30,22 @@ namespace PsychicPotato.Controllers
         [Route("{name}"), HttpGet]
         public async Task<IActionResult> GetFile(string name)
         {
-            var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
-
-            if (file is null)
+            var file = await _fs.TryGetUploadByNameAsync(name);
+            if (file.IsSuccess)
             {
-                return Redirect("/");
+                var path = $"./uploads/{file.Value.FileName}";
+                var fileBytes = System.IO.File.ReadAllBytes(path);
+
+                return File(fileBytes, file.Value.ContentType);
             }
 
-            var path = $"./uploads/{file.FileName}";
-
-            if (file.Removed)
+            return file.Code switch
             {
-                return NotFound("File is removed.");
-            }
-
-            if (!System.IO.File.Exists(path))
-            {
-                file.Removed = true;
-                _dbContext.Uploads.Update(file);
-                await _dbContext.SaveChangesAsync();
-
-                return NotFound("File not found. File has just been marked as removed.");
-            }
-
-            var fileBytes = System.IO.File.ReadAllBytes(path);
-
-            file.LastSeen = DateTime.Now;
-            file.ViewCount++;
-            _dbContext.Uploads.Update(file);
-            await _dbContext.SaveChangesAsync();
-
-            return File(fileBytes, file.ContentType);
+                1 => Redirect("/"),
+                2 => NotFound("File is removed."),
+                3 => NotFound("File not found. It has been marked as removed."),
+                _ => BadRequest()
+            };
         }
     }
 }

@@ -13,6 +13,7 @@ using PsychicPotato.Authentications;
 using PsychicPotato.Configurations;
 using PsychicPotato.Database;
 using PsychicPotato.Interfaces;
+using PsychicPotato.Providers;
 using PsychicPotato.Services;
 
 namespace PsychicPotato
@@ -57,6 +58,8 @@ namespace PsychicPotato
             services.AddSingleton<EmailService>();
             services.AddSingleton<SmtpClient>();
             services.AddSingleton<Random>();
+            services.AddSingleton<RateLimiterService<QuickAuthService>>();
+            services.AddSingleton<FileService>();
 
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();

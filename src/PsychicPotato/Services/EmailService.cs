@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
@@ -30,73 +31,42 @@ namespace PsychicPotato.Services
         {
             var user = await _dbContext.Users.FindAsync(ott.UserGuid);
 
-            var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_emailConfiguration.Sender));
-            email.To.Add(new MailboxAddress(user.Email));
-            email.Subject = "A Magick-Url has been requested on your account.";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = $"<p>Hello! A magick-url has been requested on your account. Click the following url to log-in: <a href=\"{baseUrl}/auth/login/ott/{ott.Token}\">{baseUrl}/auth/login/ott/{ott.Token}</a></p><p>If you believe this is an error, you can ignore this.</p>"
-            };
-
-            if (!_smtpClient.IsConnected)
-            {
-                await _smtpClient.ConnectAsync(_emailConfiguration.Server, _emailConfiguration.Port, _emailConfiguration.UseSsl);
-            }
-
-            if (!_smtpClient.IsAuthenticated && !string.IsNullOrWhiteSpace(_emailConfiguration.Auth))
-            {
-                await _smtpClient.AuthenticateAsync(_emailConfiguration.Auth, _emailConfiguration.Password);
-            }
-
-            await _smtpClient.SendAsync(email);
+            await SendEmailAsync(user, "A magick-url has been requested on your account.",
+                $"<p>Hello! A magick-url has been requested on your account. " +
+                $"Click the following url to log-in: <a href=\"{baseUrl}/auth/login/ott/{ott.Token}\">{baseUrl}/auth/login/ott/{ott.Token}</a></p>" +
+                $"<p>If you believe this is an error, you can ignore this.</p>");
         }
 
         public async Task SendSignupSuccessAsync(string token, string baseUrl)
         {
             var user = await _dbContext.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Token.Guid.ToString() == token);
 
-            if (string.IsNullOrWhiteSpace(user.Email))
-            {
-                return;
-            }
-
-            var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_emailConfiguration.Auth));
-            email.To.Add(new MailboxAddress(user.Email));
-            email.Subject = "Your account has been created.";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = $"<p>Hello! Thank you for registering an account for our service. Your token is: {user.Token.Guid}</p><p>If you believe this is an error, please reach us on <a href=\"{baseUrl}\">{baseUrl}</a>.</p>"
-            };
-
-            if (!_smtpClient.IsConnected)
-            {
-                await _smtpClient.ConnectAsync(_emailConfiguration.Server, _emailConfiguration.Port, _emailConfiguration.UseSsl);
-            }
-
-            if (!_smtpClient.IsAuthenticated && !string.IsNullOrWhiteSpace(_emailConfiguration.Auth))
-            {
-                await _smtpClient.AuthenticateAsync(_emailConfiguration.Auth, _emailConfiguration.Password);
-            }
-
-            await _smtpClient.SendAsync(email);
+            await SendEmailAsync(user, "Your account has been created.",
+                $"<p>Hello! Thank you for registering an account for our service. Your token is: {user.Token.Guid}</p>" +
+                $"<p>If you believe this is an error, please reach us on <a href=\"{baseUrl}\">{baseUrl}</a>.</p>");
         }
 
-        public async Task SendCustomActionAsync(User user, string action)
+        public Task SendCustomActionAsync(User user, string action)
+        {
+            return SendEmailAsync(user, "Your account has been updated",
+                $"<p>Hello! This mail is just to inform you that the following action has been taken on your account: {action}. " +
+                $"If it was not intended, contact us.</p>");
+        }
+
+        public async Task SendEmailAsync(User user, string subject, string content)
         {
             if (string.IsNullOrWhiteSpace(user.Email))
             {
-                return;
+                throw new InvalidOperationException("User don't have any valid email.");
             }
 
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress(_emailConfiguration.Auth));
             email.To.Add(new MailboxAddress(user.Email));
-            email.Subject = "Your account has been updated.";
+            email.Subject = subject;
             email.Body = new TextPart(TextFormat.Html)
             {
-                Text = $"<p>Hello! This mail is just to inform you that the following action has been taken on your account: {action}. If it was not intended, contact us.</p>"
+                Text = $"<p>{content}</p>"
             };
 
             if (!_smtpClient.IsConnected)

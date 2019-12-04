@@ -68,7 +68,7 @@ namespace PsychicPotato.Controllers
             var hashIp = HttpContext.Connection.RemoteIpAddress.GetHashCode();
             if (!_qas.IncrementAndValidateRateLimits(hashIp))
             {
-                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {Math.Round((_qas.RateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes) + 1} minutes.";
+                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {_qas.GetRemainingTimeout(hashIp)} minutes.";
             }
 
             ViewData["OttEnabled"] = _ottConfiguration.Enabled;
@@ -105,7 +105,7 @@ namespace PsychicPotato.Controllers
             var hashIp = HttpContext.Connection.RemoteIpAddress.GetHashCode();
             if (!_qas.IncrementAndValidateRateLimits(hashIp))
             {
-                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {Math.Round((_qas.RateLimitHitPerIpHash[hashIp].Item1 - DateTimeOffset.Now).TotalMinutes) + 1} minutes.";
+                ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {_qas.GetRemainingTimeout(hashIp)} minutes.";
             }
 
             ViewData["EnableOttButton"] = _ottConfiguration.Enabled;
@@ -216,9 +216,10 @@ namespace PsychicPotato.Controllers
                     {
                         await _emails.SendSignupSuccessAsync(token, $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        //ignored
+                        _logger.LogError(ex, "SendSignupSuccess error");
+                        ViewData["RegisterError"] = "Internal error: couldn't send a verification email.";
                     }
                     break;
                 case ObjectResult or:
