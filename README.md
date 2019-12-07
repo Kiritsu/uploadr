@@ -1,6 +1,6 @@
 # UploadR
 
-[![Build Status](https://dev.azure.com/allanmercou/psychic-potato/_apis/build/status/Kiritsu.psychic-potato?branchName=master)](https://dev.azure.com/allanmercou/psychic-potato/_build/latest?definitionId=5&branchName=master)
+[![Build Status](https://dev.azure.com/allanmercou/uploadr/_apis/build/status/Kiritsu.uploadr?branchName=master)](https://dev.azure.com/allanmercou/uploadr/_build/latest?definitionId=7&branchName=master)
 
 UploadR is a simple server-side uploading service made with ASP.NET Core 3.0. 
 
