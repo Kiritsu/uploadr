@@ -30,11 +30,11 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: potato
+    artifactName: uploadr
 
 - task: DownloadBuildArtifacts@0
   inputs:
     buildType: 'current'
     downloadType: 'single'
-    artifactName: 'potato'
+    artifactName: 'uploadr'
     downloadPath: '$(System.ArtifactsDirectory)'
