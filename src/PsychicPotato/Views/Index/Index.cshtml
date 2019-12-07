@@ -6,6 +6,8 @@
 @{
     var filesConfig = files.GetConfiguration();
 }
+<link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet" />
+<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
 
 <div class="container">
     @if (User.Identity.IsAuthenticated)
@@ -14,18 +16,9 @@
             <div>
                 <p>Upload the file you want. Supported file extensions: <code>@string.Join(", ", filesConfig.FileExtensions)</code>.</p>
                 <p>Size of the file must not exceed <code>@Math.Round((filesConfig.SizeMax / 1024f) / 1024f)MB</code></p>
-                <input id="file_upload" type="file" required />
+                <input multiple type="file" class="filepond" required />
+                <p id="uploadedelements"></p>
             </div>
-        </div>
-        <div class="form-group">
-            <div>
-                <input type="submit" value="Upload" onclick="uploadFile('@User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken)?.Value')">
-            </div>
-        </div>
-
-        <div class="d-flex align-items-lg-start">
-            <div id="loading" class="spinner-border text-dark" hidden></div>
-            <p id="loading_upload" hidden>Loading...</p>
         </div>
     }
     else
@@ -37,47 +30,46 @@
 @if (User.Identity.IsAuthenticated)
 {
     <script type="text/javascript">
-        function uploadFile(token) {
-            var fileElem = $('#file_upload');
-            if (fileElem.length != 1) {
-                alert('Element not found.');
-            }
-
-            var files = fileElem[0].files;
-            if (files.length != 1) {
-                alert('File not found.');
-            }
-
-            var file = files[0];
-
-            var data = new FormData();
-            data.append(file.name, file);
-
-            var responseElement = $('#loading_upload');
-            responseElement.removeAttr('hidden');
-
-            var loadingElement = $('#loading');
-            loadingElement.removeAttr('hidden');
-
-            $.ajax({
-                type: 'POST',
-                url: '/api/upload',
-                beforeSend: function (request) {
-                    request.setRequestHeader('X-Token', token);
+        FilePond.parse(document.body);
+        FilePond.setOptions({
+            server: {
+                headers: {
+                    'X-Token': '@User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken)?.Value'
                 },
-                data: data,
-                success: function (result) {
-                    loadingElement.attr('hidden', true);
-                    responseElement.html('Your file has successfully been uploaded: <a class="alert-link" href="' + window.location.href + result['filename'] + '">' + window.location.href + result['filename'] + '</a>');
-                },
-                processData: false,
-                contentType: false,
-                cache: false,
-                error: function (jqXHR, textStatus, errorMessage) {
-                    loadingElement.attr('hidden', true);
-                    responseElement.text('An error occured. The server responded: ' + errorMessage);
+                process: (fieldName, file, metadata, load, error, progress, abort, transfer, options) => {
+                    const formData = new FormData();
+                    formData.append(fieldName, file, file.name);
+
+                    const request = new XMLHttpRequest();
+                    request.open('POST', 'api/upload');
+
+                    request.upload.onprogress = (e) => {
+                        progress(e.lengthComputable, e.loaded, e.total);
+                    };
+
+                    request.onload = function () {
+                        if (request.status >= 200 && request.status < 300) {
+                            var element = $('#uploadedelements');
+                            JSON.parse(request.responseText).forEach(function (e) {
+                                element.append('<a href="' + window.location.href + e['filename'] + '" target="_blank">' + file.name + '</a><br>');
+                                load(e['filename']);
+                            });
+                        }
+                        else {
+                            error('oh no');
+                        }
+                    };
+
+                    request.send(formData);
+
+                    return {
+                        abort: () => {
+                            request.abort();
+                            abort();
+                        }
+                    };
                 }
-            });
-        }
+            }
+        });
     </script>
 }

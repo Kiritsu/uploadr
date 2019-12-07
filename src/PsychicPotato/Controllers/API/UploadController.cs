@@ -184,7 +184,7 @@ namespace PsychicPotato.Controllers
                 uploads.Add(new { Filename = filename, Type = upload.ContentType });
             }
 
-            return Json(uploads.Count == 1 ? uploads.First() : uploads);
+            return Json(uploads);
         }
     }
 }
