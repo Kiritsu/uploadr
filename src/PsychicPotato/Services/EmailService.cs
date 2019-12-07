@@ -61,7 +61,7 @@ namespace PsychicPotato.Services
             }
 
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress(_emailConfiguration.Auth));
+            email.From.Add(new MailboxAddress(_emailConfiguration.Sender));
             email.To.Add(new MailboxAddress(user.Email));
             email.Subject = subject;
             email.Body = new TextPart(TextFormat.Html)
