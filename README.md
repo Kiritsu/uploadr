@@ -14,13 +14,14 @@ UploadR can be used as a ShareX custom upload server.
 - `GET /{file_name}` returns a file if it exists.
 - `GET /api/upload/{file_name}` returns as a `JSON` details of the specified file. Requires `user` authorization.
 - `DELETE /api/upload/{file_name}` deletes the specified file. Requires `user` authorization. Only the author can delete its upload.
-- `POST /api/upload` uploads the given file in the body of the request. Requires `user` authorization. Redirects to `GET /{file_name}`.
+- `POST /api/upload` uploads the given file in the body of the request. Requires `user` authorization.
 - `PATCH /api/user/{guid}?block=false` unblocks a user by it's guid. Requires `admin` authorization.
 - `PATCH /api/user/{guid}?block=true` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
 - `DELETE /api/user` deletes the authenticated account. Requires `user` authorization.
 - `DELETE /api/user/token?reset=true` resets the current user's token and returns the new generated one. Requires `user` authorization.
 - `DELETE /api/user/token` revokes the token of the current's user. Requires `user` authorization.
 - `PATCH /api/routes/{routeName}?state={boolean}` enables or disables a configurable route. Requires `admin` authorization. Unknown `routeName` returns every available routes.
+- `DELETE /api/upload/cleanup?days={int}` deletes every file that hasn't been seen since last `x` days.
 - `POST /api/user` creates a new user with the given `email` in a json body. Requires no authorization. (see exemple below)
 ```json
 {
