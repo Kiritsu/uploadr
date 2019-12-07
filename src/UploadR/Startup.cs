@@ -22,11 +22,11 @@ namespace UploadR
     {
         public Startup(IConfiguration configuration)
         {
-            var envVariableConf = Environment.GetEnvironmentVariable("POTATO_CONFIGURATION");
+            var envVariableConf = Environment.GetEnvironmentVariable("UPLOADR_CONFIGURATION");
 
             var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf)
                 ? envVariableConf
-                : "potato.json";
+                : "uploadr.json";
 
             var cfg = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
