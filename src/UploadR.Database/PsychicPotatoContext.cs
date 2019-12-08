@@ -162,6 +162,10 @@ namespace UploadR.Database
                 .HasColumnName("content_type");
 
             modelBuilder.Entity<Upload>()
+                .Property(x => x.Password)
+                .HasColumnName("password");
+
+            modelBuilder.Entity<Upload>()
                 .HasOne(x => x.Author)
                 .WithMany(x => x.Uploads)
                 .HasForeignKey(x => x.AuthorGuid)

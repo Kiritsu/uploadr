@@ -77,7 +77,7 @@ namespace UploadR.Controllers
         }
 
         [HttpPost, Route(""), DisableRequestSizeLimit]
-        public async Task<IActionResult> PostUpload()
+        public async Task<IActionResult> PostUpload([FromQuery(Name = "p")] string password)
         {
             // Silently ignore when filecount > 1 and doesn't match configuration.
             var files = new List<IFormFile>();
@@ -110,7 +110,7 @@ namespace UploadR.Controllers
             var uploads = new List<object>();
             foreach (var file in Request.Form.Files)
             {
-                var result = await _uploads.UploadFileAsync(authorGuid, file);
+                var result = await _uploads.UploadFileAsync(authorGuid, file, password);
                 uploads.Add(new { Filename = result.Value.FileName, Type = result.Value.ContentType });
             }
 

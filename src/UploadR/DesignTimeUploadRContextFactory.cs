@@ -18,7 +18,7 @@ namespace UploadR
     {
         public IDatabaseConfiguration GetConfiguration()
         {
-            var config = JObject.Parse(File.ReadAllText("potato.json"))["Database"];
+            var config = JObject.Parse(File.ReadAllText("uploadr.json"))["Database"];
 
             return new DatabaseConfiguration
             {

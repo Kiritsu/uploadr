@@ -23,7 +23,7 @@ namespace UploadR.Services
             _fc = fc.GetConfiguration();
         }
 
-        public async Task<ServiceResult<Upload>> UploadFileAsync(Guid authorGuid, IFormFile file)
+        public async Task<ServiceResult<Upload>> UploadFileAsync(Guid authorGuid, IFormFile file, string password)
         {
             var extension = Path.GetExtension(file.FileName);
             var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
@@ -36,7 +36,9 @@ namespace UploadR.Services
                 Removed = false,
                 Guid = Guid.NewGuid(),
                 FileName = filename,
-                ContentType = file.ContentType
+                ContentType = file.ContentType,
+                Password = password,
+                LastSeen = DateTime.Now
             };
 
             await _db.Uploads.AddAsync(upload);

@@ -28,11 +28,16 @@ namespace UploadR.Controllers
         }
 
         [Route("{name}"), HttpGet, ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<IActionResult> GetFile(string name)
+        public async Task<IActionResult> GetFile(string name, [FromQuery(Name = "p")] string password)
         {
             var file = await _fs.TryGetUploadByNameAsync(name);
             if (file.IsSuccess)
             {
+                if (file.Value.Password != null && file.Value.Password != password)
+                {
+                    return Unauthorized("This file is protected, provide a valid password in your query.");
+                }
+
                 var path = $"./uploads/{file.Value.FileName}";
                 var fileBytes = System.IO.File.ReadAllBytes(path);
 
