@@ -12,9 +12,11 @@ UploadR can be used as a ShareX custom upload server.
 
 - `GET /` returns a view of the main page.
 - `GET /{file_name}` returns a file if it exists.
+- `GET /{file_name}?p={password}` returns a file if it exists and that it needs a password.
 - `GET /api/upload/{file_name}` returns as a `JSON` details of the specified file. Requires `user` authorization.
 - `DELETE /api/upload/{file_name}` deletes the specified file. Requires `user` authorization. Only the author can delete its upload.
 - `POST /api/upload` uploads the given file in the body of the request. Requires `user` authorization.
+- `POST /api/upload?p={password}` uploads the given file in the body of the request, sets x as the password to see the file content. Requires `user` authorization.
 - `PATCH /api/user/{guid}?block=false` unblocks a user by it's guid. Requires `admin` authorization.
 - `PATCH /api/user/{guid}?block=true` blocks a user by it's guid. Requires `admin` authorization. `Admin` accounts cannot be blocked.
 - `DELETE /api/user` deletes the authenticated account. Requires `user` authorization.
@@ -37,7 +39,7 @@ In order to use UploadR, you need the following components:
 
 # Configuration
 
-Use the pre-made file `uploadr.json` to create your configuration. This file must be in the same directory as the executable. You can also set an environment variable `UploadR_CONFIGURATION`.
+Use the pre-made file `uploadr.json` to create your configuration. This file must be in the same directory as the executable. You can also set an environment variable `UPLOADR_CONFIGURATION`.
 The configuration is made in multiple parts:
 - Database: used to make the connection to your PostgreSQL database.
 - Routes: used to block endpoints from being used.
