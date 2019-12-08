@@ -27,7 +27,7 @@ namespace UploadR.Controllers
             return View();
         }
 
-        [Route("{name}"), HttpGet]
+        [Route("{name}"), HttpGet, ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> GetFile(string name)
         {
             var file = await _fs.TryGetUploadByNameAsync(name);
