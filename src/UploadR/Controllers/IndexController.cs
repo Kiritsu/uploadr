@@ -8,9 +8,9 @@ namespace UploadR.Controllers
     [Route("")]
     public class IndexController : UploadRController
     {
-        private readonly FileService _fs;
+        private readonly UploadsService _fs;
 
-        public IndexController(UploadRContext dbContext, FileService fs) : base(dbContext)
+        public IndexController(UploadRContext dbContext, UploadsService fs) : base(dbContext)
         {
             _fs = fs;
         }

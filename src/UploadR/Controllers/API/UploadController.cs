@@ -1,187 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using UploadR.Configurations;
-using UploadR.Database;
-using UploadR.Database.Models;
-using UploadR.Interfaces;
+using UploadR.Services;
 
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController, Authorize]
     public class UploadController : Controller
     {
-        private readonly UploadRContext _dbContext;
-        private readonly FilesConfiguration _filesConfiguration;
+        private readonly UploadsService _uploads;
 
-        public UploadController(UploadRContext dbContext, IFilesConfigurationProvider filesConfiguration)
+        public UploadController(UploadsService uploads)
         {
-            _dbContext = dbContext;
-            _filesConfiguration = filesConfiguration.GetConfiguration();
+            _uploads = uploads;
         }
 
         [HttpDelete, Route("cleanup"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> CleanupUploads(int days)
         {
-            var dateTime = DateTime.Now - TimeSpan.FromDays(days);
-
-            var files = _dbContext.Uploads;
-            var fileNames = new List<string>();
-
-            foreach (var file in files)
-            {
-                if (file.LastSeen > dateTime)
-                {
-                    continue;
-                }
-
-                file.Removed = true;
-                _dbContext.Uploads.Update(file);
-
-                System.IO.File.Delete($"./uploads/{file.FileName}");
-            }
-
-            await _dbContext.SaveChangesAsync();
-            return Json(new { FilesDeleted = fileNames.Count, FileNames = fileNames });
+            var removedFiles = await _uploads.CleanupAsync(TimeSpan.FromDays(days));
+            return Json(new { removedFiles.Count, FileNames = removedFiles });
         }
 
         [HttpGet, Route("{name}")]
-        public IActionResult DetailsUpload(string name)
+        public async Task<IActionResult> DetailsUpload(string name)
         {
-            var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
-
-            if (file is null)
+            var file = await _uploads.TryGetUploadByNameAsync(name);
+            if (file.IsSuccess)
             {
-                return NotFound("File not found.");
-            }
-
-            if (file.Removed)
-            {
-                return BadRequest("File is removed.");
-            }
-
-            return Ok(
-                new
+                return Ok(new
                 {
                     File = new
                     {
-                        Name = file.FileName,
-                        Url = $"{Request.Scheme}://{Request.Host.Value}/{file.FileName}",
-                        Views = file.ViewCount,
-                        Author = file.AuthorGuid,
-                        FileType = file.ContentType,
-                        UploadedAt = file.CreatedAt,
-                        IsRemoved = file.Removed
+                        Name = file.Value.FileName,
+                        Url = $"{Request.Scheme}://{Request.Host.Value}/{file.Value.FileName}",
+                        Views = file.Value.ViewCount,
+                        Author = file.Value.AuthorGuid,
+                        FileType = file.Value.ContentType,
+                        UploadedAt = file.Value.CreatedAt,
+                        IsRemoved = file.Value.Removed
                     }
                 });
+            }
+
+            return file.Code switch
+            {
+                1 => NotFound(new { Reason = "Unknown File.", file.Code }),
+                2 => NotFound(new { Reason = "File is removed.", file.Code }),
+                3 => NotFound(new { Reason = "File not found. It has been marked as removed.", file.Code }),
+                _ => BadRequest()
+            };
         }
 
         [HttpDelete, Route("{name}")]
         public async Task<IActionResult> DeleteUpload(string name)
         {
-            var file = _dbContext.Uploads.FirstOrDefault(x => x.FileName == name);
-
-            if (file is null)
+            var result = await _uploads.RemoveAsync(name, Guid.Parse(HttpContext.User.Identity.Name));
+            if (result.IsSuccess)
             {
-                return NotFound("File not found.");
+                return Ok();
             }
 
-            if (file.AuthorGuid != Guid.Parse(HttpContext.User.Identity.Name))
+            return result.Code switch
             {
-                return BadRequest("This file doesn't belong to you.");
-            }
-
-            var path = $"./uploads/{file.FileName}";
-
-            if (file.Removed)
-            {
-                return BadRequest("File is already removed.");
-            }
-
-            if (!System.IO.File.Exists(path))
-            {
-                file.Removed = true;
-                _dbContext.Uploads.Update(file);
-                await _dbContext.SaveChangesAsync();
-
-                return NotFound("File not found. File has just been marked as removed.");
-            }
-
-            System.IO.File.Delete(path);
-            file.Removed = true;
-            _dbContext.Uploads.Update(file);
-
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("File has been successfully removed.");
+                1 => NotFound(new { Reason = "Unknown File.", result.Code }),
+                2 => NotFound(new { Reason = "File is removed.", result.Code }),
+                3 => NotFound(new { Reason = "File not found. It has been marked as removed.", result.Code }),
+                4 => Unauthorized(new { Reason = "This file doesn't belong to you.", result.Code }),
+                _ => BadRequest()
+            };
         }
 
         [HttpPost, Route(""), DisableRequestSizeLimit]
         public async Task<IActionResult> PostUpload()
         {
-            foreach (var file in Request.Form.Files)
+            // Silently ignore when filecount > 1 and doesn't match configuration.
+            var files = new List<IFormFile>();
+            if (Request.Form.Files.Count == 1)
             {
-                if (file is null)
+                var file = Request.Form.Files.First();
+                var result = _uploads.IsValidFile(file);
+                if (result.IsSuccess)
                 {
-                    return BadRequest();
+                    files.Add(file);
                 }
-
-                if (file.Length > _filesConfiguration.SizeMax)
+                else
                 {
-                    return BadRequest($"Size of the file too big. ({_filesConfiguration.SizeMax}B max)");
-                }
-
-                if (file.Length < _filesConfiguration.SizeMin)
-                {
-                    return BadRequest($"Size of the file too low. ({_filesConfiguration.SizeMin}B min)");
-                }
-
-                var extension = Path.GetExtension(file.FileName);
-
-                if (!_filesConfiguration.FileExtensions.Any(x => x == extension.Replace(".", "")))
-                {
-                    return BadRequest(new { Message = "Unsupported file extension.", _filesConfiguration.FileExtensions });
+                    return result.Code switch
+                    {
+                        11 => BadRequest(),
+                        12 => BadRequest(new { Reason = "Too big.", result.Code }),
+                        13 => BadRequest(new { Reason = "Too small.", result.Code }),
+                        14 => BadRequest(new { Reason = "Unsupported extension.", result.Code }),
+                        _ => BadRequest()
+                    };
                 }
             }
+            else
+            {
+                files = _uploads.FilterBadFiles(Request.Form.Files).ToList();
+            }
 
+            var authorGuid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
             var uploads = new List<object>();
             foreach (var file in Request.Form.Files)
             {
-                var extension = Path.GetExtension(file.FileName);
-                var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
-
-                var upload = new Upload
-                {
-                    AuthorGuid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value),
-                    CreatedAt = DateTime.Now,
-                    ViewCount = 0,
-                    Removed = false,
-                    Guid = Guid.NewGuid(),
-                    FileName = filename,
-                    ContentType = file.ContentType
-                };
-
-                await _dbContext.Uploads.AddAsync(upload);
-
-                await _dbContext.SaveChangesAsync();
-
-                if (!Directory.Exists("./uploads"))
-                {
-                    Directory.CreateDirectory("./uploads");
-                }
-
-                using (var fs = System.IO.File.Create($"./uploads/{filename}"))
-                {
-                    await file.CopyToAsync(fs);
-                }
-
-                uploads.Add(new { Filename = filename, Type = upload.ContentType });
+                var result = await _uploads.UploadFileAsync(authorGuid, file);
+                uploads.Add(new { Filename = result.Value.FileName, Type = result.Value.ContentType });
             }
 
             return Json(uploads);

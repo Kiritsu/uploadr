@@ -59,7 +59,7 @@ namespace UploadR
             services.AddSingleton<SmtpClient>();
             services.AddSingleton<Random>();
             services.AddSingleton<RateLimiterService<QuickAuthService>>();
-            services.AddSingleton<FileService>();
+            services.AddSingleton<UploadsService>();
 
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
