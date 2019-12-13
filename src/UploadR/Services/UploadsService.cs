@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using UploadR.Configurations;
 using UploadR.Database;
 using UploadR.Database.Models;
@@ -14,17 +15,19 @@ namespace UploadR.Services
 {
     public sealed class UploadsService
     {
-        private readonly UploadRContext _db;
+        private readonly IServiceProvider _sp;
         private readonly FilesConfiguration _fc;
 
-        public UploadsService(UploadRContext db, IFilesConfigurationProvider fc)
+        public UploadsService(IServiceProvider sp, IFilesConfigurationProvider fc)
         {
-            _db = db;
+            _sp = sp;
             _fc = fc.GetConfiguration();
         }
 
         public async Task<ServiceResult<Upload>> UploadFileAsync(Guid authorGuid, IFormFile file, string password)
         {
+            using var _db = _sp.GetRequiredService<UploadRContext>();
+
             var extension = Path.GetExtension(file.FileName);
             var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
 
@@ -102,6 +105,8 @@ namespace UploadR.Services
 
         public async Task<IReadOnlyList<string>> CleanupAsync(TimeSpan timeSpan)
         {
+            using var _db = _sp.GetRequiredService<UploadRContext>();
+
             var dateTime = DateTime.Now - timeSpan;
 
             var files = _db.Uploads;
@@ -127,6 +132,8 @@ namespace UploadR.Services
 
         public async Task<ServiceResult<bool>> RemoveAsync(string name, Guid authorGuid)
         {
+            using var _db = _sp.GetRequiredService<UploadRContext>();
+
             var upload = await IsValidUploadByNameAsync(name);
             if (!upload.IsSuccess)
             {
@@ -151,6 +158,8 @@ namespace UploadR.Services
 
         public async Task<ServiceResult<Upload>> TryGetUploadByNameAsync(string name)
         {
+            using var _db = _sp.GetRequiredService<UploadRContext>();
+
             var upload = await IsValidUploadByNameAsync(name);
             if (!upload.IsSuccess)
             {
@@ -168,6 +177,8 @@ namespace UploadR.Services
 
         public async Task<ServiceResult<Upload>> IsValidUploadByNameAsync(string name)
         {
+            using var _db = _sp.GetRequiredService<UploadRContext>();
+
             var file = await _db.Uploads.FirstOrDefaultAsync(x => x.FileName == name);
             if (file is null)
             {
