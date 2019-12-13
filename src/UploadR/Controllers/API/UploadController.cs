@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using UploadR.Enum;
 using UploadR.Services;
 
 namespace UploadR.Controllers
@@ -50,9 +51,9 @@ namespace UploadR.Controllers
 
             return file.Code switch
             {
-                1 => NotFound(new { Reason = "Unknown File.", file.Code }),
-                2 => NotFound(new { Reason = "File is removed.", file.Code }),
-                3 => NotFound(new { Reason = "File not found. It has been marked as removed.", file.Code }),
+                ResultErrorType.NotFound => NotFound(new { Reason = "Unknown File.", file.Code }),
+                ResultErrorType.Removed => NotFound(new { Reason = "File is removed.", file.Code }),
+                ResultErrorType.NotFoundRemoved => NotFound(new { Reason = "File not found. It has been marked as removed.", file.Code }),
                 _ => BadRequest()
             };
         }
@@ -68,10 +69,10 @@ namespace UploadR.Controllers
 
             return result.Code switch
             {
-                1 => NotFound(new { Reason = "Unknown File.", result.Code }),
-                2 => NotFound(new { Reason = "File is removed.", result.Code }),
-                3 => NotFound(new { Reason = "File not found. It has been marked as removed.", result.Code }),
-                4 => Unauthorized(new { Reason = "This file doesn't belong to you.", result.Code }),
+                ResultErrorType.NotFound => NotFound(new { Reason = "Unknown File.", result.Code }),
+                ResultErrorType.Removed => NotFound(new { Reason = "File is removed.", result.Code }),
+                ResultErrorType.NotFoundRemoved => NotFound(new { Reason = "File not found. It has been marked as removed.", result.Code }),
+                ResultErrorType.Unauthorized => Unauthorized(new { Reason = "This file doesn't belong to you.", result.Code }),
                 _ => BadRequest()
             };
         }
@@ -93,10 +94,10 @@ namespace UploadR.Controllers
                 {
                     return result.Code switch
                     {
-                        11 => BadRequest(),
-                        12 => BadRequest(new { Reason = "Too big.", result.Code }),
-                        13 => BadRequest(new { Reason = "Too small.", result.Code }),
-                        14 => BadRequest(new { Reason = "Unsupported extension.", result.Code }),
+                        ResultErrorType.Null => BadRequest(),
+                        ResultErrorType.TooBig => BadRequest(new { Reason = "Too big.", result.Code }),
+                        ResultErrorType.TooSmall => BadRequest(new { Reason = "Too small.", result.Code }),
+                        ResultErrorType.UnsupportedFileExtension => BadRequest(new { Reason = "Unsupported extension.", result.Code }),
                         _ => BadRequest()
                     };
                 }

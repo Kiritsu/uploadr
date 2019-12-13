@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UploadR.Configurations;
 using UploadR.Database;
+using UploadR.Enum;
 using UploadR.Extensions;
 using UploadR.Interfaces;
 using UploadR.Models;
@@ -16,26 +17,28 @@ namespace UploadR.Controllers
     [Route("auth")]
     public class AuthController : UploadRController
     {
-        private readonly UserController _userController;
+        private readonly UploadRContext _dbContext;
         private readonly RoutesConfiguration _routesConfiguration;
         private readonly OneTimeTokenConfiguration _ottConfiguration;
         private readonly QuickAuthService _qas;
         private readonly EmailService _emails;
         private readonly ILogger<AuthController> _logger;
         private readonly Random _rng;
+        private readonly UserService _us;
 
-        public AuthController(UploadRContext dbContext, UserController userController,
+        public AuthController(UploadRContext dbContext,
             IRoutesConfigurationProvider routesConfiguration, QuickAuthService qas,
             IOneTimeTokenConfigurationProvider ottConfiguration, EmailService emails,
-            ILogger<AuthController> logger, Random rng) : base(dbContext)
+            ILogger<AuthController> logger, Random rng, UserService us)
         {
-            _userController = userController;
+            _dbContext = dbContext;
             _routesConfiguration = routesConfiguration.GetConfiguration();
             _ottConfiguration = ottConfiguration.GetConfiguration();
             _qas = qas;
             _emails = emails;
             _logger = logger;
             _rng = rng;
+            _us = us;
         }
 
         [Route("login"), HttpGet]
@@ -198,33 +201,44 @@ namespace UploadR.Controllers
         }
 
         [Route("signup"), HttpPost]
-        public async Task<IActionResult> Signup(string email)
+        public async Task<IActionResult> Signup(string inputEmail)
         {
             ViewData["RouteEnabled"] = _routesConfiguration.UserRegisterRoute;
 
-            var content = await _userController.CreateUser(new UserCreateModel
+            var model = new UserCreateModel
             {
-                Email = email
-            });
+                Email = inputEmail
+            };
 
-            switch (content)
+            var result = await _us.CreateAccountAsync(model);
+
+            if (result.IsSuccess)
             {
-                case OkObjectResult oor:
-                    var token = ((dynamic)oor.Value).Token;
-                    ViewData["Token"] = token;
+                var token = result.Value.Item2.Guid.ToString();
+                var email = result.Value.Item1.Email;
+
+                ViewData["Token"] = token;
+
+                if (!string.IsNullOrWhiteSpace(email))
+                {
                     try
                     {
-                        await _emails.SendSignupSuccessAsync(token, $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
+                        await _emails.SendSignupSuccessAsync(token,
+                            $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
                     }
-                    catch (Exception ex)
+                    catch (Exception e)
                     {
-                        _logger.LogError(ex, "SendSignupSuccess error");
-                        ViewData["RegisterError"] = "Internal error: couldn't send a verification email.";
+                        _logger.LogError(e, "Unable to send email.");
+                        ViewData["RegisterError"] = "Internal error: couldn't send the email.";
                     }
-                    break;
-                case ObjectResult or:
-                    ViewData["RegisterError"] = or.Value != null ? (string)or.Value : "";
-                    break;
+                }
+            }
+            else
+            {
+                if (result.Code == ResultErrorType.Found)
+                {
+                    ViewData["RegisterError"] = "A user with that email already exists.";
+                }
             }
 
             return View();

@@ -1,4 +1,6 @@
-﻿namespace UploadR.Services
+﻿using UploadR.Enum;
+
+namespace UploadR.Services
 {
     /// <summary>
     /// Files:
@@ -15,23 +17,23 @@
     public class ServiceResult<T> 
     {
         public bool IsSuccess { get; }
-        public int Code { get; }
+        public ResultErrorType Code { get; }
         public T Value { get; }
         
-        public ServiceResult(bool success, int code)
+        public ServiceResult(bool success, ResultErrorType code)
         {
             IsSuccess = success;
             Code = code;
         }
 
-        public ServiceResult(bool success, int code, T value)
+        public ServiceResult(bool success, ResultErrorType code, T value)
         {
             IsSuccess = success;
             Code = code;
             Value = value;
         }
 
-        public static ServiceResult<T> Fail(int code)
+        public static ServiceResult<T> Fail(ResultErrorType code)
         {
             return new ServiceResult<T>(false, code);
         }

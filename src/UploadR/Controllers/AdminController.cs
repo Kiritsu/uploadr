@@ -12,8 +12,11 @@ namespace UploadR.Controllers
     [Route("admin"), Authorize(Policy = AdminRequirement.PolicyName)]
     public class AdminController : UploadRController
     {
-        public AdminController(UploadRContext dbContext) : base(dbContext)
+        private readonly UploadRContext _dbContext;
+
+        public AdminController(UploadRContext dbContext)
         {
+            _dbContext = dbContext;
         }
 
         [Route(""), HttpGet]

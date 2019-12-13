@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using UploadR.Configurations;
 using UploadR.Database;
 using UploadR.Database.Models;
@@ -11,15 +12,15 @@ namespace UploadR.Services
 {
     public sealed class QuickAuthService
     {
-        private readonly UploadRContext _dbContext;
+        private readonly IServiceProvider _sp;
         private readonly OneTimeTokenConfiguration _ottConfiguration;
         private readonly RateLimiterService<QuickAuthService> _rl;
 
         private readonly ConcurrentDictionary<Guid, OneTimeToken> _oneTimeTokens;
 
-        public QuickAuthService(UploadRContext dbContext, IOneTimeTokenConfigurationProvider ottConfiguration, RateLimiterService<QuickAuthService> rl)
+        public QuickAuthService(IServiceProvider sp, IOneTimeTokenConfigurationProvider ottConfiguration, RateLimiterService<QuickAuthService> rl)
         {
-            _dbContext = dbContext;
+            _sp = sp;
             _ottConfiguration = ottConfiguration.GetConfiguration();
             _rl = rl;
 
@@ -45,7 +46,8 @@ namespace UploadR.Services
         /// <param name="userGuid">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
         public OneTimeToken GetOrCreate(Guid userGuid)
         {
-            return GetOrCreate(_dbContext.Users.Find(userGuid));
+            using var db = _sp.GetRequiredService<UploadRContext>();
+            return GetOrCreate(db.Users.Find(userGuid));
         }
 
         /// <summary>
@@ -85,6 +87,8 @@ namespace UploadR.Services
         /// <param name="ottGuid"><see cref="Guid"/> of the <see cref="OneTimeToken"/>.</param>
         public User GetAndValidateUserOtt(Guid ottGuid)
         {
+            using var db = _sp.GetRequiredService<UploadRContext>();
+
             if (!_oneTimeTokens.Values.Any(x => x.Token == ottGuid))
             {
                 throw new InvalidOperationException("The given one-time-token isn't valid.");
@@ -96,7 +100,7 @@ namespace UploadR.Services
                 throw new InvalidOperationException("The given one-time-token has expired or has already been used.");
             }
 
-            var user = _dbContext.Users.Include(x => x.Token).FirstOrDefault(x => x.Guid == ott.UserGuid);
+            var user = db.Users.Include(x => x.Token).FirstOrDefault(x => x.Guid == ott.UserGuid);
             if (user == null)
             {
                 throw new InvalidOperationException("The target user is not valid. This should not happen.");
@@ -111,7 +115,8 @@ namespace UploadR.Services
         /// <param name="userGuid"><see cref="User"/> which will have its <see cref="OneTimeToken"/> invalidated.</param>
         public void Invalidate(Guid userGuid)
         {
-            Invalidate(_dbContext.Users.Find(userGuid));
+            using var db = _sp.GetRequiredService<UploadRContext>();
+            Invalidate(db.Users.Find(userGuid));
         }
 
         /// <summary>

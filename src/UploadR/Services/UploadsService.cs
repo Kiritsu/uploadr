@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using UploadR.Configurations;
 using UploadR.Database;
 using UploadR.Database.Models;
+using UploadR.Enum;
 using UploadR.Interfaces;
 
 namespace UploadR.Services
@@ -17,16 +19,23 @@ namespace UploadR.Services
     {
         private readonly IServiceProvider _sp;
         private readonly FilesConfiguration _fc;
+        private readonly ILogger<UploadsService> _logger;
 
-        public UploadsService(IServiceProvider sp, IFilesConfigurationProvider fc)
+        public UploadsService(IServiceProvider sp, IFilesConfigurationProvider fc, ILogger<UploadsService> logger)
         {
             _sp = sp;
             _fc = fc.GetConfiguration();
+            _logger = logger;
+        }
+
+        public bool IsCorrectPassword(Upload upload, string inputPassword)
+        {
+            return upload.Password == null || upload.Password == inputPassword;
         }
 
         public async Task<ServiceResult<Upload>> UploadFileAsync(Guid authorGuid, IFormFile file, string password)
         {
-            using var _db = _sp.GetRequiredService<UploadRContext>();
+            await using var _db = _sp.GetRequiredService<UploadRContext>();
 
             var extension = Path.GetExtension(file.FileName);
             var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
@@ -63,23 +72,23 @@ namespace UploadR.Services
         {
             if (file is null)
             {
-                return ServiceResult<bool>.Fail(11);
+                return ServiceResult<bool>.Fail(ResultErrorType.Null);
             }
 
             if (file.Length > _fc.SizeMax)
             {
-                return ServiceResult<bool>.Fail(12);
+                return ServiceResult<bool>.Fail(ResultErrorType.TooBig);
             }
 
             if (file.Length < _fc.SizeMin)
             {
-                return ServiceResult<bool>.Fail(13);
+                return ServiceResult<bool>.Fail(ResultErrorType.TooSmall);
             }
 
             var extension = Path.GetExtension(file.FileName);
             if (!_fc.FileExtensions.Any(x => x == extension.Replace(".", "")))
             {
-                return ServiceResult<bool>.Fail(14);
+                return ServiceResult<bool>.Fail(ResultErrorType.UnsupportedFileExtension);
             }
 
             return ServiceResult<bool>.Success(true);
@@ -105,11 +114,11 @@ namespace UploadR.Services
 
         public async Task<IReadOnlyList<string>> CleanupAsync(TimeSpan timeSpan)
         {
-            using var _db = _sp.GetRequiredService<UploadRContext>();
+            await using var db = _sp.GetRequiredService<UploadRContext>();
 
             var dateTime = DateTime.Now - timeSpan;
 
-            var files = _db.Uploads;
+            var files = db.Uploads;
             var fileNames = new List<string>();
 
             foreach (var file in files)
@@ -121,18 +130,25 @@ namespace UploadR.Services
 
                 fileNames.Add(file.FileName);
                 file.Removed = true;
-                _db.Uploads.Update(file);
+                db.Uploads.Update(file);
 
-                File.Delete($"./uploads/{file.FileName}");
+                try
+                {
+                    File.Delete($"./uploads/{file.FileName}");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning($"Couldn't remove file {file.FileName}: {e.Message}");
+                }
             }
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
             return fileNames.AsReadOnly();
         }
 
         public async Task<ServiceResult<bool>> RemoveAsync(string name, Guid authorGuid)
         {
-            using var _db = _sp.GetRequiredService<UploadRContext>();
+            await using var db = _sp.GetRequiredService<UploadRContext>();
 
             var upload = await IsValidUploadByNameAsync(name);
             if (!upload.IsSuccess)
@@ -142,23 +158,23 @@ namespace UploadR.Services
 
             if (upload.Value.AuthorGuid != authorGuid)
             {
-                return ServiceResult<bool>.Fail(4);
+                return ServiceResult<bool>.Fail(ResultErrorType.Unauthorized);
             }
 
             var path = $"./uploads/{upload.Value.FileName}";
 
             File.Delete(path);
             upload.Value.Removed = true;
-            _db.Uploads.Update(upload.Value);
+            db.Uploads.Update(upload.Value);
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             return ServiceResult<bool>.Success(true);
         }
 
         public async Task<ServiceResult<Upload>> TryGetUploadByNameAsync(string name)
         {
-            using var _db = _sp.GetRequiredService<UploadRContext>();
+            await using var db = _sp.GetRequiredService<UploadRContext>();
 
             var upload = await IsValidUploadByNameAsync(name);
             if (!upload.IsSuccess)
@@ -169,35 +185,35 @@ namespace UploadR.Services
             upload.Value.LastSeen = DateTime.Now;
             upload.Value.ViewCount++;
 
-            _db.Uploads.Update(upload.Value);
-            await _db.SaveChangesAsync();
+            db.Uploads.Update(upload.Value);
+            await db.SaveChangesAsync();
 
             return upload;
         }
 
         public async Task<ServiceResult<Upload>> IsValidUploadByNameAsync(string name)
         {
-            using var _db = _sp.GetRequiredService<UploadRContext>();
+            await using var db = _sp.GetRequiredService<UploadRContext>();
 
-            var file = await _db.Uploads.FirstOrDefaultAsync(x => x.FileName == name);
+            var file = await db.Uploads.FirstOrDefaultAsync(x => x.FileName == name);
             if (file is null)
             {
-                return ServiceResult<Upload>.Fail(1);
+                return ServiceResult<Upload>.Fail(ResultErrorType.NotFound);
             }
 
             if (file.Removed)
             {
-                return ServiceResult<Upload>.Fail(2);
+                return ServiceResult<Upload>.Fail(ResultErrorType.Removed);
             }
 
             var path = $"./uploads/{file.FileName}";
             if (!File.Exists(path))
             {
                 file.Removed = true;
-                _db.Uploads.Update(file);
-                await _db.SaveChangesAsync();
+                db.Uploads.Update(file);
+                await db.SaveChangesAsync();
 
-                return ServiceResult<Upload>.Fail(3);
+                return ServiceResult<Upload>.Fail(ResultErrorType.NotFoundRemoved);
             }
 
             return ServiceResult<Upload>.Success(file);
