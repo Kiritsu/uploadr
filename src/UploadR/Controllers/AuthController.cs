@@ -72,6 +72,7 @@ namespace UploadR.Controllers
             if (!_qas.IncrementAndValidateRateLimits(hashIp))
             {
                 ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {_qas.GetRemainingTimeout(hashIp)} minutes.";
+                return View("LoginByOtt");
             }
 
             ViewData["OttEnabled"] = _ottConfiguration.Enabled;
@@ -109,6 +110,7 @@ namespace UploadR.Controllers
             if (!_qas.IncrementAndValidateRateLimits(hashIp))
             {
                 ViewData["ErrorMessage"] = $"You are being rate limited. Retry in {_qas.GetRemainingTimeout(hashIp)} minutes.";
+                return View();
             }
 
             ViewData["EnableOttButton"] = _ottConfiguration.Enabled;
