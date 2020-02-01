@@ -33,12 +33,12 @@ namespace UploadR.Controllers
             
             if (reset)
             {
-                await _emails.SendTokenResetAsync(result.Value.User, result.Value.Token);
+                await _emails.SendTokenResetAsync(result.Value, result.Value.Token);
                 return Json(new { Token = result.Value.Token, Revoked = false });
             }
             else
             {
-                await _emails.SendCustomActionAsync(result.Value.User, "TOKEN_REVOKED");
+                await _emails.SendCustomActionAsync(result.Value, "TOKEN_REVOKED");
                 return Json(new { Token = "", Revoked = true });
             }
         }

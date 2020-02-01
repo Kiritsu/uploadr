@@ -61,9 +61,9 @@ namespace UploadR.Database
                 .HasColumnName("account_type");
 
             modelBuilder.Entity<User>()
-                .Property(x => x.Tokens)
+                .Property(x => x.Token)
                 .IsRequired()
-                .HasColumnName("tokens");
+                .HasColumnName("token");
 
             modelBuilder.Entity<User>()
                 .HasMany(x => x.Uploads)

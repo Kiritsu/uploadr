@@ -27,9 +27,9 @@ namespace UploadR.Database.Models
         public bool Disabled { get; set; }
 
         /// <summary>
-        ///     Available user's tokens.
+        ///     Available user's token.
         /// </summary>
-        public List<string> Tokens { get; set; }
+        public string Token { get; set; }
 
         /// <summary>
         ///     User's account type.

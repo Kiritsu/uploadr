@@ -93,7 +93,7 @@ namespace UploadR
 
             services.AddSession(options =>
             {
-                options.Cookie.Name = "PotatoSession";
+                options.Cookie.Name = "UploadRSession";
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
             });

@@ -25,23 +25,21 @@ namespace UploadR.Services
             _rc = rc.GetConfiguration();
         }
 
-        public async Task<ServiceResult<(User User, string Token)>> ResetOrRevokeTokenAsync(Guid guid, string token, bool reset)
+        public async Task<ServiceResult<User>> ResetOrRevokeTokenAsync(Guid guid, string token, bool reset)
         {
             await using var db = _sp.GetRequiredService<UploadRContext>();
             var user = await db.Users.FindAsync(guid);
 
-            user.Tokens.Remove(token);
-            string newToken = null;
+            user.Token = null;
             if (reset)
             {
-                newToken = Guid.NewGuid().ToString();
-                user.Tokens.Add(newToken);
+                user.Token = Guid.NewGuid().ToString();
             }
 
             db.Users.Update(user);
             await db.SaveChangesAsync();
 
-            return ServiceResult<(User, string)>.Success((user, newToken));
+            return ServiceResult<User>.Success(user);
         }
 
         public async Task<ServiceResult<User>> BlockOrUnblockUserAsync(string guidStr, bool block)
@@ -80,27 +78,27 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
         }
 
-        public async Task<ServiceResult<(User User, string Token)>> CreateAccountAsync(UserCreateModel model)
+        public async Task<ServiceResult<User>> CreateAccountAsync(UserCreateModel model)
         {
             if (!_rc.UserRegisterRoute)
             {
-                return ServiceResult<(User, string)>.Fail(ResultErrorType.Unauthorized);
+                return ServiceResult<User>.Fail(ResultErrorType.Unauthorized);
             }
 
             if (string.IsNullOrWhiteSpace(model.Email))
             {
-                return ServiceResult<(User, string)>.Fail(ResultErrorType.EmailNotProvided);
+                return ServiceResult<User>.Fail(ResultErrorType.EmailNotProvided);
             }
 
             if (!model.Email.IsValidEmail())
             {
-                return ServiceResult<(User, string)>.Fail(ResultErrorType.EmailNotProvided);
+                return ServiceResult<User>.Fail(ResultErrorType.EmailNotProvided);
             }
 
             await using var db = _sp.GetRequiredService<UploadRContext>();
             if (await db.Users.AnyAsync(x => x.Email.ToLower() == model.Email.ToLower()))
             {
-                return ServiceResult<(User, string)>.Fail(ResultErrorType.Found);
+                return ServiceResult<User>.Fail(ResultErrorType.Found);
             }
 
             var user = new User
@@ -110,16 +108,13 @@ namespace UploadR.Services
                 Email = model.Email,
                 Disabled = false,
                 Type = AccountType.User,
-                Tokens = new List<string>()
+                Token = Guid.NewGuid().ToString()
             };
-
-            var token = Guid.NewGuid().ToString();
-            user.Tokens.Add(token);
 
             await db.Users.AddAsync(user);
             await db.SaveChangesAsync();
 
-            return ServiceResult<(User, string)>.Success((user, token));
+            return ServiceResult<User>.Success(user);
         }
     }
 }

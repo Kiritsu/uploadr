@@ -75,13 +75,13 @@ namespace UploadR.Controllers
                 var user = await _qas.GetAndValidateUserOttAsync(ottGuid.Value);
                 _qas.Invalidate(user);
 
-                if (!user.Tokens.Any())
+                if (string.IsNullOrWhiteSpace(user.Token))
                 {
                     ViewData["ErrorMessage"] = "Your account doesn't have any access token set.";
                     return View("LoginByOtt");
                 }
 
-                HttpContext.Session.Set("UserToken", user.Tokens.First());
+                HttpContext.Session.Set("UserToken", user.Token);
                 return RedirectToAction("Index", controllerName: "Index");
             }
             catch (InvalidOperationException ex)
@@ -198,7 +198,7 @@ namespace UploadR.Controllers
 
                 try
                 {
-                    await _emails.SendSignupSuccessAsync(result.Value.User, result.Value.Token,
+                    await _emails.SendSignupSuccessAsync(result.Value, result.Value.Token,
                         $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}");
                 }
                 catch (Exception e)
