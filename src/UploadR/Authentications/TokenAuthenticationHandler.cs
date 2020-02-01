@@ -28,7 +28,7 @@ namespace UploadR.Authentications
             _logger = logger.CreateLogger<TokenAuthenticationHandler>();
         }
 
-        private bool TryGetTokenByHeader(out Guid? token)
+        private bool TryGetTokenByHeader(out string token)
         {
             token = null;
 
@@ -37,17 +37,11 @@ namespace UploadR.Authentications
                 return false;
             }
 
-            var tokenStr = values.First();
-            if (!Guid.TryParse(tokenStr, out var tokenPrs))
-            {
-                return false;
-            }
-
-            token = tokenPrs;
+            token = values.First();
             return true;
         }
 
-        private bool TryGetTokenFromSession(out Guid? token)
+        private bool TryGetTokenFromSession(out string token)
         {
             token = null;
 
@@ -56,51 +50,45 @@ namespace UploadR.Authentications
                 return false;
             }
 
-            token = Request.HttpContext.Session.Get<Guid?>("userToken");
+            token = Request.HttpContext.Session.Get<string>("UserToken");
             return token != null;
         }
 
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!TryGetTokenByHeader(out var tokenGuid) && !TryGetTokenFromSession(out tokenGuid))
+            if (!TryGetTokenByHeader(out var token) && !TryGetTokenFromSession(out token))
             {
-                return Task.FromResult(AuthenticateResult.Fail("Missing Authorization."));
+                return AuthenticateResult.Fail("Missing Authorization.");
             }
 
-            var validatedToken = _database.Tokens.Include(x => x.User).FirstOrDefault(x => x.Guid == tokenGuid);
-            if (validatedToken is null)
+            var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
+            if (user is null)
             {
                 _logger.LogWarning("Invalid Token.");
-                return Task.FromResult(AuthenticateResult.Fail("Invalid Token."));
+                return AuthenticateResult.Fail("Invalid Token.");
             }
 
-            if (validatedToken.Revoked)
-            {
-                _logger.LogWarning("Token revoked.");
-                return Task.FromResult(AuthenticateResult.Fail("Token revoked."));
-            }
-
-            if (validatedToken.User.Disabled)
+            if (user.Disabled)
             {
                 _logger.LogWarning("User blocked.");
-                return Task.FromResult(AuthenticateResult.Fail("User blocked."));
+                return AuthenticateResult.Fail("User blocked.");
             }
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, validatedToken.User.Email),
-                new Claim(ClaimTypes.NameIdentifier, validatedToken.UserGuid.ToString()),
-                new Claim(ClaimTypes.Email, validatedToken.User.Email),
-                new Claim(ClaimToken, validatedToken.Guid.ToString()),
-                new Claim(ClaimTypes.Role, validatedToken.TokenType.ToString())
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Guid.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimToken, token),
+                new Claim(ClaimTypes.Role, user.Type.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", validatedToken.UserGuid, validatedToken.Guid);
-            return Task.FromResult(AuthenticateResult.Success(ticket));
+            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", user.Guid, token);
+            return AuthenticateResult.Success(ticket);
         }
     }
 }

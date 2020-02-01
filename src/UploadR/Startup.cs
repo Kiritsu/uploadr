@@ -28,6 +28,11 @@ namespace UploadR
                 ? envVariableConf
                 : "uploadr.json";
 
+            if (!File.Exists(configPath))
+            {
+                throw new FileNotFoundException("Unable to find config path. Setup UPLOADR_CONFIGURATION env variable first.");
+            }
+
             var cfg = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
                 .AddJsonFile(configPath, false)
@@ -60,6 +65,7 @@ namespace UploadR
             services.AddSingleton<Random>();
             services.AddSingleton<RateLimiterService<QuickAuthService>>();
             services.AddSingleton<UploadsService>();
+            services.AddSingleton<UserService>();
 
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
@@ -87,7 +93,7 @@ namespace UploadR
 
             services.AddSession(options =>
             {
-                options.Cookie.Name = "PotatoSession";
+                options.Cookie.Name = "UploadRSession";
                 options.Cookie.IsEssential = true;
                 options.Cookie.HttpOnly = true;
             });

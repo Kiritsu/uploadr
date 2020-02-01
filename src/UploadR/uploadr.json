@@ -8,7 +8,7 @@
     "UseSsl": true
   },
   "Routes": {
-    "UserRegisterRoute": false
+    "UserRegisterRoute": true
   },
   "Files": {
     "SizeMin": 0,
@@ -31,7 +31,6 @@
     "Timeout": 10
   },
   "OneTimeToken": {
-    "Enabled": true,
     "Timeout": 30,
     "AntiSpam": {
       "Enabled": true,

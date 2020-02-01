@@ -13,7 +13,7 @@ namespace UploadR.Authentications
     {
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AdminRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && context.User.IsInRole(TokenType.Admin.ToString()))
+            if (context.User.Identity.IsAuthenticated && context.User.IsInRole(AccountType.Admin.ToString()))
             {
                 context.Succeed(requirement);
             }

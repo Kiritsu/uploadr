@@ -14,9 +14,6 @@
                 <th>Email</th>
                 <th>Date</th>
                 <th>Disabled</th>
-                <th>Token</th>
-                <th>Revoked</th>
-                <th>Type</th>
                 <th>Uploads</th>
             </tr>
         </thead>
@@ -26,12 +23,9 @@
                 {
                     <tr>
                         <td align="center" valign="middle">@user.Guid</td>
-                        <td align="center" valign="middle">@(!string.IsNullOrWhiteSpace(user.Email) ? user.Email : "Anonymous")</td>
+                        <td align="center" valign="middle">@user.Email</td>
                         <td align="center" valign="middle">@user.CreatedAt.ToString("G")</td>
                         <td align="center" valign="middle">@user.Disabled</td>
-                        <td align="center" valign="middle">@user.Token.Guid</td>
-                        <td align="center" valign="middle">@user.Token.Revoked</td>
-                        <td align="center" valign="middle">@user.Token.TokenType</td>
                         <td align="center" valign="middle"><a class="btn btn-info" asp-area="" asp-controller="Admin" asp-action="Uploads" asp-route-userGuid="@user.Guid">See @user.Uploads.Count uploads</a></td>
                     </tr>
                 }

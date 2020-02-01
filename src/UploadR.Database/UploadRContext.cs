@@ -7,7 +7,6 @@ namespace UploadR.Database
     public class UploadRContext : DbContext
     {
         public DbSet<Upload> Uploads { get; set; }
-        public DbSet<Token> Tokens { get; set; }
         public DbSet<User> Users { get; set; }
 
         private readonly string _connectionString;
@@ -54,57 +53,24 @@ namespace UploadR.Database
                 .IsRequired()
                 .HasDefaultValue(false)
                 .HasColumnName("disabled");
-            #endregion
 
-            #region Token
-            modelBuilder.Entity<Token>()
-                .ToTable("tokens");
-
-            modelBuilder.Entity<Token>()
-                .Property(x => x.Guid)
+            modelBuilder.Entity<User>()
+                .Property(x => x.Type)
                 .IsRequired()
-                .HasColumnType("uuid")
-                .HasColumnName("guid");
+                .HasDefaultValue(AccountType.User)
+                .HasColumnName("account_type");
 
-            modelBuilder.Entity<Token>()
-                .HasKey(x => x.Guid)
-                .HasName("pk_token_guid");
-
-            modelBuilder.Entity<Token>()
-                .Property(x => x.CreatedAt)
+            modelBuilder.Entity<User>()
+                .Property(x => x.Token)
                 .IsRequired()
-                .HasDefaultValueSql("now()")
-                .HasColumnName("created_at");
+                .HasColumnName("token");
 
-            modelBuilder.Entity<Token>()
-                .Property(x => x.TokenType)
-                .IsRequired()
-                .HasDefaultValue(TokenType.User)
-                .HasColumnName("token_type");
-
-            modelBuilder.Entity<Token>()
-                .Property(x => x.Revoked)
-                .IsRequired()
-                .HasDefaultValue(false)
-                .HasColumnName("revoked");
-
-            modelBuilder.Entity<Token>()
-                .Property(x => x.UserGuid)
-                .IsRequired()
-                .HasColumnType("uuid")
-                .HasColumnName("user_guid");
-
-            modelBuilder.Entity<Token>()
-                .HasIndex(x => x.UserGuid)
-                .IsUnique()
-                .HasName("index_user_id");
-
-            modelBuilder.Entity<Token>()
-                .HasOne(x => x.User)
-                .WithOne(x => x.Token)
-                .HasForeignKey<Token>(x => x.UserGuid)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("fkey_token_userid");
+            modelBuilder.Entity<User>()
+                .HasMany(x => x.Uploads)
+                .WithOne(x => x.Author)
+                .HasForeignKey(x => x.AuthorGuid)
+                .HasConstraintName("fkey_user_authorid")
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
             #region Upload
@@ -140,10 +106,10 @@ namespace UploadR.Database
                 .HasColumnName("last_seen");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.ViewCount)
+                .Property(x => x.DownloadCount)
                 .IsRequired()
                 .HasDefaultValue(0)
-                .HasColumnName("view_count");
+                .HasColumnName("download_count");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.Removed)
@@ -164,12 +130,6 @@ namespace UploadR.Database
             modelBuilder.Entity<Upload>()
                 .Property(x => x.Password)
                 .HasColumnName("password");
-
-            modelBuilder.Entity<Upload>()
-                .HasOne(x => x.Author)
-                .WithMany(x => x.Uploads)
-                .HasForeignKey(x => x.AuthorGuid)
-                .HasConstraintName("fkey_upload_authorid");
             #endregion
         }
     }
