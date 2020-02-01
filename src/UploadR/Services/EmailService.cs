@@ -39,13 +39,12 @@ namespace UploadR.Services
                 $"<p>If you believe this is an error, you can ignore this.</p>");
         }
 
-        public async Task SendSignupSuccessAsync(string token, string baseUrl)
+        public async Task SendSignupSuccessAsync(User user, string token, string baseUrl)
         {
             await using var db = _sp.GetRequiredService<UploadRContext>();
-            var user = await db.Users.Include(x => x.Token).FirstOrDefaultAsync(x => x.Token.Guid.ToString() == token);
 
             await SendEmailAsync(user, "Your account has been created.",
-                $"<p>Hello! Thank you for registering an account for our service. Your token is: {user.Token.Guid}</p>" +
+                $"<p>Hello! Thank you for registering an account for our service. Your token is: {token}</p>" +
                 $"<p>If you believe this is an error, please reach us on <a href=\"{baseUrl}\">{baseUrl}</a>.</p>");
         }
 
@@ -66,10 +65,10 @@ namespace UploadR.Services
                 $"If it was not intended, contact us.</p>");
         }
 
-        public Task SendTokenResetAsync(User user)
+        public Task SendTokenResetAsync(User user, string token)
         {
             return SendEmailAsync(user, "Your token has been reset.",
-                $"<p>Hello! Your token has been reset, here's the new one, please, don't share it with anyone: {user.Token.Guid}</p>");
+                $"<p>Hello! Your token has been reset, here's the new one, please, don't share it with anyone: {token}</p>");
         }
 
         public async Task SendEmailAsync(User user, string subject, string content)

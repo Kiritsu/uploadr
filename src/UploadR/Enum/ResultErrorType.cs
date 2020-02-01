@@ -14,6 +14,7 @@
 
         InvalidGuid = 20,
 
-        Found = 30
+        Found = 30,
+        EmailNotProvided = 31,
     }
 }

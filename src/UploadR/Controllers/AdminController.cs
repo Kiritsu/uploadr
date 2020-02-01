@@ -56,7 +56,6 @@ namespace UploadR.Controllers
             var model = new AdminUsersViewModel
             {
                 Users = _dbContext.Users
-                    .Include(x => x.Token)
                     .Include(x => x.Uploads)
                     .ToList()
             };

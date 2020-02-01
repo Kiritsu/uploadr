@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using UploadR.Configurations;
@@ -44,10 +45,10 @@ namespace UploadR.Services
         ///     Gets or create a new <see cref="OneTimeToken"/> for the specified user.
         /// </summary>
         /// <param name="userGuid">User that will be logged in after validating the <see cref="OneTimeToken"/></param>
-        public OneTimeToken GetOrCreate(Guid userGuid)
+        public async Task<OneTimeToken> GetOrCreateAsync(Guid userGuid)
         {
             using var db = _sp.GetRequiredService<UploadRContext>();
-            return GetOrCreate(db.Users.Find(userGuid));
+            return GetOrCreate(await db.Users.FindAsync(userGuid));
         }
 
         /// <summary>
@@ -85,7 +86,7 @@ namespace UploadR.Services
         ///     Returns the User depending on the <see cref="OneTimeToken"/>.
         /// </summary>
         /// <param name="ottGuid"><see cref="Guid"/> of the <see cref="OneTimeToken"/>.</param>
-        public User GetAndValidateUserOtt(Guid ottGuid)
+        public async Task<User> GetAndValidateUserOttAsync(Guid ottGuid)
         {
             using var db = _sp.GetRequiredService<UploadRContext>();
 
@@ -100,7 +101,7 @@ namespace UploadR.Services
                 throw new InvalidOperationException("The given one-time-token has expired or has already been used.");
             }
 
-            var user = db.Users.Include(x => x.Token).FirstOrDefault(x => x.Guid == ott.UserGuid);
+            var user = await db.Users.FindAsync(ott.UserGuid);
             if (user == null)
             {
                 throw new InvalidOperationException("The target user is not valid. This should not happen.");
@@ -113,10 +114,10 @@ namespace UploadR.Services
         ///     Invalidates the <see cref="OneTimeToken"/> for the specified <see cref="User"/>.
         /// </summary>
         /// <param name="userGuid"><see cref="User"/> which will have its <see cref="OneTimeToken"/> invalidated.</param>
-        public void Invalidate(Guid userGuid)
+        public async Task InvalidateAsync(Guid userGuid)
         {
             using var db = _sp.GetRequiredService<UploadRContext>();
-            Invalidate(db.Users.Find(userGuid));
+            Invalidate(await db.Users.FindAsync(userGuid));
         }
 
         /// <summary>

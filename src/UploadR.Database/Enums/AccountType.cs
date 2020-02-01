@@ -1,6 +1,6 @@
 ﻿namespace UploadR.Database.Enums
 {
-    public enum TokenType
+    public enum AccountType
     {
         User,
         Admin

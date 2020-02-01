@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UploadR.Authentications;
 using UploadR.Enum;
 using UploadR.Models;
 using UploadR.Services;
@@ -26,12 +27,14 @@ namespace UploadR.Controllers
         public async Task<IActionResult> ResetAsync([FromQuery] bool reset = false)
         {
             var guid = Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value);
-            var result = await _us.ResetOrRevokeTokenAsync(guid, reset);
+            var token = User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken);
+
+            var result = await _us.ResetOrRevokeTokenAsync(guid, token.Value, reset);
             
             if (reset)
             {
-                await _emails.SendTokenResetAsync(result.Value.User);
-                return Json(new { Token = result.Value.Guid.ToString(), Revoked = false });
+                await _emails.SendTokenResetAsync(result.Value.User, result.Value.Token);
+                return Json(new { Token = result.Value.Token, Revoked = false });
             }
             else
             {
@@ -78,12 +81,13 @@ namespace UploadR.Controllers
             
             if (result.IsSuccess)
             {
-                return Json(new { Token = result.Value.Item2.Guid.ToString() });
+                return Json(new { result.Value.Token });
             }
 
             return result.Code switch
             {
                 ResultErrorType.Unauthorized => Unauthorized(),
+                ResultErrorType.EmailNotProvided => BadRequest(new { Reason = "An email is needed to create an account.", result.Code }),
                 ResultErrorType.Found => BadRequest(new { Reason = "A user with that email already exists.", result.Code }),
                 _ => BadRequest()
             };

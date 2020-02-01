@@ -2,8 +2,6 @@
 {
     public class OneTimeTokenConfiguration
     {
-        public bool Enabled { get; set; }
-
         public int Timeout { get; set; }
 
         public OneTimeTokenAntiSpanConfiguration AntiSpam { get; set; }

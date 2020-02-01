@@ -16,8 +16,7 @@ namespace UploadR.Database
                 Port = config.Port,
                 Database = config.Database,
                 Username = config.Username,
-                Password = config.Password,
-                UseSslStream = config.UseSsl
+                Password = config.Password
             }.ConnectionString;
         }
     }

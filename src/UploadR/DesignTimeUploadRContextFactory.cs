@@ -26,8 +26,7 @@ namespace UploadR
                 Hostname = config["Hostname"].Value<string>(),
                 Password = config["Password"].Value<string>(),
                 Username = config["Username"].Value<string>(),
-                Port = config["Port"].Value<int>(),
-                UseSsl = config["UseSsl"].Value<bool>()
+                Port = config["Port"].Value<int>()
             };
         }
     }

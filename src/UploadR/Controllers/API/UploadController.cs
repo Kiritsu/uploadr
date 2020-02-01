@@ -40,7 +40,7 @@ namespace UploadR.Controllers
                     {
                         Name = file.Value.FileName,
                         Url = $"{Request.Scheme}://{Request.Host.Value}/{file.Value.FileName}",
-                        Views = file.Value.ViewCount,
+                        Views = file.Value.DownloadCount,
                         Author = file.Value.AuthorGuid,
                         FileType = file.Value.ContentType,
                         UploadedAt = file.Value.CreatedAt,

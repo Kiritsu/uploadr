@@ -28,7 +28,7 @@
                         <td align="center" valign="middle"><a target="_blank" asp-area="" asp-controller="Index" asp-action="GetFile" asp-route-name="@upload.FileName">@upload.FileName</a></td>
                         <td align="center" valign="middle"><a class="btn btn-info" asp-area="" asp-controller="Admin" asp-action="UserByGuid" asp-route-userGuid="@upload.AuthorGuid">View user</a></td>
                         <td align="center" valign="middle">@upload.CreatedAt.ToString("G")</td>
-                        <td align="center" valign="middle">@upload.ViewCount</td>
+                        <td align="center" valign="middle">@upload.DownloadCount</td>
                         @if (upload.Removed)
                         {
                             <td align="center" valign="middle">Removed</td>

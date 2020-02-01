@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UploadR.Configurations;
 using UploadR.Database;
+using UploadR.Database.Enums;
 using UploadR.Database.Models;
 using UploadR.Enum;
 using UploadR.Interfaces;
@@ -38,15 +39,16 @@ namespace UploadR.Services
             await using var _db = _sp.GetRequiredService<UploadRContext>();
 
             var extension = Path.GetExtension(file.FileName);
-            var filename = $"{Guid.NewGuid().ToString().Replace("-", "")}{extension}";
+            var fileGuid = Guid.NewGuid();
+            var filename = $"{fileGuid.ToString().Replace("-", "")}{extension}";
 
             var upload = new Upload
             {
                 AuthorGuid = authorGuid,
                 CreatedAt = DateTime.Now,
-                ViewCount = 0,
+                DownloadCount = 0,
                 Removed = false,
-                Guid = Guid.NewGuid(),
+                Guid = fileGuid,
                 FileName = filename,
                 ContentType = file.ContentType,
                 Password = password,
@@ -54,7 +56,6 @@ namespace UploadR.Services
             };
 
             await _db.Uploads.AddAsync(upload);
-
             await _db.SaveChangesAsync();
 
             if (!Directory.Exists("./uploads"))
@@ -149,6 +150,7 @@ namespace UploadR.Services
         public async Task<ServiceResult<bool>> RemoveAsync(string name, Guid authorGuid)
         {
             await using var db = _sp.GetRequiredService<UploadRContext>();
+            var actionAuthor = await db.Users.FindAsync(authorGuid);
 
             var upload = await IsValidUploadByNameAsync(name);
             if (!upload.IsSuccess)
@@ -156,7 +158,7 @@ namespace UploadR.Services
                 return ServiceResult<bool>.Fail(upload.Code);
             }
 
-            if (upload.Value.AuthorGuid != authorGuid)
+            if (upload.Value.AuthorGuid != authorGuid && actionAuthor.Type != AccountType.Admin)
             {
                 return ServiceResult<bool>.Fail(ResultErrorType.Unauthorized);
             }
@@ -183,7 +185,7 @@ namespace UploadR.Services
             }
 
             upload.Value.LastSeen = DateTime.Now;
-            upload.Value.ViewCount++;
+            upload.Value.DownloadCount++;
 
             db.Uploads.Update(upload.Value);
             await db.SaveChangesAsync();

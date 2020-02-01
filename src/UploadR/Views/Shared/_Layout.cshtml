@@ -54,7 +54,7 @@
                             </li>
                         }
 
-                        @if (User.IsInRole(TokenType.Admin.ToString()))
+                        @if (User.IsInRole(AccountType.Admin.ToString()))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin Area</a>
