@@ -25,7 +25,7 @@ namespace UploadR.Controllers.Front
             return Json(new
             {
                 CanSignup = _routes.UserRegisterRoute,
-                IsAuthenticated = User.Identity?.IsAuthenticated,
+                IsAuthenticated = User?.Identity?.IsAuthenticated,
                 IsAdmin = User?.IsInRole(AccountType.Admin.ToString())
             });
         }
