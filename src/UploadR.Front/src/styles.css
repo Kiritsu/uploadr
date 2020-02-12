@@ -3,3 +3,16 @@
 .uploadr-bg-clr {
     background-color: #333;
 }
+
+body, html {
+    background: #444;
+    color: #CCC
+}
+
+.container-fluid {
+    margin-top: 10px;
+}
+
+.navbar-brand {
+    font-size: 1.75rem;
+}

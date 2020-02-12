@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { FooterComponent } from './footer/footer.component';
 import { HttpClientModule } from '@angular/common/http';
+import { BackendApiService } from './services/BackendApiService';
 
 @NgModule({
   declarations: [

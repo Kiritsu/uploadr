@@ -1,6 +1,10 @@
 <body>
   <app-nav-menu></app-nav-menu>
-  <div class="container">
+  <div class="container-fluid">
+    <p *ngIf="me.isAuthenticated; else disconnected">
+      Bienvenue !
+    </p>
+    <ng-template #disconnected>Veuillez vous connecter !</ng-template>
   </div>
   <app-footer></app-footer>
 </body>

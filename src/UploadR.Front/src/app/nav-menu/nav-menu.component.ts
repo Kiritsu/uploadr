@@ -1,22 +1,20 @@
-import { Component, Inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, Inject, OnInit } from '@angular/core';
+import { BackendMe } from '../data/BackendMe';
+import { BackendApiService } from '../services/BackendApiService';
 
 @Component({
   selector: 'app-nav-menu',
   templateUrl: './nav-menu.component.html'
 })
-export class NavMenuComponent { 
-    public me: NavMenuMe;
+export class NavMenuComponent implements OnInit { 
+    private backend: BackendApiService;
+    public me: BackendMe;
 
-    constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
-        http.get<NavMenuMe>(baseUrl + 'api/front/@me').subscribe(result => {
-            this.me = result;
-        }, error => console.error(error));
+    constructor(backend: BackendApiService) {
+        this.backend = backend;
     }
-}
 
-interface NavMenuMe {
-    canSignup: boolean;
-    isAuthenticated: boolean;
-    isAdmin: boolean;
+    ngOnInit() {
+        this.backend.getMe().subscribe(x => this.me = x);
+    }
 }
