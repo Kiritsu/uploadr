@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { BackendMe } from '../data/BackendMe';
+import { BackendMe } from '../data/backendme.model';
 import { Inject, Injectable } from '@angular/core';
 import { Observable, observable, BehaviorSubject } from 'rxjs';
 

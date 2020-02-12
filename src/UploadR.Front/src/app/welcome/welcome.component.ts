@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BackendApiService } from '../services/backend.api.service';
-import { BackendMe } from '../data/BackendMe';
+import { BackendMe } from '../data/backendme.model';
 
 @Component({
     selector: 'welcome',
@@ -8,7 +8,7 @@ import { BackendMe } from '../data/BackendMe';
 })
 export class WelcomeComponent {
     title = 'UploadR';
-    
+
     public me: BackendMe;
 
     constructor(public backend: BackendApiService) { }
