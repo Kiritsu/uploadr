@@ -8,6 +8,7 @@ import { FooterComponent } from './footer/footer.component';
 import { HttpClientModule } from '@angular/common/http';
 import { SignupComponent } from './signup/signup.component';
 import { WelcomeComponent } from './welcome/welcome.component';
+import { BackendApiService } from './services/backend.api.service';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,7 @@ import { WelcomeComponent } from './welcome/welcome.component';
       { path: 'signup', component: SignupComponent, pathMatch: 'full' }
     ])
   ],
-  providers: [],
+  providers: [BackendApiService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

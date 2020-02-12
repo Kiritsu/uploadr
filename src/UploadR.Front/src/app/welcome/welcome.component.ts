@@ -1,22 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { BackendApiService } from '../services/BackendApiService';
+import { BackendApiService } from '../services/backend.api.service';
 import { BackendMe } from '../data/BackendMe';
 
 @Component({
-  selector: 'welcome',
-  templateUrl: './welcome.component.html'
+    selector: 'welcome',
+    templateUrl: './welcome.component.html'
 })
 export class WelcomeComponent {
-  title = 'UploadR';
+    title = 'UploadR';
+    
+    public me: BackendMe;
 
-  private backend: BackendApiService;
-  public me: BackendMe;
+    constructor(public backend: BackendApiService) { }
 
-  constructor(backend: BackendApiService) {
-      this.backend = backend;
-  }
-
-  ngOnInit() {
-      this.backend.getMe().subscribe(x => this.me = x);
-  }
+    ngOnInit() {
+        this.backend.getMe().subscribe({
+          next: me => this.me = me
+        });
+    }
 }
