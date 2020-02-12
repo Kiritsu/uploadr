@@ -13,7 +13,7 @@
             </ul>
             <ul class="navbar-nav mt-2 mt-lg-0" *ngIf="me">
                 <li class="nav-item" *ngIf="me.canSignup && !me.isAuthenticated">
-                    <a class="nav-link" routerLink="/" routerLinkActive="active">Signup</a>
+                    <a class="nav-link" routerLink="/signup" routerLinkActive="active">Signup</a>
                 </li>
 
                 <li class="nav-item" *ngIf="me.isAuthenticated && me.isAdmin">

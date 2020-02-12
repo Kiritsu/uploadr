@@ -1,12 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
 
 .uploadr-bg-clr {
-    background-color: #333;
+    background-color: #222;
 }
 
 body, html {
-    background: #444;
-    color: #CCC
+    background: #333;
+    color: #EEE
 }
 
 .container-fluid {
@@ -15,4 +15,9 @@ body, html {
 
 .navbar-brand {
     font-size: 1.75rem;
+}
+
+.btn-uploadr {
+    background: #222;
+    color: #FFF;
 }

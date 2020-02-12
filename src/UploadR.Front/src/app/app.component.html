@@ -1,10 +1,7 @@
 <body>
   <app-nav-menu></app-nav-menu>
   <div class="container-fluid">
-    <p *ngIf="me.isAuthenticated; else disconnected">
-      Welcome.
-    </p>
-    <ng-template #disconnected>Please connect first.</ng-template>
+    <router-outlet></router-outlet>
   </div>
   <app-footer></app-footer>
 </body>

@@ -6,19 +6,23 @@ import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { FooterComponent } from './footer/footer.component';
 import { HttpClientModule } from '@angular/common/http';
-import { BackendApiService } from './services/BackendApiService';
+import { SignupComponent } from './signup/signup.component';
+import { WelcomeComponent } from './welcome/welcome.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavMenuComponent,
-    FooterComponent
+    FooterComponent,
+    SignupComponent,
+    WelcomeComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     RouterModule.forRoot([
-      { path: '', component: AppComponent, pathMatch: 'full' }
+      { path: '', component: WelcomeComponent, pathMatch: 'full' },
+      { path: 'signup', component: SignupComponent, pathMatch: 'full' }
     ])
   ],
   providers: [],

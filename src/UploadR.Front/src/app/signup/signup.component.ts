@@ -3,10 +3,10 @@ import { BackendMe } from '../data/BackendMe';
 import { BackendApiService } from '../services/BackendApiService';
 
 @Component({
-  selector: 'app-nav-menu',
-  templateUrl: './nav-menu.component.html'
+  selector: 'signup',
+  templateUrl: './signup.component.html'
 })
-export class NavMenuComponent implements OnInit { 
+export class SignupComponent implements OnInit { 
     private backend: BackendApiService;
     public me: BackendMe;
 
