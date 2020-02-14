@@ -21,3 +21,7 @@ body, html {
     background: #222;
     color: #FFF;
 }
+
+.btn-uploadr:hover {
+    color: #666;
+}

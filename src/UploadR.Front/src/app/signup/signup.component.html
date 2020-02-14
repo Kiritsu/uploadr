@@ -1,12 +1,26 @@
 <div class="row" *ngIf="me">
     <div class="col-md-6 mx-auto">
-        <form method="POST">
+        <div *ngIf="invalid">
+            <p class="alert alert-danger">Please provide a valid email.</p>
+        </div>
+        <div *ngIf="alreadyInUse">
+            <p class="alert alert-danger">This email is already in use.</p>
+        </div>
+        <div *ngIf="routeDisabled">
+            <p class="alert alert-danger">You cannot create any account for now.</p>
+        </div>
+        <div *ngIf="signupOk">
+            <p class="alert alert-dark">An account for this email has been created. Please check your email box and verify the account.</p>
+            <p class="alert alert-dark">An API token has also been given to you: <code>{{ token }}</code>. Don't share it to anyone.</p>
+        </div>
+
+        <form [formGroup]="signupForm">
             <div class="form-group">
                 <label for="email">Email address</label>
-                <input type="email" class="form-control" id="email" aria-describedby="privacy" placeholder="Enter email">
+                <input class="form-control" type="text" aria-describedby="privacy" placeholder="Enter email" formControlName="email" email>
                 <small id="privacy" class="form-text">We'll never share your email with anyone else.</small>
             </div>
-            <button type="submit" class="btn btn-uploadr">Submit</button>
+            <button class="btn btn-uploadr" (click)="signup()">Submit</button>
         </form>
     </div>
 </div>

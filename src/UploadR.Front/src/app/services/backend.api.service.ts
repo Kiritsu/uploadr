@@ -7,19 +7,23 @@ import { Observable, observable, BehaviorSubject } from 'rxjs';
     providedIn: 'root'
 })
 export class BackendApiService {
-    subject = new BehaviorSubject<BackendMe>(null);
+    backendMeSubject = new BehaviorSubject<BackendMe>(null);
     
     constructor(public http: HttpClient, @Inject('BASE_URL') public baseUrl: string) { 
         this.getMe();
     }
 
     getMe(): BehaviorSubject<BackendMe> {
-        if (this.subject.getValue() === null) {
+        if (this.backendMeSubject.getValue() === null) {
             this.http.get<BackendMe>(this.baseUrl + 'api/front/@me').subscribe((result) => {
-                this.subject.next(result);
+                this.backendMeSubject.next(result);
             });
         }
 
-        return this.subject;
+        return this.backendMeSubject;
+    }
+
+    signup(email: String): Observable<any> {
+        return this.http.post(this.baseUrl + 'api/user', { email });
     }
 }
