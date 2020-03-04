@@ -63,7 +63,7 @@ namespace UploadR.Database
             modelBuilder.Entity<User>()
                 .Property(x => x.Token)
                 .IsRequired()
-                .HasColumnName("token");
+                .HasColumnName("api_token_hash");
 
             modelBuilder.Entity<User>()
                 .HasMany(x => x.Uploads)
@@ -129,7 +129,7 @@ namespace UploadR.Database
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.Password)
-                .HasColumnName("password");
+                .HasColumnName("password_hash");
             #endregion
         }
     }
