@@ -1,0 +1,17 @@
+{
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": false,
+    "StackBlockedRequests": false,
+    "RealIpHeader": "X-Real-IP",
+    "ClientIdHeader": "X-ClientId",
+    "HttpStatusCode": 429,
+    "IpWhitelist": [ "127.0.0.1" ],
+    "GeneralRules": [
+      {
+        "Endpoint": "*:/api/account/signup",
+        "Period": "30m",
+        "Limit": 3
+      }
+    ]
+  }
+}
