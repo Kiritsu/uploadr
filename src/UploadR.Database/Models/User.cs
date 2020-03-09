@@ -9,7 +9,7 @@ namespace UploadR.Database.Models
         /// <summary>
         ///     Id of the user.
         /// </summary>
-        public Guid Guid { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         ///     Date time this user was created.
@@ -20,11 +20,6 @@ namespace UploadR.Database.Models
         ///     Unique email of this user.
         /// </summary>
         public string Email { get; set; }
-
-        /// <summary>
-        ///     Whether this user has a verified account or not.
-        /// </summary>
-        public bool Verified { get; set; }
 
         /// <summary>
         ///     Whether this user's account is disabled.

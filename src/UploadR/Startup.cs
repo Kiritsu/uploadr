@@ -1,17 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
 using AspNetCoreRateLimit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
 using UploadR.Services;
@@ -47,10 +45,32 @@ namespace UploadR
             services.Configure<DatabaseConfiguration>(Configuration.GetSection("Database"));
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
 
+            services.AddSingleton<SHA512Managed>();
+
             services.AddSingleton<AccountService>();
 
             services.AddSingleton<ConnectionStringProvider>();
             services.AddDbContext<UploadRContext>(ServiceLifetime.Scoped);
+            
+            services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
+                .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(
+                    TokenAuthenticationHandler.AuthenticationSchemeName, null);
+
+            services.AddSingleton<IAuthorizationHandler, AdminRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, UserRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, UnverifiedRequirementHandler>();
+            
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy(AdminRequirement.PolicyName, 
+                    policy => policy.Requirements.Add(new AdminRequirement()));
+                auth.AddPolicy(UserRequirement.PolicyName, 
+                    policy => policy.Requirements.Add(new UserRequirement()));
+                auth.AddPolicy(UnverifiedRequirement.PolicyName,
+                    policy => policy.Requirements.Add(new UnverifiedRequirement()));
+
+                auth.DefaultPolicy = auth.GetPolicy(UserRequirement.PolicyName);
+            });
 
             services.AddControllers();
         }

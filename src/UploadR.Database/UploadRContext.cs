@@ -28,13 +28,13 @@ namespace UploadR.Database
                 .ToTable("users");
 
             modelBuilder.Entity<User>()
-                .Property(x => x.Guid)
+                .Property(x => x.Id)
                 .IsRequired()
                 .HasColumnType("uuid")
                 .HasColumnName("guid");
 
             modelBuilder.Entity<User>()
-                .HasKey(x => x.Guid)
+                .HasKey(x => x.Id)
                 .HasName("pk_user_guid");
 
             modelBuilder.Entity<User>()
