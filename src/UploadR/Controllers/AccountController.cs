@@ -25,11 +25,28 @@ namespace UploadR.Controllers
         }
 
         /// <summary>
+        ///     Route to delete the current authenticated account.
+        /// </summary>
+        /// <param name="cascade">Whether to delete or not the uploads made by that account.</param>
+        [HttpDelete, Authorize]
+        public async Task<IActionResult> DeleteAccountAsync(bool cascade = false)
+        {
+            var token = User.Claims.FirstOrDefault(
+                x => x.Type == TokenAuthenticationHandler.ClaimToken);
+            var result = await _accountService.DeleteAccountAsync(token?.Value, cascade);
+
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                _ => BadRequest()
+            };
+        }
+
+        /// <summary>
         ///    Route to create an account from an email passed in the request body. 
         /// </summary>
         /// <param name="accountCreateModel">Account creation model.</param>
-        [HttpPost]
-        [AllowAnonymous]
+        [HttpPost, AllowAnonymous]
         public async Task<IActionResult> CreateAccountAsync(
             [FromForm] AccountCreateModel accountCreateModel)
         {
@@ -51,19 +68,14 @@ namespace UploadR.Controllers
         /// <summary>
         ///     Route to verify an account.
         /// </summary>
-        [HttpPost("verify")]
-        [Authorize(Roles = "Unverified")]
+        [HttpPost("verify"), Authorize(Roles = "Unverified")]
         public async Task<IActionResult> VerifyAccountAsync()
         {
-            var token = User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken);
+            var token = User.Claims.FirstOrDefault(
+                x => x.Type == TokenAuthenticationHandler.ClaimToken);
             var result = await _accountService.VerifyAccountAsync(token?.Value);
 
-            if (result)
-            {
-                return Ok();
-            }
-
-            return BadRequest();
+            return result ? (IActionResult) Ok() : BadRequest();
         }
     }
 }

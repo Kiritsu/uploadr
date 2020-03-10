@@ -29,18 +29,52 @@ namespace UploadR.Services
         }
 
         /// <summary>
+        ///     Deletes an account with the given token.
+        /// </summary>
+        /// <param name="token">Hashed token of that account.</param>
+        /// <param name="cascade">Whether to delete or not the uploads of that account.</param>
+        public async Task<ResultCode> DeleteAccountAsync(string token, bool cascade = false)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return ResultCode.NotFound;
+            }
+            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            
+            var user = await db.Users.FirstOrDefaultAsync(x => x.Token == token);
+            if (user is null)
+            {
+                return ResultCode.NotFound; //shouldn't happen.
+            }
+
+            db.Users.Remove(user);
+
+            if (cascade)
+            {
+                var uploads = db.Uploads.Where(x => x.AuthorGuid == user.Id);
+                db.Uploads.RemoveRange(uploads);
+            }
+
+            await db.SaveChangesAsync();
+
+            return ResultCode.Ok;
+        }
+
+        /// <summary>
         ///     Creates a new account with the given email.
         /// </summary>
         /// <param name="email">Email associated with the new account.</param>
         public async Task<ResultCode> CreateAccountAsync(string email)
         {
-            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-
             if (!RegexUtilities.IsValidEmail(email))
             {
                 return ResultCode.Invalid;
             }
+
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
             if (await db.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower()))
             {
