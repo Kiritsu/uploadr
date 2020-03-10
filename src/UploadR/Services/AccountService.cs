@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using UploadR.Database;
 using UploadR.Database.Enums;
 using UploadR.Database.Models;
@@ -17,11 +18,14 @@ namespace UploadR.Services
     {
         private readonly IServiceProvider _services;
         private readonly SHA512Managed _sha512Managed;
+        private readonly ILogger<AccountService> _logger;
 
-        public AccountService(IServiceProvider services, SHA512Managed sha512Managed)
+        public AccountService(IServiceProvider services, SHA512Managed sha512Managed,
+            ILogger<AccountService> logger)
         {
             _services = services;
             _sha512Managed = sha512Managed;
+            _logger = logger;
         }
 
         /// <summary>
@@ -43,7 +47,8 @@ namespace UploadR.Services
                 return ResultCode.EmailInUse;
             }
 
-            var byteHash = _sha512Managed.ComputeHash(Guid.NewGuid().ToByteArray());
+            var blankToken = Guid.NewGuid();
+            var byteHash = _sha512Managed.ComputeHash(blankToken.ToByteArray());
             var token = string.Join("", byteHash.Select(x => x.ToString("X2")));
             
             await db.Users.AddAsync(new User
@@ -52,12 +57,18 @@ namespace UploadR.Services
                 CreatedAt = DateTime.Now,
                 Disabled = false,
                 Email = email,
-                Type = AccountType.User,
+                Type = AccountType.Unverified,
                 Token = token
             });
 
             await db.SaveChangesAsync();
 
+            _logger.Log(LogLevel.Debug, 
+                $"A new account has been created: [Email:{email};Token:{blankToken};Hash:{token}]");
+            
+            _logger.Log(LogLevel.Information,
+                $"A new account has been created: [Email:{email}]");
+            
             return ResultCode.Ok;
         }
 
@@ -67,14 +78,16 @@ namespace UploadR.Services
         /// <param name="token">Unique token of the user.</param>
         public async Task<bool> VerifyAccountAsync(string token)
         {
-            var byteHash = _sha512Managed.ComputeHash(Guid.NewGuid().ToByteArray());
-            token = string.Join("", byteHash.Select(x => x.ToString("X2")));
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return false;
+            }
             
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
             var user = await db.Users.FirstOrDefaultAsync(x => x.Token == token);
-            if (user is null || user.Type == AccountType.Unverified)
+            if (user is null || user.Type != AccountType.Unverified)
             {
                 return false;
             }
@@ -82,6 +95,9 @@ namespace UploadR.Services
             user.Type = AccountType.User;
             db.Users.Update(user);
             await db.SaveChangesAsync();
+            
+            _logger.Log(LogLevel.Information, 
+                $"An account has been verified: [Email:{user.Email}]");
             
             return true;
         }

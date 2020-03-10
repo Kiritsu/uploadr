@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,7 +44,7 @@ namespace UploadR.Authentications
         {
             token = null;
 
-            if (!Request.Headers.TryGetValue("Authentication", out var values) || values.Count == 0)
+            if (!Request.Headers.TryGetValue("X-Token", out var values) || values.Count == 0)
             {
                 return false;
             }
@@ -64,8 +65,17 @@ namespace UploadR.Authentications
                 return AuthenticateResult.Fail("Missing authorization.");
             }
 
-            var byteHash = _sha512Managed.ComputeHash(Encoding.UTF8.GetBytes(token));
+            _logger.LogDebug($"Given token: [{token}]");
+
+            if (!Guid.TryParse(token, out var guidToken))
+            {
+                _logger.LogWarning($"Invalid token format.");
+            }
+            
+            var byteHash = _sha512Managed.ComputeHash(guidToken.ToByteArray());
             token = string.Join("", byteHash.Select(x => x.ToString("X2")));
+
+            _logger.LogDebug($"Given token hash: [{token}]");
             
             var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
             if (user is null)

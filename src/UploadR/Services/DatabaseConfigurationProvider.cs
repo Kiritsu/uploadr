@@ -16,7 +16,7 @@ namespace UploadR.Services
 
         public IDatabaseConfiguration GetConfiguration()
         {
-            throw new NotImplementedException();
+            return _configuration;
         }
     }
 }

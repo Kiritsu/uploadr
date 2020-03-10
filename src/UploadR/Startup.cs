@@ -39,6 +39,7 @@ namespace UploadR
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
             services.AddMemoryCache();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
             services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -83,6 +84,7 @@ namespace UploadR
             }
 
             app.UseIpRateLimiting();
+            app.UseAuthentication();
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapControllers());

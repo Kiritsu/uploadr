@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UploadR.Authentications;
 using UploadR.Enums;
 using UploadR.Models;
 using UploadR.Services;
@@ -27,8 +29,9 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="accountCreateModel">Account creation model.</param>
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> CreateAccountAsync(
-            [FromBody] AccountCreateModel accountCreateModel)
+            [FromForm] AccountCreateModel accountCreateModel)
         {
             if (string.IsNullOrWhiteSpace(accountCreateModel.Email))
             {
@@ -48,12 +51,12 @@ namespace UploadR.Controllers
         /// <summary>
         ///     Route to verify an account.
         /// </summary>
-        /// <param name="token">Token associated with the account to verify.</param>
-        [HttpGet("verify/{token}")]
-        [Authorize("Unverified")]
-        public async Task<IActionResult> VerifyAccountAsync(string token)
+        [HttpPost("verify")]
+        [Authorize(Roles = "Unverified")]
+        public async Task<IActionResult> VerifyAccountAsync()
         {
-            var result = await _accountService.VerifyAccountAsync(token);
+            var token = User.Claims.FirstOrDefault(x => x.Type == TokenAuthenticationHandler.ClaimToken);
+            var result = await _accountService.VerifyAccountAsync(token?.Value);
 
             if (result)
             {

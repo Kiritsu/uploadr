@@ -13,5 +13,12 @@
         "Limit": 3
       }
     ]
+  },
+  "Database": {
+    "Hostname": "localhost",
+    "Port": 5432,
+    "Database": "uploadr",
+    "Username": "uploadr",
+    "Password": "1234"
   }
 }
