@@ -7,11 +7,10 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 # Routes
 
 ## Anonymous requests
-- `POST /api/account` - Creates a new unverified account.
+> `POST /api/account` - Creates a new unverified account.
 
 ## Authenticated requests (Unverified)
-- `POST /api/account/verify` - Verifies an unverified account
-```
+> `POST /api/account/verify` - Verifies an unverified account
 
 # Requirements
 
