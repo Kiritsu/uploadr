@@ -32,7 +32,7 @@ namespace UploadR.Services
         ///     Resets the token of the given user id.
         /// </summary>
         /// <param name="userId">Id of the user.</param>
-        public async Task<ResultCode> ResetTokenAsync(string userId)
+        public async Task<ResultCode> ResetUserTokenAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
@@ -46,11 +46,6 @@ namespace UploadR.Services
             if (user is null)
             {
                 return ResultCode.NotFound;
-            }
-
-            if (user.Type == AccountType.Admin)
-            {
-                return ResultCode.Invalid;
             }
             
             var blankToken = Guid.NewGuid();

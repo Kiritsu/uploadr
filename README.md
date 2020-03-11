@@ -14,6 +14,12 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 
 ## Authenticated requests (User)
 > `DELETE /api/account` - Deletes the current account.
+> `PATCH /api/account/reset` - Resets the current user's token.
+
+## Authenticated requests (Admin)
+> `PATCH /api/account/{userId}/block` - Blocks a user by its id.
+> `PATCH /api/account/{userId}/unblock` - Unblocks a user by its id.
+> `PATCH /api/account/{userId}/reset` - Resets a user's token.
 
 # Requirements
 

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,14 +25,30 @@ namespace UploadR.Controllers
         }
 
         /// <summary>
-        ///     Route to reset an user's api token.
+        ///     Route to reset the current user's api token.
         /// </summary>
-        /// <param name="userId">User id to reset the token of.</param>
-        [HttpPatch("{userId}/reset"), Authorize]
-        public async Task<IActionResult> ResetTokenAsync(string userId)
+        [HttpPatch("reset"), Authorize]
+        public async Task<IActionResult> ResetTokenAsync()
         {
-            var result = await _accountService.ResetTokenAsync(userId);
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            var result = await _accountService.ResetUserTokenAsync(userId?.Value);
 
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                _ => BadRequest()
+            };
+        }
+
+        /// <summary>
+        ///    Route to reset a user's api token. 
+        /// </summary>
+        /// <param name="userId">User id to reset.</param>
+        [HttpPatch("{userId}/reset"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetUserTokenAsync(string userId)
+        {
+            var result = await _accountService.ResetUserTokenAsync(userId);
+            
             return result switch
             {
                 ResultCode.Ok => Ok(),
@@ -39,7 +56,7 @@ namespace UploadR.Controllers
                 _ => BadRequest()
             };
         }
-
+        
         /// <summary>
         ///    Route to block a user. 
         /// </summary>
