@@ -29,6 +29,85 @@ namespace UploadR.Services
         }
 
         /// <summary>
+        ///     Resets the token of the given user id.
+        /// </summary>
+        /// <param name="userId">Id of the user.</param>
+        public async Task<ResultCode> ResetTokenAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return ResultCode.NotFound;
+            }
+            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            
+            var user = await db.Users.FindAsync(userId);
+            if (user is null)
+            {
+                return ResultCode.NotFound;
+            }
+
+            if (user.Type == AccountType.Admin)
+            {
+                return ResultCode.Invalid;
+            }
+            
+            var blankToken = Guid.NewGuid();
+            var byteHash = _sha512Managed.ComputeHash(blankToken.ToByteArray());
+            var token = string.Join("", byteHash.Select(x => x.ToString("X2")));
+            
+            user.Token = token;
+            db.Users.Update(user);
+            
+            await db.SaveChangesAsync();
+            
+            _logger.Log(LogLevel.Debug, 
+                $"User account token reset [Email:{user.Email};Token:{blankToken};Hash:{token}]");
+            
+            _logger.Log(LogLevel.Information,
+                $"User account token reset [Email:{user.Email}]");
+            
+            return ResultCode.Ok;
+        }
+
+        /// <summary>
+        ///     Blocks an account with the given user id.
+        /// </summary>
+        /// <param name="userId">Id of the user.</param>
+        /// <param name="block">Whether to block or unblock the user.</param>
+        public async Task<ResultCode> ToggleAccountStateAsync(string userId, bool block)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return ResultCode.NotFound;
+            }
+            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            
+            var user = await db.Users.FindAsync(userId);
+            if (user is null)
+            {
+                return ResultCode.NotFound;
+            }
+
+            if (user.Type == AccountType.Admin)
+            {
+                return ResultCode.Invalid;
+            }
+            
+            user.Disabled = block;
+            db.Users.Update(user);
+            
+            _logger.Log(LogLevel.Information,
+                $"User account state changed [Email:{user.Email};Blocked:{user.Disabled}]");
+            
+            await db.SaveChangesAsync();
+            return ResultCode.Ok;
+        }
+
+        /// <summary>
         ///     Deletes an account with the given token.
         /// </summary>
         /// <param name="token">Hashed token of that account.</param>
@@ -58,6 +137,9 @@ namespace UploadR.Services
             }
 
             await db.SaveChangesAsync();
+            
+            _logger.Log(LogLevel.Information,
+                $"User account removed [Email:{user.Email};IncludeUploads:{cascade}]");
 
             return ResultCode.Ok;
         }

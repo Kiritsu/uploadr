@@ -9,8 +9,7 @@ using UploadR.Services;
 
 namespace UploadR.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    [Route("api/[controller]"), ApiController]
     public class AccountController : Controller
     {
         private readonly AccountService _accountService;
@@ -22,6 +21,57 @@ namespace UploadR.Controllers
         public AccountController(AccountService accountService)
         {
             _accountService = accountService;
+        }
+
+        /// <summary>
+        ///     Route to reset an user's api token.
+        /// </summary>
+        /// <param name="userId">User id to reset the token of.</param>
+        [HttpPatch("{userId}/reset"), Authorize]
+        public async Task<IActionResult> ResetTokenAsync(string userId)
+        {
+            var result = await _accountService.ResetTokenAsync(userId);
+
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                ResultCode.Invalid => Unauthorized(),
+                _ => BadRequest()
+            };
+        }
+
+        /// <summary>
+        ///    Route to block a user. 
+        /// </summary>
+        /// <param name="userId">User id to block.</param>
+        [HttpPatch("{userId}/block"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BlockAccountAsync(string userId)
+        {
+            var result = await _accountService.ToggleAccountStateAsync(userId, true);
+            
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                ResultCode.Invalid => Unauthorized(),
+                _ => BadRequest()
+            };
+        }
+        
+        /// <summary>
+        ///    Route to unblock a user. 
+        /// </summary>
+        /// <param name="userId">User id to unblock.</param>
+        [HttpPatch("{userId}/unblock"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnblockAccountAsync(string userId)
+        {
+            var result = await _accountService.ToggleAccountStateAsync(userId, false);
+            
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                ResultCode.Invalid => Unauthorized(),
+                _ => BadRequest()
+            };
         }
 
         /// <summary>
