@@ -45,7 +45,8 @@ namespace UploadR.Services
                 Filename = file.FileName ?? "unknown",
                 Size = file.Length,
                 HasPassword = !string.IsNullOrWhiteSpace(password),
-                ContentType = file.ContentType
+                ContentType = file.ContentType,
+                StatusCode = UploadStatusCode.Ok
             };
 
             if (upload.Size > _uploadConfiguration.SizeMax)
@@ -58,6 +59,11 @@ namespace UploadR.Services
             {
                 upload.StatusCode = UploadStatusCode.TooSmall;
                 return false;
+            }
+
+            if (_uploadConfiguration.EnabledTypes is null)
+            {
+                return true;
             }
             
             if (!_uploadConfiguration.EnabledTypes.Contains(upload.ContentType))

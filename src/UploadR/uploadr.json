@@ -27,5 +27,10 @@
     "Database": "uploadr",
     "Username": "uploadr",
     "Password": "1234"
+  },
+  "Upload": {
+    "SizeMax": 4242424242,
+    "SizeMin": 0,
+    "EnabledTypes": null
   }
 }
