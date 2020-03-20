@@ -18,6 +18,16 @@
         "Endpoint": "PATCH:/api/account/reset",
         "Period": "30m",
         "Limit": 3
+      },
+      {
+        "Endpoint": "DELETE:/api/upload/*",
+        "Period": "5s",
+        "Limit": 5
+      },
+      {
+        "Endpoint": "POST:/api/upload/",
+        "Period": "1s",
+        "Limit": 1
       }
     ]
   },

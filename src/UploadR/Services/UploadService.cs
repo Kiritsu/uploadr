@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UploadR.Configurations;
 using UploadR.Database;
+using UploadR.Database.Enums;
 using UploadR.Database.Models;
 using UploadR.Enums;
 using UploadR.Models;
@@ -132,6 +133,131 @@ namespace UploadR.Services
             model.FailedUploads = failed.ToArray();
 
             return model;
+        }
+
+        /// <summary>
+        ///     Deletes an upload.
+        /// </summary>
+        /// <param name="userId">Id of the user requesting deletion.</param>
+        /// <param name="filename">Name of the file to delete.</param>
+        public async Task<ResultCode> DeleteUploadAsync(string userId, string filename)
+        {
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+         
+            if (!TryGetUploadByName(filename, out var upload))
+            {
+                return ResultCode.NotFound;
+            }
+
+            var userGuid = Guid.Parse(userId);
+            var userDb = await db.Users.FindAsync(userGuid);
+            if (userGuid != upload.AuthorGuid && userDb.Type != AccountType.Admin)
+            {
+                return ResultCode.Unauthorized;
+            }
+
+            upload.Removed = true;
+            var path = $"./uploads/{upload.FileName}";
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            db.Uploads.Update(upload);
+            await db.SaveChangesAsync();
+
+            _logger.LogInformation($"Upload deleted by {userId}: " +
+                                   $"[authorguid:{upload.AuthorGuid};guid:{upload.Guid}]");
+
+            return ResultCode.Ok;
+        }
+
+        /// <summary>
+        ///     Gets the details of an upload by its name or guid.
+        /// </summary>
+        /// <param name="filename">Name of the file to see the details.</param>
+        public async Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
+        {
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+         
+            if (!TryGetUploadByName(filename, out var upload, db))
+            {
+                return null;
+            }
+            
+            return new UploadDetailsModel
+            {
+                AuthorGuid = upload.AuthorGuid,
+                UploadGuid = upload.Guid,
+                ContentType = upload.ContentType,
+                CreatedAt = upload.CreatedAt,
+                LastSeen = upload.LastSeen,
+                DownloadCount = upload.DownloadCount,
+                FileName = upload.FileName
+            };
+        }
+
+        /// <summary>
+        ///     Gets the content of a specific upload by its name or guid.
+        /// </summary>
+        /// <param name="filename">Name of the file to get the content.</param>
+        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
+        {
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+
+            if (!TryGetUploadByName(filename, out var upload, db))
+            {
+                return (null, null);
+            }
+            
+            var path = $"./uploads/{upload.FileName}";
+            return (File.ReadAllBytes(path), upload.ContentType);
+        }
+
+        /// <summary>
+        ///     Check if the given upload exists and is not removed.
+        /// </summary>
+        /// <param name="filename">Name or guid of the upload.</param>
+        /// <param name="upload">Upload in out, if found.</param>
+        /// <param name="db">Database instance.</param>
+        private bool TryGetUploadByName(string filename, out Upload upload, UploadRContext db = null)
+        {
+            if (db is null)
+            {
+                using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            }
+            
+            upload = Guid.TryParse(filename, out _) 
+                ? db.Uploads.Find(filename) 
+                : db.Uploads.FirstOrDefault(x => x.FileName == filename);
+
+            if (upload is null)
+            {
+                return false;
+            }
+            
+            var path = $"./uploads/{upload.FileName}";
+            if (File.Exists(path))
+            {
+                if (!upload.Removed)
+                {
+                    return true;
+                }
+                
+                File.Delete(path);
+                return false;
+            }
+            
+            upload.Removed = true;
+            db.Uploads.Update(upload);
+            db.SaveChanges();
+            db.Dispose();
+            
+            return false;
         }
     }
 }
