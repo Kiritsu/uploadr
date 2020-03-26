@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UploadR.Configurations;
@@ -203,6 +204,48 @@ namespace UploadR.Services
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
             };
         }
+        
+        /// <summary>
+        ///     Gets the details of every upload created by a userId.
+        /// </summary>
+        /// <param name="userId">Name of the file to see the details.</param>
+        public async Task<IReadOnlyList<UploadDetailsModel>> GetUploadsDetailsAsync(string userId)
+        {
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return null;
+            }
+            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+
+            if (await db.Users.FindAsync(userGuid) is null)
+            {
+                return null;
+            }
+
+            var uploads = db.Uploads.Where(x => x.AuthorGuid == userGuid);
+            foreach (var upload in uploads)
+            {
+                upload.DownloadCount++;
+                upload.LastSeen = DateTime.Now;
+            }
+            
+            db.Uploads.UpdateRange(uploads);
+            await db.SaveChangesAsync();
+
+            return await uploads.Select(upload => new UploadDetailsModel
+            {
+                AuthorGuid = upload.AuthorGuid,
+                UploadGuid = upload.Guid,
+                ContentType = upload.ContentType,
+                CreatedAt = upload.CreatedAt,
+                LastSeen = upload.LastSeen,
+                DownloadCount = upload.DownloadCount,
+                FileName = upload.FileName,
+                HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
+            }).ToListAsync();
+        }
 
         /// <summary>
         ///     Gets the content of a specific upload by its name or guid.
@@ -261,6 +304,7 @@ namespace UploadR.Services
                 if (!upload.Removed)
                 {
                     upload.DownloadCount++;
+                    upload.LastSeen = DateTime.Now;
                     db.Uploads.Update(upload);
                     await db.SaveChangesAsync();
                     

@@ -61,7 +61,45 @@ namespace UploadR.Controllers
         [HttpGet("{filename}/details"), Authorize]
         public async Task<IActionResult> GetUploadDetailsAsync(string filename)
         {
-            return Json(await _uploadService.GetUploadDetailsAsync(filename));
+            var result = await _uploadService.GetUploadDetailsAsync(filename);
+            if (result is null)
+            {
+                return NotFound();
+            }
+            
+            return Json(result);
+        }
+
+        /// <summary>
+        ///     Gets the details of all the uploads sent by the specified user.
+        /// </summary>
+        /// <param name="userId">Id of the user to lookup.</param>
+        [HttpGet("{userId}/uploads"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUserUploadsDetailsAsync(string userId)
+        {
+            var result = await _uploadService.GetUploadsDetailsAsync(userId);
+            if (result is null)
+            {
+                return BadRequest();
+            }
+            
+            return Json(result);
+        }
+        
+        /// <summary>
+        ///     Gets the details of all the uploads sent by the current user.
+        /// </summary>
+        [HttpGet("uploads"), Authorize]
+        public async Task<IActionResult> GetUserUploadsDetailsAsync()
+        {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            var result = await _uploadService.GetUploadsDetailsAsync(userId?.Value);
+            if (result is null)
+            {
+                return BadRequest();
+            }
+            
+            return Json(result);
         }
 
         /// <summary>

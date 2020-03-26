@@ -28,6 +28,21 @@
         "Endpoint": "POST:/api/upload/",
         "Period": "1s",
         "Limit": 1
+      },
+      {
+        "Endpoint": "GET:/api/upload/uploads",
+        "Period": "5s",
+        "Limit": 1
+      },
+      {
+        "Endpoint": "GET:/api/upload/*/details",
+        "Period": "1s",
+        "Limit": 1
+      },
+      {
+        "Endpoint": "*",
+        "Period": "1m",
+        "Limit": 300
       }
     ]
   },
