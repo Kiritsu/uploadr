@@ -63,22 +63,30 @@ namespace UploadR.Controllers
         {
             return Json(await _uploadService.GetUploadDetailsAsync(filename));
         }
-        
+
         /// <summary>
         ///     Gets the details of an upload.
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
+        /// <param name="password">Password of the file, if any is set.</param>
         [HttpGet("{filename}")]
-        public async Task<IActionResult> GetUploadContentAsync(string filename)
+        public async Task<IActionResult> GetUploadContentAsync(
+            string filename, 
+            [FromQuery(Name = "password")] string password = null)
         {
-            var (content, type) = await _uploadService.GetUploadAsync(filename);
+            var (content, type) = await _uploadService.GetUploadAsync(filename, password);
 
-            if (content.Length == 0 && string.IsNullOrWhiteSpace(type))
+            if (content.Length != 0)
+            {
+                return File(content, type);
+            }
+            
+            if (string.IsNullOrWhiteSpace(type))
             {
                 return NotFound();
             }
-            
-            return File(content, type);
+
+            return Unauthorized();
         }
     }
 }

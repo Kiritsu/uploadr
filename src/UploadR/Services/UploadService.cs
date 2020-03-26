@@ -118,6 +118,9 @@ namespace UploadR.Services
                         DownloadCount = 0
                     });
 
+                    await using var fs = File.Create(Path.Combine(_uploadConfiguration.UploadsPath, upload.Filename));
+                    await file.CopyToAsync(fs);
+
                     succeeded.Add(upload);
                 }
                 else
@@ -161,7 +164,7 @@ namespace UploadR.Services
             }
 
             upload.Removed = true;
-            var path = $"./uploads/{upload.FileName}";
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -196,7 +199,8 @@ namespace UploadR.Services
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
                 DownloadCount = upload.DownloadCount,
-                FileName = upload.FileName
+                FileName = upload.FileName,
+                HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
             };
         }
 
@@ -204,15 +208,32 @@ namespace UploadR.Services
         ///     Gets the content of a specific upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to get the content.</param>
-        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
+        /// <param name="password">Password of the file, if any is set.</param>
+        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename, string password)
         {
             var upload = await GetUploadByNameAsync(filename);
             if (upload is null)
             {
                 return (Array.Empty<byte>(), string.Empty);
             }
-            
-            var path = $"./uploads/{upload.FileName}";
+
+            if (!string.IsNullOrWhiteSpace(upload.Password))
+            {
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    return (Array.Empty<byte>(), upload.ContentType);
+                }
+                
+                var byteHash = _sha512Managed.ComputeHash(Encoding.UTF8.GetBytes(password));
+                var passwordHash = string.Join("", byteHash.Select(x => x.ToString("X2")));
+
+                if (upload.Password != passwordHash)
+                {
+                    return (Array.Empty<byte>(), upload.ContentType);
+                }
+            }
+
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
             return (File.ReadAllBytes(path), upload.ContentType);
         }
 
@@ -234,11 +255,15 @@ namespace UploadR.Services
                 return null;
             }
             
-            var path = $"./uploads/{upload.FileName}";
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
             if (File.Exists(path))
             {
                 if (!upload.Removed)
                 {
+                    upload.DownloadCount++;
+                    db.Uploads.Update(upload);
+                    await db.SaveChangesAsync();
+                    
                     return upload;
                 }
                 

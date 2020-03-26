@@ -11,5 +11,6 @@ namespace UploadR.Models
         public long DownloadCount { get; set; }
         public string FileName { get; set; }
         public string ContentType { get; set; }
+        public bool HasPassword { get; set; }
     }
 }

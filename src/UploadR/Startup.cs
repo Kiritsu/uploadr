@@ -46,7 +46,7 @@ namespace UploadR
             services.Configure<DatabaseConfiguration>(Configuration.GetSection("Database"));
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             
-            services.Configure<DatabaseConfiguration>(Configuration.GetSection("Upload"));
+            services.Configure<UploadConfiguration>(Configuration.GetSection("Upload"));
             services.AddSingleton<UploadConfigurationProvider>();
 
             services.AddSingleton<SHA512Managed>();

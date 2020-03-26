@@ -95,8 +95,8 @@ namespace UploadR.Controllers
         ///     Route to delete the current authenticated account.
         /// </summary>
         /// <param name="cascade">Whether to delete or not the uploads made by that account.</param>
-        [HttpDelete("{cascade}"), Authorize]
-        public async Task<IActionResult> DeleteAccountAsync([FromQuery] bool cascade = false)
+        [HttpDelete, Authorize]
+        public async Task<IActionResult> DeleteAccountAsync([FromQuery(Name = "cascade")] bool cascade = false)
         {
             var token = User.Claims.FirstOrDefault(
                 x => x.Type == TokenAuthenticationHandler.ClaimToken);
