@@ -7,19 +7,33 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 # Routes
 
 ## Anonymous requests
-> `POST /api/account` - Creates a new unverified account.
+> `POST /api/account` - Creates a new unverified account. Requires `AccountCreateModel` form.
+
+> `GET /api/upload/{string|guid:filename}` - Gets an upload by its id or guid.
 
 ## Authenticated requests (Unverified)
 > `POST /api/account/verify` - Verifies an unverified account.
 
 ## Authenticated requests (User)
-> `DELETE /api/account` - Deletes the current account.
+> `DELETE /api/account{bool:cascade}` - Deletes the current account.
+
 > `PATCH /api/account/reset` - Resets the current user's token.
+
+> `POST /api/upload/` - Creates an upload. Requires `UploadModel` form.
+
+> `DELETE /api/upload/{string|guid:filename}` - Removes an upload by its name or guid.
+
+> `GET /api/upload/{string|guid:filename}/details` - Gets an upload's details by its id or guid.
 
 ## Authenticated requests (Admin)
 > `PATCH /api/account/{userId}/block` - Blocks a user by its id.
+
 > `PATCH /api/account/{userId}/unblock` - Unblocks a user by its id.
+
 > `PATCH /api/account/{userId}/reset` - Resets a user's token.
+
+> `DELETE /api/upload/{string|guid:filename}` - Removes an upload by its name or guid.
+
 
 # Requirements
 
