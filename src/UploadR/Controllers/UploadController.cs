@@ -74,10 +74,15 @@ namespace UploadR.Controllers
         ///     Gets the details of all the uploads sent by the specified user.
         /// </summary>
         /// <param name="userId">Id of the user to lookup.</param>
+        /// <param name="limit">Amount of uploads to lookup.</param>
+        /// <param name="afterGuid">Guid that defines the start of the query.</param>
         [HttpGet("{userId}/uploads"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUserUploadsDetailsAsync(string userId)
+        public async Task<IActionResult> GetUserUploadsDetailsAsync(
+            string userId,
+            [FromQuery(Name = "limit")] int limit = 100,
+            [FromQuery(Name = "afterGuid")] string afterGuid = null)
         {
-            var result = await _uploadService.GetUploadsDetailsAsync(userId);
+            var result = await _uploadService.GetUploadsDetailsAsync(userId, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();
@@ -89,11 +94,15 @@ namespace UploadR.Controllers
         /// <summary>
         ///     Gets the details of all the uploads sent by the current user.
         /// </summary>
+        /// <param name="limit">Amount of uploads to lookup.</param>
+        /// <param name="afterGuid">Guid that defines the start of the query.</param>
         [HttpGet("uploads"), Authorize]
-        public async Task<IActionResult> GetUserUploadsDetailsAsync()
+        public async Task<IActionResult> GetUserUploadsDetailsAsync(
+            [FromQuery(Name = "limit")] int limit = 100,
+            [FromQuery(Name = "afterGuid")] string afterGuid = null)
         {
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _uploadService.GetUploadsDetailsAsync(userId?.Value);
+            var result = await _uploadService.GetUploadsDetailsAsync(userId?.Value, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();

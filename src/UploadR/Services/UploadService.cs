@@ -204,14 +204,22 @@ namespace UploadR.Services
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
             };
         }
-        
+
         /// <summary>
         ///     Gets the details of every upload created by a userId.
         /// </summary>
         /// <param name="userId">Name of the file to see the details.</param>
-        public async Task<IReadOnlyList<UploadDetailsModel>> GetUploadsDetailsAsync(string userId)
+        /// <param name="limit">Amount of uploads to lookup.</param>
+        /// <param name="afterGuid">Guid that defines the start of the query.</param>
+        public async Task<IReadOnlyList<UploadDetailsModel>> GetUploadsDetailsAsync(
+            string userId, int limit, string afterGuid)
         {
             if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return null;
+            }
+
+            if (limit > 100)
             {
                 return null;
             }
@@ -225,6 +233,32 @@ namespace UploadR.Services
             }
 
             var uploads = db.Uploads.Where(x => x.AuthorGuid == userGuid);
+            uploads = uploads.OrderBy(x => x.CreatedAt);
+
+            if (!string.IsNullOrWhiteSpace(afterGuid) && Guid.TryParse(afterGuid, out var uploadGuid))
+            {
+                // this isn't supported by EFCore *yet*.
+                //
+                // if (!uploads.Any(x => x.Guid == uploadGuid))
+                // {
+                //     return null;
+                // }
+                //
+                // uploads = uploads.SkipWhile(x => x.Guid != uploadGuid);
+                //
+                // current workaround:
+                var upload = await uploads.FirstOrDefaultAsync(x => x.Guid == uploadGuid);
+                if (upload is null)
+                {
+                    return null;
+                }
+                var createdAt = upload.CreatedAt;
+                
+                uploads = uploads.Where(x => x.CreatedAt > createdAt);
+            }
+
+            uploads = uploads.Take(limit);
+
             foreach (var upload in uploads)
             {
                 upload.DownloadCount++;
