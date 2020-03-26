@@ -146,8 +146,9 @@ namespace UploadR.Services
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-         
-            if (!TryGetUploadByName(filename, out var upload))
+
+            var upload = await GetUploadByNameAsync(filename);
+            if (upload is null)
             {
                 return ResultCode.NotFound;
             }
@@ -179,14 +180,15 @@ namespace UploadR.Services
         ///     Gets the details of an upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to see the details.</param>
-        public Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
+        public async Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
         {
-            if (!TryGetUploadByName(filename, out var upload))
+            var upload = await GetUploadByNameAsync(filename);
+            if (upload is null)
             {
                 return null;
             }
             
-            return Task.FromResult(new UploadDetailsModel
+            return new UploadDetailsModel
             {
                 AuthorGuid = upload.AuthorGuid,
                 UploadGuid = upload.Guid,
@@ -195,41 +197,41 @@ namespace UploadR.Services
                 LastSeen = upload.LastSeen,
                 DownloadCount = upload.DownloadCount,
                 FileName = upload.FileName
-            });
+            };
         }
 
         /// <summary>
         ///     Gets the content of a specific upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to get the content.</param>
-        public Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
+        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
         {
-            if (!TryGetUploadByName(filename, out var upload))
+            var upload = await GetUploadByNameAsync(filename);
+            if (upload is null)
             {
-                return Task.FromResult((Array.Empty<byte>(), string.Empty));
+                return (Array.Empty<byte>(), string.Empty);
             }
             
             var path = $"./uploads/{upload.FileName}";
-            return Task.FromResult((File.ReadAllBytes(path), upload.ContentType));
+            return (File.ReadAllBytes(path), upload.ContentType);
         }
 
         /// <summary>
         ///     Check if the given upload exists and is not removed.
         /// </summary>
         /// <param name="filename">Name or guid of the upload.</param>
-        /// <param name="upload">Upload in out, if found.</param>
-        private bool TryGetUploadByName(string filename, out Upload upload)
+        private async Task<Upload> GetUploadByNameAsync(string filename)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            upload = Guid.TryParse(filename, out _) 
-                ? db.Uploads.Find(filename) 
+            var upload = Guid.TryParse(filename, out _) 
+                ? await db.Uploads.FindAsync(filename) 
                 : db.Uploads.FirstOrDefault(x => x.FileName == filename);
 
             if (upload is null)
             {
-                return false;
+                return null;
             }
             
             var path = $"./uploads/{upload.FileName}";
@@ -237,21 +239,19 @@ namespace UploadR.Services
             {
                 if (!upload.Removed)
                 {
-                    return true;
+                    return upload;
                 }
                 
                 File.Delete(path);
                 
-                upload = null;
-                return false;
+                return null;
             }
             
             upload.Removed = true;
             db.Uploads.Update(upload);
-            db.SaveChanges();
-
-            upload = null;
-            return false;
+            await db.SaveChangesAsync();
+            
+            return null;
         }
     }
 }
