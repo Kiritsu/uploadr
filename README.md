@@ -9,7 +9,7 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 ## Anonymous requests
 > `POST /api/account` - Creates a new unverified account. Requires `AccountCreateModel` form.
 
-> `GET /api/upload/{string|guid:filename}` - Gets an upload by its id or guid.
+> `GET /api/upload/{string|guid:filename}{string:password}` - Gets an upload by its name or guid. Password can be specified if the file requires a password.
 
 ## Authenticated requests (Unverified)
 > `POST /api/account/verify` - Verifies an unverified account.
@@ -25,6 +25,8 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 
 > `GET /api/upload/{string|guid:filename}/details` - Gets an upload's details by its id or guid.
 
+> `GET /api/upload/uploads` - Gets details of every upload created by the current authenticated user.
+
 ## Authenticated requests (Admin)
 > `PATCH /api/account/{userId}/block` - Blocks a user by its id.
 
@@ -33,6 +35,8 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 > `PATCH /api/account/{userId}/reset` - Resets a user's token.
 
 > `DELETE /api/upload/{string|guid:filename}` - Removes an upload by its name or guid.
+
+> `GET /api/upload/{guid:userguid}/uploads` - Gets details of every upload created by the given user guid.
 
 
 # Requirements
