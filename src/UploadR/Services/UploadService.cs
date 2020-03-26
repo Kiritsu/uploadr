@@ -102,10 +102,14 @@ namespace UploadR.Services
                 {
                     var name = Guid.NewGuid();
                     upload.Filename = name.ToString().Replace("-", "") + Path.GetExtension(file.FileName);
-                    
-                    var byteHash = _sha512Managed.ComputeHash(Encoding.UTF8.GetBytes(password));
-                    var passwordHash = string.Join("", byteHash.Select(x => x.ToString("X2")));
-                    
+
+                    var passwordHash = "";
+                    if (!string.IsNullOrWhiteSpace(password))
+                    {
+                        var byteHash = _sha512Managed.ComputeHash(Encoding.UTF8.GetBytes(password));
+                        passwordHash = string.Join("", byteHash.Select(x => x.ToString("X2")));
+                    }
+
                     await db.Uploads.AddAsync(new Upload
                     {
                         Guid = name,

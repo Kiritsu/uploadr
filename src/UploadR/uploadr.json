@@ -1,6 +1,6 @@
 {
   "IpRateLimiting": {
-    "EnableEndpointRateLimiting": false,
+    "EnableEndpointRateLimiting": true,
     "StackBlockedRequests": false,
     "RealIpHeader": "X-Real-IP",
     "ClientIdHeader": "X-ClientId",
@@ -21,8 +21,8 @@
       },
       {
         "Endpoint": "DELETE:/api/upload/*",
-        "Period": "5s",
-        "Limit": 5
+        "Period": "1s",
+        "Limit": 1
       },
       {
         "Endpoint": "POST:/api/upload/",
@@ -30,19 +30,9 @@
         "Limit": 1
       },
       {
-        "Endpoint": "GET:/api/upload/uploads",
-        "Period": "5s",
-        "Limit": 1
-      },
-      {
-        "Endpoint": "GET:/api/upload/*/details",
-        "Period": "1s",
-        "Limit": 1
-      },
-      {
-        "Endpoint": "*",
-        "Period": "1m",
-        "Limit": 300
+        "Endpoint": "GET:/api/upload/",
+        "Period": "3s",
+        "Limit": 5
       }
     ]
   },
@@ -56,6 +46,7 @@
   "Upload": {
     "SizeMax": 4242424242,
     "SizeMin": 0,
-    "EnabledTypes": null
+    "EnabledTypes": null,
+    "UploadsPath": "C:\\temp\\uploads"
   }
 }
