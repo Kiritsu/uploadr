@@ -84,7 +84,7 @@ namespace UploadR.Services
         /// <param name="files">Files to upload.</param>
         /// <param name="password">Password of the files. Can be null.</param>
         public async Task<UploadListOutModel> UploadAsync(string userId, 
-            IReadOnlyList<IFormFile> files, string password)
+            IEnumerable<IFormFile> files, string password)
         {
             var model = new UploadListOutModel();
             var failed = new List<UploadOutModel>();
@@ -92,6 +92,8 @@ namespace UploadR.Services
             
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+
+            var userGuid = Guid.Parse(userId);
             
             foreach (var file in files)
             {
@@ -108,14 +110,14 @@ namespace UploadR.Services
                         Guid = name,
                         Password = passwordHash,
                         Removed = false,
-                        AuthorGuid = Guid.Parse(userId),
+                        AuthorGuid = userGuid,
                         ContentType = upload.ContentType,
                         FileName = upload.Filename,
                         CreatedAt = DateTime.Now,
                         LastSeen = DateTime.Now,
                         DownloadCount = 0
                     });
-                    
+
                     succeeded.Add(upload);
                 }
                 else
@@ -177,17 +179,14 @@ namespace UploadR.Services
         ///     Gets the details of an upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to see the details.</param>
-        public async Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
+        public Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
         {
-            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-         
-            if (!TryGetUploadByName(filename, out var upload, db))
+            if (!TryGetUploadByName(filename, out var upload))
             {
                 return null;
             }
             
-            return new UploadDetailsModel
+            return Task.FromResult(new UploadDetailsModel
             {
                 AuthorGuid = upload.AuthorGuid,
                 UploadGuid = upload.Guid,
@@ -196,25 +195,22 @@ namespace UploadR.Services
                 LastSeen = upload.LastSeen,
                 DownloadCount = upload.DownloadCount,
                 FileName = upload.FileName
-            };
+            });
         }
 
         /// <summary>
         ///     Gets the content of a specific upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to get the content.</param>
-        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
+        public Task<(byte[] Content, string Type)> GetUploadAsync(string filename)
         {
-            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-
-            if (!TryGetUploadByName(filename, out var upload, db))
+            if (!TryGetUploadByName(filename, out var upload))
             {
-                return (null, null);
+                return Task.FromResult((Array.Empty<byte>(), string.Empty));
             }
             
             var path = $"./uploads/{upload.FileName}";
-            return (File.ReadAllBytes(path), upload.ContentType);
+            return Task.FromResult((File.ReadAllBytes(path), upload.ContentType));
         }
 
         /// <summary>
@@ -222,15 +218,11 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="filename">Name or guid of the upload.</param>
         /// <param name="upload">Upload in out, if found.</param>
-        /// <param name="db">Database instance.</param>
-        private bool TryGetUploadByName(string filename, out Upload upload, UploadRContext db = null)
+        private bool TryGetUploadByName(string filename, out Upload upload)
         {
-            if (db is null)
-            {
-                using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-                db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            }
-            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+
             upload = Guid.TryParse(filename, out _) 
                 ? db.Uploads.Find(filename) 
                 : db.Uploads.FirstOrDefault(x => x.FileName == filename);
@@ -249,14 +241,16 @@ namespace UploadR.Services
                 }
                 
                 File.Delete(path);
+                
+                upload = null;
                 return false;
             }
             
             upload.Removed = true;
             db.Uploads.Update(upload);
             db.SaveChanges();
-            db.Dispose();
-            
+
+            upload = null;
             return false;
         }
     }

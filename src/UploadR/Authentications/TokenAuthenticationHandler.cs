@@ -19,7 +19,6 @@ namespace UploadR.Authentications
         public const string ClaimToken = "https://schemas.alnmrc.com/claims/token";
 
         private readonly UploadRContext _database;
-        private readonly SHA512Managed _sha512Managed;
         private readonly ILogger<TokenAuthenticationHandler> _logger;
 
         public TokenAuthenticationHandler(
@@ -27,11 +26,9 @@ namespace UploadR.Authentications
             ILoggerFactory logger,
             UrlEncoder encoder, 
             ISystemClock clock, 
-            UploadRContext database,
-            SHA512Managed sha512Managed) : base(options, logger, encoder, clock)
+            UploadRContext database) : base(options, logger, encoder, clock)
         {
             _database = database;
-            _sha512Managed = sha512Managed;
             _logger = logger.CreateLogger<TokenAuthenticationHandler>();
         }
 
@@ -66,16 +63,11 @@ namespace UploadR.Authentications
 
             _logger.LogDebug($"Given token: [{token}]");
 
-            if (!Guid.TryParse(token, out var guidToken))
+            if (!Guid.TryParse(token, out _))
             {
-                _logger.LogWarning($"Invalid token format.");
+                _logger.LogWarning("Invalid token format.");
             }
-            
-            var byteHash = _sha512Managed.ComputeHash(guidToken.ToByteArray());
-            token = string.Join("", byteHash.Select(x => x.ToString("X2")));
 
-            _logger.LogDebug($"Given token hash: [{token}]");
-            
             var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
             if (user is null)
             {

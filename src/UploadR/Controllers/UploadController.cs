@@ -73,7 +73,7 @@ namespace UploadR.Controllers
         {
             var (content, type) = await _uploadService.GetUploadAsync(filename);
 
-            if (content is null)
+            if (content.Length == 0 && string.IsNullOrWhiteSpace(type))
             {
                 return NotFound();
             }

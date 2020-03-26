@@ -104,7 +104,7 @@ namespace UploadR.Services
         /// <summary>
         ///     Deletes an account with the given token.
         /// </summary>
-        /// <param name="token">Hashed token of that account.</param>
+        /// <param name="token">Token of that account.</param>
         /// <param name="cascade">Whether to delete or not the uploads of that account.</param>
         public async Task<ResultCode> DeleteAccountAsync(string token, bool cascade = false)
         {
@@ -133,7 +133,7 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
             
             _logger.Log(LogLevel.Information,
-                $"User account removed [Email:{user.Email};IncludeUploads:{cascade}]");
+                $"User account removed [Email:{user.Email};DeleteUploads:{cascade}]");
 
             return ResultCode.Ok;
         }
@@ -157,27 +157,26 @@ namespace UploadR.Services
                 return ResultCode.EmailInUse;
             }
 
-            var blankToken = Guid.NewGuid();
-            var byteHash = _sha512Managed.ComputeHash(blankToken.ToByteArray());
-            var token = string.Join("", byteHash.Select(x => x.ToString("X2")));
-            
+            var userId = Guid.NewGuid();
+            var token = Guid.NewGuid();
+
             await db.Users.AddAsync(new User
             {
-                Id = Guid.NewGuid(),
+                Id = userId,
                 CreatedAt = DateTime.Now,
                 Disabled = false,
                 Email = email,
                 Type = AccountType.Unverified,
-                Token = token
+                Token = token.ToString()
             });
 
             await db.SaveChangesAsync();
 
             _logger.Log(LogLevel.Debug, 
-                $"A new account has been created: [Email:{email};Token:{blankToken};Hash:{token}]");
+                $"A new account has been created: [Id:{userId};Email:{email};Token:{token}]");
             
             _logger.Log(LogLevel.Information,
-                $"A new account has been created: [Email:{email}]");
+                $"A new account has been created: [Id:{userId};Email:{email}]");
             
             return ResultCode.Ok;
         }
@@ -207,7 +206,7 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
             
             _logger.Log(LogLevel.Information, 
-                $"An account has been verified: [Email:{user.Email}]");
+                $"An account has been verified: [Id:{user.Id};Email:{user.Email}]");
             
             return true;
         }
