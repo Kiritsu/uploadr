@@ -65,7 +65,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> BlockAccountAsync(string userId)
         {
             var result = await _accountService.ToggleAccountStateAsync(userId, true);
-            
+
             return result switch
             {
                 ResultCode.Ok => Ok(),

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +15,11 @@ namespace UploadR.Services
     public class AccountService
     {
         private readonly IServiceProvider _services;
-        private readonly SHA512Managed _sha512Managed;
         private readonly ILogger<AccountService> _logger;
 
-        public AccountService(IServiceProvider services, SHA512Managed sha512Managed,
-            ILogger<AccountService> logger)
+        public AccountService(IServiceProvider services, ILogger<AccountService> logger)
         {
             _services = services;
-            _sha512Managed = sha512Managed;
             _logger = logger;
         }
 
@@ -40,24 +36,25 @@ namespace UploadR.Services
             
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            
-            var user = await db.Users.FindAsync(userId);
-            if (user is null)
+
+            if (!Guid.TryParse(userId, out var userGuid))
             {
                 return ResultCode.NotFound;
             }
             
-            var blankToken = Guid.NewGuid();
-            var byteHash = _sha512Managed.ComputeHash(blankToken.ToByteArray());
-            var token = string.Join("", byteHash.Select(x => x.ToString("X2")));
-            
-            user.Token = token;
+            var user = await db.Users.FindAsync(userGuid);
+            if (user is null)
+            {
+                return ResultCode.NotFound;
+            }
+
+            user.Token = Guid.NewGuid().ToString();
             db.Users.Update(user);
             
             await db.SaveChangesAsync();
             
             _logger.Log(LogLevel.Debug, 
-                $"User account token reset [Email:{user.Email};Token:{blankToken};Hash:{token}]");
+                $"User account token reset [Email:{user.Email};Token:{user.Token}]");
             
             _logger.Log(LogLevel.Information,
                 $"User account token reset [Email:{user.Email}]");
@@ -80,7 +77,12 @@ namespace UploadR.Services
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             
-            var user = await db.Users.FindAsync(userId);
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return ResultCode.NotFound;
+            }
+            
+            var user = await db.Users.FindAsync(userGuid);
             if (user is null)
             {
                 return ResultCode.NotFound;

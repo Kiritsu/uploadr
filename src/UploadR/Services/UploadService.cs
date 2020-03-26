@@ -225,8 +225,8 @@ namespace UploadR.Services
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            var upload = Guid.TryParse(filename, out _) 
-                ? await db.Uploads.FindAsync(filename) 
+            var upload = Guid.TryParse(filename, out var fileGuid) 
+                ? await db.Uploads.FindAsync(fileGuid) 
                 : db.Uploads.FirstOrDefault(x => x.FileName == filename);
 
             if (upload is null)
