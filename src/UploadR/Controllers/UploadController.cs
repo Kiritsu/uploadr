@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +9,7 @@ using UploadR.Services;
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController]
-    [SuppressMessage("ReSharper", "PossibleNullReferenceException", 
-        Justification = "Those values are user claims and required.")]
-    public class UploadController : Controller
+    public class UploadController : UploadRController
     {
         private readonly UploadService _uploadService;
 
@@ -35,8 +30,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> UploadAsync(
             [FromForm] UploadModel model)
         {
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            return Json(await _uploadService.UploadAsync(Guid.Parse(userId.Value), Request.Form.Files, model.Password));
+            return Json(await _uploadService.UploadAsync(UserGuid, Request.Form.Files, model.Password));
         }
 
         /// <summary>
@@ -46,8 +40,7 @@ namespace UploadR.Controllers
         [HttpDelete("{filename}"), Authorize]
         public async Task<IActionResult> DeleteUploadAsync(string filename)
         {
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _uploadService.DeleteUploadAsync(Guid.Parse(userId.Value), filename);
+            var result = await _uploadService.DeleteUploadAsync(UserGuid, filename);
 
             return result switch
             {
@@ -70,8 +63,7 @@ namespace UploadR.Controllers
                 return BadRequest();
             }
             
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            return Json(await _uploadService.DeleteUploadsAsync(Guid.Parse(userId.Value), uploadIds));
+            return Json(await _uploadService.DeleteUploadsAsync(UserGuid, uploadIds));
         }
 
         /// <summary>
@@ -132,8 +124,7 @@ namespace UploadR.Controllers
                 return BadRequest();
             }
             
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _uploadService.GetUploadsDetailsAsync(Guid.Parse(userId.Value), limit, afterGuid);
+            var result = await _uploadService.GetUploadsDetailsAsync(UserGuid, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();

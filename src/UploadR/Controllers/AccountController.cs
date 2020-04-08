@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -13,9 +11,7 @@ using UploadR.Services;
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController]
-    [SuppressMessage("ReSharper", "PossibleNullReferenceException", 
-        Justification = "Those values are user claims and required.")]
-    public class AccountController : Controller
+    public class AccountController : UploadRController
     {
         private readonly AccountService _accountService;
 
@@ -34,9 +30,7 @@ namespace UploadR.Controllers
         [HttpPatch("reset"), Authorize]
         public async Task<IActionResult> ResetTokenAsync()
         {
-            var userId = User.Claims.FirstOrDefault(
-                x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _accountService.ResetUserTokenAsync(Guid.Parse(userId.Value));
+            var result = await _accountService.ResetUserTokenAsync(UserGuid);
 
             return result switch
             {
@@ -122,9 +116,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> DeleteAccountAsync(
             [FromQuery(Name = "cascade")] bool cascade = false)
         {
-            var userId = User.Claims.FirstOrDefault(
-                x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _accountService.DeleteAccountAsync(Guid.Parse(userId.Value), cascade);
+            var result = await _accountService.DeleteAccountAsync(UserGuid, cascade);
 
             return result switch
             {
@@ -162,9 +154,8 @@ namespace UploadR.Controllers
         [HttpPost("verify"), Authorize(Roles = "Unverified")]
         public async Task<IActionResult> VerifyAccountAsync()
         {
-            var token = User.Claims.FirstOrDefault(
-                x => x.Type == TokenAuthenticationHandler.ClaimToken);
-            var result = await _accountService.VerifyAccountAsync(token.Value);
+            var token = User.FindFirstValue(TokenAuthenticationHandler.ClaimToken);
+            var result = await _accountService.VerifyAccountAsync(token);
 
             return result ? (IActionResult) Ok() : BadRequest();
         }
