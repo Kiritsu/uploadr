@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +13,8 @@ using UploadR.Services;
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController]
+    [SuppressMessage("ReSharper", "PossibleNullReferenceException", 
+        Justification = "Those values are user claims and required.")]
     public class AccountController : Controller
     {
         private readonly AccountService _accountService;
@@ -30,8 +34,9 @@ namespace UploadR.Controllers
         [HttpPatch("reset"), Authorize]
         public async Task<IActionResult> ResetTokenAsync()
         {
-            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _accountService.ResetUserTokenAsync(userId?.Value);
+            var userId = User.Claims.FirstOrDefault(
+                x => x.Type == ClaimTypes.NameIdentifier);
+            var result = await _accountService.ResetUserTokenAsync(Guid.Parse(userId.Value));
 
             return result switch
             {
@@ -45,9 +50,15 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="userId">User id to reset.</param>
         [HttpPatch("{userId}/reset"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ResetUserTokenAsync(string userId)
+        public async Task<IActionResult> ResetUserTokenAsync(
+            string userId)
         {
-            var result = await _accountService.ResetUserTokenAsync(userId);
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest();
+            }
+            
+            var result = await _accountService.ResetUserTokenAsync(userGuid);
             
             return result switch
             {
@@ -62,9 +73,15 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="userId">User id to block.</param>
         [HttpPatch("{userId}/block"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> BlockAccountAsync(string userId)
+        public async Task<IActionResult> BlockAccountAsync(
+            string userId)
         {
-            var result = await _accountService.ToggleAccountStateAsync(userId, true);
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest();
+            }
+            
+            var result = await _accountService.ToggleAccountStateAsync(userGuid, true);
 
             return result switch
             {
@@ -79,9 +96,15 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="userId">User id to unblock.</param>
         [HttpPatch("{userId}/unblock"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UnblockAccountAsync(string userId)
+        public async Task<IActionResult> UnblockAccountAsync(
+            string userId)
         {
-            var result = await _accountService.ToggleAccountStateAsync(userId, false);
+            if (!Guid.TryParse(userId, out var userGuid))
+            {
+                return BadRequest();
+            }
+            
+            var result = await _accountService.ToggleAccountStateAsync(userGuid, false);
             
             return result switch
             {
@@ -96,11 +119,12 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="cascade">Whether to delete or not the uploads made by that account.</param>
         [HttpDelete, Authorize]
-        public async Task<IActionResult> DeleteAccountAsync([FromQuery(Name = "cascade")] bool cascade = false)
+        public async Task<IActionResult> DeleteAccountAsync(
+            [FromQuery(Name = "cascade")] bool cascade = false)
         {
-            var token = User.Claims.FirstOrDefault(
-                x => x.Type == TokenAuthenticationHandler.ClaimToken);
-            var result = await _accountService.DeleteAccountAsync(token?.Value, cascade);
+            var userId = User.Claims.FirstOrDefault(
+                x => x.Type == ClaimTypes.NameIdentifier);
+            var result = await _accountService.DeleteAccountAsync(Guid.Parse(userId.Value), cascade);
 
             return result switch
             {
@@ -140,7 +164,7 @@ namespace UploadR.Controllers
         {
             var token = User.Claims.FirstOrDefault(
                 x => x.Type == TokenAuthenticationHandler.ClaimToken);
-            var result = await _accountService.VerifyAccountAsync(token?.Value);
+            var result = await _accountService.VerifyAccountAsync(token.Value);
 
             return result ? (IActionResult) Ok() : BadRequest();
         }

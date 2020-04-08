@@ -26,22 +26,12 @@ namespace UploadR.Services
         /// <summary>
         ///     Resets the token of the given user id.
         /// </summary>
-        /// <param name="userId">Id of the user.</param>
-        public async Task<ResultCode> ResetUserTokenAsync(string userId)
+        /// <param name="userGuid">Id of the user.</param>
+        public async Task<ResultCode> ResetUserTokenAsync(Guid userGuid)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                return ResultCode.NotFound;
-            }
-            
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            if (!Guid.TryParse(userId, out var userGuid))
-            {
-                return ResultCode.NotFound;
-            }
-            
             var user = await db.Users.FindAsync(userGuid);
             if (user is null)
             {
@@ -65,22 +55,12 @@ namespace UploadR.Services
         /// <summary>
         ///     Blocks an account with the given user id.
         /// </summary>
-        /// <param name="userId">Id of the user.</param>
+        /// <param name="userGuid">Id of the user.</param>
         /// <param name="block">Whether to block or unblock the user.</param>
-        public async Task<ResultCode> ToggleAccountStateAsync(string userId, bool block)
+        public async Task<ResultCode> ToggleAccountStateAsync(Guid userGuid, bool block)
         {
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                return ResultCode.NotFound;
-            }
-            
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            
-            if (!Guid.TryParse(userId, out var userGuid))
-            {
-                return ResultCode.NotFound;
-            }
             
             var user = await db.Users.FindAsync(userGuid);
             if (user is null)
@@ -106,22 +86,17 @@ namespace UploadR.Services
         /// <summary>
         ///     Deletes an account with the given token.
         /// </summary>
-        /// <param name="token">Token of that account.</param>
+        /// <param name="userGuid">Token of that account.</param>
         /// <param name="cascade">Whether to delete or not the uploads of that account.</param>
-        public async Task<ResultCode> DeleteAccountAsync(string token, bool cascade = false)
+        public async Task<ResultCode> DeleteAccountAsync(Guid userGuid, bool cascade = false)
         {
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return ResultCode.NotFound;
-            }
-            
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             
-            var user = await db.Users.FirstOrDefaultAsync(x => x.Token == token);
+            var user = await db.Users.FindAsync(userGuid);
             if (user is null)
             {
-                return ResultCode.NotFound; //shouldn't happen.
+                return ResultCode.NotFound;
             }
 
             db.Users.Remove(user);

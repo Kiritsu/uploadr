@@ -25,8 +25,11 @@ namespace UploadR.Services
         private readonly ILogger<AccountService> _logger;
         private readonly UploadConfiguration _uploadConfiguration;
         
-        public UploadService(IServiceProvider services, SHA512Managed sha512Managed,
-            ILogger<AccountService> logger, UploadConfigurationProvider uploadConfigurationProvider)
+        public UploadService(
+            IServiceProvider services, 
+            SHA512Managed sha512Managed,
+            ILogger<AccountService> logger, 
+            UploadConfigurationProvider uploadConfigurationProvider)
         {
             _services = services;
             _sha512Managed = sha512Managed;
@@ -40,7 +43,10 @@ namespace UploadR.Services
         /// <param name="file">File to check.</param>
         /// <param name="password">Password to apply to that file.</param>
         /// <param name="upload">Out parameter representing a valid or not upload.</param>
-        public bool TryCreateUpload(IFormFile file, string password, out UploadOutModel upload)
+        public bool TryCreateUpload(
+            IFormFile file, 
+            string password,
+            out UploadOutModel upload)
         {
             upload = new UploadOutModel
             {
@@ -81,11 +87,13 @@ namespace UploadR.Services
         ///     Upload the list of uploads to the server. It will check whether the uploads are valid.
         ///     It returns a model which indicates the succeeded uploads and failed ones.
         /// </summary>
-        /// <param name="userId">Id of the user uploading the files.</param>
+        /// <param name="userGuid">Id of the user uploading the files.</param>
         /// <param name="files">Files to upload.</param>
         /// <param name="password">Password of the files. Can be null.</param>
-        public async Task<UploadListOutModel> UploadAsync(string userId, 
-            IEnumerable<IFormFile> files, string password)
+        public async Task<UploadListOutModel> UploadAsync(
+            Guid userGuid, 
+            IEnumerable<IFormFile> files, 
+            string password)
         {
             var model = new UploadListOutModel();
             var failed = new List<UploadOutModel>();
@@ -94,20 +102,21 @@ namespace UploadR.Services
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            var userGuid = Guid.Parse(userId);
-            
             foreach (var file in files)
             {
                 if (TryCreateUpload(file, password, out var upload))
                 {
                     var name = Guid.NewGuid();
-                    upload.Filename = name.ToString().Replace("-", "") + Path.GetExtension(file.FileName);
+                    upload.Filename = name.ToString().Replace("-", "") 
+                                      + Path.GetExtension(file.FileName);
 
                     var passwordHash = "";
                     if (!string.IsNullOrWhiteSpace(password))
                     {
-                        var byteHash = _sha512Managed.ComputeHash(Encoding.UTF8.GetBytes(password));
-                        passwordHash = string.Join("", byteHash.Select(x => x.ToString("X2")));
+                        var byteHash = _sha512Managed.ComputeHash(
+                            Encoding.UTF8.GetBytes(password));
+                        passwordHash = string.Join("", 
+                            byteHash.Select(x => x.ToString("X2")));
                     }
 
                     await db.Uploads.AddAsync(new Upload
@@ -123,7 +132,8 @@ namespace UploadR.Services
                         DownloadCount = 0
                     });
 
-                    await using var fs = File.Create(Path.Combine(_uploadConfiguration.UploadsPath, upload.Filename));
+                    await using var fs = File.Create(
+                        Path.Combine(_uploadConfiguration.UploadsPath, upload.Filename));
                     await file.CopyToAsync(fs);
 
                     succeeded.Add(upload);
@@ -133,8 +143,9 @@ namespace UploadR.Services
                     failed.Add(upload);
                 }
                 
-                _logger.LogInformation($"Upload by {userId}: [name:{upload.Filename};size:{upload.Size}b;" +
-                                       $"haspassword:{upload.HasPassword};success_code:{upload.StatusCode}]");
+                _logger.LogInformation(
+                    $"Upload by {userGuid}: [name:{upload.Filename};size:{upload.Size}b;" +
+                    $"haspassword:{upload.HasPassword};success_code:{upload.StatusCode}]");
             }
 
             await db.SaveChangesAsync();
@@ -148,9 +159,11 @@ namespace UploadR.Services
         /// <summary>
         ///     Deletes an upload.
         /// </summary>
-        /// <param name="userId">Id of the user requesting deletion.</param>
+        /// <param name="userGuid">Id of the user requesting deletion.</param>
         /// <param name="filename">Name of the file to delete.</param>
-        public async Task<ResultCode> DeleteUploadAsync(string userId, string filename)
+        public async Task<ResultCode> DeleteUploadAsync(
+            Guid userGuid, 
+            string filename)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
@@ -161,7 +174,6 @@ namespace UploadR.Services
                 return ResultCode.NotFound;
             }
 
-            var userGuid = Guid.Parse(userId);
             var userDb = await db.Users.FindAsync(userGuid);
             if (userGuid != upload.AuthorGuid && userDb.Type != AccountType.Admin)
             {
@@ -178,8 +190,9 @@ namespace UploadR.Services
             db.Uploads.Update(upload);
             await db.SaveChangesAsync();
 
-            _logger.LogInformation($"Upload deleted by {userId}: " +
-                                   $"[authorguid:{upload.AuthorGuid};guid:{upload.Guid}]");
+            _logger.LogInformation(
+                $"Upload deleted by {userGuid}: " +
+                $"[authorguid:{upload.AuthorGuid};guid:{upload.Guid}]");
 
             return ResultCode.Ok;
         }
@@ -188,7 +201,8 @@ namespace UploadR.Services
         ///     Gets the details of an upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to see the details.</param>
-        public async Task<UploadDetailsModel> GetUploadDetailsAsync(string filename)
+        public async Task<UploadDetailsModel> GetUploadDetailsAsync(
+            string filename)
         {
             var upload = await GetUploadByNameAsync(filename);
             if (upload is null)
@@ -212,17 +226,14 @@ namespace UploadR.Services
         /// <summary>
         ///     Gets the details of every upload created by a userId.
         /// </summary>
-        /// <param name="userId">Name of the file to see the details.</param>
+        /// <param name="userGuid">Name of the file to see the details.</param>
         /// <param name="limit">Amount of uploads to lookup.</param>
         /// <param name="afterGuid">Guid that defines the start of the query.</param>
         public async Task<IReadOnlyList<UploadDetailsModel>> GetUploadsDetailsAsync(
-            string userId, int limit, string afterGuid)
+            Guid userGuid, 
+            int limit, 
+            Guid afterGuid)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
-            {
-                return null;
-            }
-
             if (limit > 100)
             {
                 return null;
@@ -238,29 +249,15 @@ namespace UploadR.Services
 
             var uploads = db.Uploads.Where(x => x.AuthorGuid == userGuid);
             uploads = uploads.OrderBy(x => x.CreatedAt);
-
-            if (!string.IsNullOrWhiteSpace(afterGuid) && Guid.TryParse(afterGuid, out var uploadGuid))
+            
+            var firstUpload = await uploads.FirstOrDefaultAsync(x => x.Guid == afterGuid);
+            if (firstUpload is null)
             {
-                // this isn't supported by EFCore *yet*.
-                //
-                // if (!uploads.Any(x => x.Guid == uploadGuid))
-                // {
-                //     return null;
-                // }
-                //
-                // uploads = uploads.SkipWhile(x => x.Guid != uploadGuid);
-                //
-                // current workaround:
-                var upload = await uploads.FirstOrDefaultAsync(x => x.Guid == uploadGuid);
-                if (upload is null)
-                {
-                    return null;
-                }
-                var createdAt = upload.CreatedAt;
-                
-                uploads = uploads.Where(x => x.CreatedAt > createdAt);
+                return null;
             }
-
+            
+            var createdAt = firstUpload.CreatedAt;
+            uploads = uploads.Where(x => x.CreatedAt > createdAt);
             uploads = uploads.Take(limit);
 
             foreach (var upload in uploads)
@@ -290,7 +287,9 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="filename">Name of the file to get the content.</param>
         /// <param name="password">Password of the file, if any is set.</param>
-        public async Task<(byte[] Content, string Type)> GetUploadAsync(string filename, string password)
+        public async Task<(byte[] Content, string Type)> GetUploadAsync(
+            string filename, 
+            string password)
         {
             var upload = await GetUploadByNameAsync(filename);
             if (upload is null)
@@ -322,7 +321,8 @@ namespace UploadR.Services
         ///     Check if the given upload exists and is not removed.
         /// </summary>
         /// <param name="filename">Name or guid of the upload.</param>
-        private async Task<Upload> GetUploadByNameAsync(string filename)
+        private async Task<Upload> GetUploadByNameAsync(
+            string filename)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
@@ -364,9 +364,11 @@ namespace UploadR.Services
         /// <summary>
         ///     Deletes all the given uploads by their GUIDs.
         /// </summary>
-        /// <param name="userId">Id of the user.</param>
+        /// <param name="userGuid">Id of the user.</param>
         /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
-        public async Task<UploadBulkDeleteModel> DeleteUploadsAsync(string userId, IEnumerable<string> uploadIds)
+        public async Task<UploadBulkDeleteModel> DeleteUploadsAsync(
+            Guid userGuid, 
+            IEnumerable<string> uploadIds)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
@@ -375,7 +377,7 @@ namespace UploadR.Services
             var succeeded = new List<string>();
             var failed = new List<string>();
             
-            var uploads = await db.Uploads.Where(x => x.AuthorGuid.ToString() == userId).ToListAsync();
+            var uploads = await db.Uploads.Where(x => x.AuthorGuid == userGuid).ToListAsync();
             foreach (var uploadId in uploadIds)
             {
                 var upload = uploads.FirstOrDefault(x => x.Guid.ToString() == uploadId);
@@ -385,12 +387,14 @@ namespace UploadR.Services
                 }
                 else
                 {
+                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+                    
                     succeeded.Add(uploadId);
                     
                     upload.Removed = true;
-                    if (File.Exists(Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName)))
+                    if (File.Exists(path))
                     {
-                        File.Delete(Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName));
+                        File.Delete(path);
                     }
 
                     db.Uploads.Update(upload);

@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +12,8 @@ using UploadR.Services;
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController]
+    [SuppressMessage("ReSharper", "PossibleNullReferenceException", 
+        Justification = "Those values are user claims and required.")]
     public class UploadController : Controller
     {
         private readonly UploadService _uploadService;
@@ -32,7 +36,7 @@ namespace UploadR.Controllers
             [FromForm] UploadModel model)
         {
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            return Json(await _uploadService.UploadAsync(userId?.Value, Request.Form.Files, model.Password));
+            return Json(await _uploadService.UploadAsync(Guid.Parse(userId.Value), Request.Form.Files, model.Password));
         }
 
         /// <summary>
@@ -43,7 +47,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> DeleteUploadAsync(string filename)
         {
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _uploadService.DeleteUploadAsync(userId?.Value, filename);
+            var result = await _uploadService.DeleteUploadAsync(Guid.Parse(userId.Value), filename);
 
             return result switch
             {
@@ -67,7 +71,7 @@ namespace UploadR.Controllers
             }
             
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            return Json(await _uploadService.DeleteUploadsAsync(userId?.Value, uploadIds));
+            return Json(await _uploadService.DeleteUploadsAsync(Guid.Parse(userId.Value), uploadIds));
         }
 
         /// <summary>
@@ -91,14 +95,20 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="userId">Id of the user to lookup.</param>
         /// <param name="limit">Amount of uploads to lookup.</param>
-        /// <param name="afterGuid">Guid that defines the start of the query.</param>
+        /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("{userId}/uploads"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserUploadsDetailsAsync(
             string userId,
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterGuid = null)
+            [FromQuery(Name = "afterGuid")] string afterId = null)
         {
-            var result = await _uploadService.GetUploadsDetailsAsync(userId, limit, afterGuid);
+            if (!Guid.TryParse(userId, out var userGuid) 
+                || !Guid.TryParse(afterId, out var afterGuid))
+            {
+                return BadRequest();
+            }
+            
+            var result = await _uploadService.GetUploadsDetailsAsync(userGuid, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();
@@ -111,14 +121,19 @@ namespace UploadR.Controllers
         ///     Gets the details of all the uploads sent by the current user.
         /// </summary>
         /// <param name="limit">Amount of uploads to lookup.</param>
-        /// <param name="afterGuid">Guid that defines the start of the query.</param>
+        /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("uploads"), Authorize]
         public async Task<IActionResult> GetUserUploadsDetailsAsync(
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterGuid = null)
+            [FromQuery(Name = "afterGuid")] string afterId = null)
         {
+            if (!Guid.TryParse(afterId, out var afterGuid))
+            {
+                return BadRequest();
+            }
+            
             var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
-            var result = await _uploadService.GetUploadsDetailsAsync(userId?.Value, limit, afterGuid);
+            var result = await _uploadService.GetUploadsDetailsAsync(Guid.Parse(userId.Value), limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();
