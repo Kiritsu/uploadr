@@ -19,7 +19,8 @@ namespace UploadR.Controllers
         ///     Controller related to accounts management.
         /// </summary>
         /// <param name="accountService">Service for accounts management.</param>
-        public AccountController(AccountService accountService)
+        public AccountController(
+            AccountService accountService)
         {
             _accountService = accountService;
         }

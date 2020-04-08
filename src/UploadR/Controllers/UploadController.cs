@@ -17,7 +17,8 @@ namespace UploadR.Controllers
         ///     Controller related to uploads management.
         /// </summary>
         /// <param name="uploadService">Service for uploads management.</param>
-        public UploadController(UploadService uploadService)
+        public UploadController(
+            UploadService uploadService)
         {
             _uploadService = uploadService;
         }
@@ -38,7 +39,8 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
         [HttpDelete("{filename}"), Authorize]
-        public async Task<IActionResult> DeleteUploadAsync(string filename)
+        public async Task<IActionResult> DeleteUploadAsync(
+            string filename)
         {
             var result = await _uploadService.DeleteUploadAsync(UserGuid, filename);
 
@@ -56,7 +58,8 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
         [HttpDelete, Authorize]
-        public async Task<IActionResult> DeleteUploadsAsync(string[] uploadIds)
+        public async Task<IActionResult> DeleteUploadsAsync(
+            string[] uploadIds)
         {
             if (uploadIds.Length > 100)
             {
@@ -71,7 +74,8 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
         [HttpGet("{filename}/details"), Authorize]
-        public async Task<IActionResult> GetUploadDetailsAsync(string filename)
+        public async Task<IActionResult> GetUploadDetailsAsync(
+            string filename)
         {
             var result = await _uploadService.GetUploadDetailsAsync(filename);
             if (result is null)
