@@ -55,6 +55,22 @@ namespace UploadR.Controllers
         }
 
         /// <summary>
+        ///     Deletes all the given uploads by their GUIDs.
+        /// </summary>
+        /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
+        [HttpDelete, Authorize]
+        public async Task<IActionResult> DeleteUploadsAsync(string[] uploadIds)
+        {
+            if (uploadIds.Length > 100)
+            {
+                return BadRequest();
+            }
+            
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            return Json(await _uploadService.DeleteUploadsAsync(userId?.Value, uploadIds));
+        }
+
+        /// <summary>
         ///     Gets the details of an upload.
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
