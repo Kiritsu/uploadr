@@ -23,6 +23,8 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 
 > `DELETE /api/upload/{string|guid:filename}` - Removes an upload by its name or guid.
 
+> `DELETE /api/upload/` - Removes multiple uploads by their ids.
+
 > `GET /api/upload/{string|guid:filename}/details` - Gets an upload's details by its id or guid.
 
 > `GET /api/upload/uploads` - Gets details of every upload created by the current authenticated user.
