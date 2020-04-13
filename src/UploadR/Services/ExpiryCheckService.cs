@@ -16,9 +16,10 @@ namespace UploadR.Services
         private readonly IServiceProvider _services;
         private readonly ILogger<ExpiryCheckService<T>> _logger;
 
+        private CancellationTokenSource _tokenSource;
+        private Task _currentTask;
+        
         public T WatchedItem { get; internal set; }
-        public CancellationTokenSource TokenSource { get; private set; }
-        public Task CurrentTask { get; private set; }
 
         public ExpiryCheckService(
             IServiceProvider services,
@@ -39,15 +40,16 @@ namespace UploadR.Services
         {
             try
             {
-                TokenSource?.Cancel();
+                _tokenSource?.Cancel();
+                _tokenSource?.Dispose();
             }
             finally
             {
-                TokenSource = new CancellationTokenSource();
+                _tokenSource = new CancellationTokenSource();
             }
             
-            CurrentTask = ExecuteAsync(TokenSource.Token);
-            return CurrentTask.IsCompleted ? CurrentTask : Task.CompletedTask;
+            _currentTask = ExecuteAsync(_tokenSource.Token);
+            return _currentTask.IsCompleted ? _currentTask : Task.CompletedTask;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,8 +58,8 @@ namespace UploadR.Services
             {
                 using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
                 await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-
-                WatchedItem = await db.Uploads
+                
+                WatchedItem = await db.Set<T>()
                     .OrderBy(x => x.ExpiryTime)
                     .FirstOrDefaultAsync(x => x.ExpiryTime > TimeSpan.Zero && !x.Removed, stoppingToken) as T;
 
@@ -95,25 +97,25 @@ namespace UploadR.Services
         {
             _logger.LogInformation("Stopping the ExpiryCheck service completely.");
             
-            if (CurrentTask == null)
+            if (_currentTask == null)
             {
                 return;
             }
 
             try
             {
-                TokenSource?.Cancel();
+                _tokenSource?.Cancel();
             }
             finally
             {
-                await Task.WhenAny(CurrentTask, Task.Delay(Timeout.Infinite, cancellationToken));
+                await Task.WhenAny(_currentTask, Task.Delay(Timeout.Infinite, cancellationToken));
             }
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            TokenSource?.Dispose();
+            _tokenSource?.Dispose();
         }
     }
 }
