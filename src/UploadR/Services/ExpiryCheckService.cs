@@ -87,8 +87,8 @@ namespace UploadR.Services
                     $"Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
                 
                 await Task.Delay(expiryLeft, stoppingToken);
+                
                 db.Update(WatchedItem);
-
                 await db.SaveChangesAsync(stoppingToken);
             }
         }
