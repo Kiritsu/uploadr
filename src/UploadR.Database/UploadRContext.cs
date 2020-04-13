@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using UploadR.Database.Enums;
 using UploadR.Database.Models;
 
@@ -28,19 +29,19 @@ namespace UploadR.Database
                 .ToTable("users");
 
             modelBuilder.Entity<User>()
-                .Property(x => x.Id)
+                .Property(x => x.Guid)
                 .IsRequired()
                 .HasColumnType("uuid")
                 .HasColumnName("guid");
 
             modelBuilder.Entity<User>()
-                .HasKey(x => x.Id)
+                .HasKey(x => x.Guid)
                 .HasName("pk_user_guid");
 
             modelBuilder.Entity<User>()
                 .Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("now()")
+                .HasDefaultValue(DateTime.Now)
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<User>()
@@ -63,7 +64,7 @@ namespace UploadR.Database
             modelBuilder.Entity<User>()
                 .Property(x => x.Token)
                 .IsRequired()
-                .HasColumnName("api_token_hash");
+                .HasColumnName("api_token");
 
             modelBuilder.Entity<User>()
                 .HasMany(x => x.Uploads)
@@ -96,20 +97,26 @@ namespace UploadR.Database
             modelBuilder.Entity<Upload>()
                 .Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("now()")
+                .HasDefaultValue(DateTime.Now)
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.LastSeen)
                 .IsRequired()
-                .HasDefaultValueSql("now()")
+                .HasDefaultValue(DateTime.Now)
                 .HasColumnName("last_seen");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.DownloadCount)
+                .Property(x => x.ExpiryTime)
+                .IsRequired()
+                .HasDefaultValue(TimeSpan.Zero)
+                .HasColumnName("expiry_time");
+
+            modelBuilder.Entity<Upload>()
+                .Property(x => x.SeenCount)
                 .IsRequired()
                 .HasDefaultValue(0)
-                .HasColumnName("download_count");
+                .HasColumnName("seen_count");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.Removed)

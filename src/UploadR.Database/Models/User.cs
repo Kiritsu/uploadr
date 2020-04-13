@@ -9,7 +9,7 @@ namespace UploadR.Database.Models
         /// <summary>
         ///     Id of the user.
         /// </summary>
-        public Guid Id { get; set; }
+        public Guid Guid { get; set; }
 
         /// <summary>
         ///     Date time this user was created.

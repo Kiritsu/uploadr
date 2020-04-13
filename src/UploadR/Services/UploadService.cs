@@ -129,7 +129,7 @@ namespace UploadR.Services
                         FileName = upload.Filename,
                         CreatedAt = DateTime.Now,
                         LastSeen = DateTime.Now,
-                        DownloadCount = 0
+                        SeenCount = 0
                     });
 
                     await using var fs = File.Create(
@@ -217,7 +217,7 @@ namespace UploadR.Services
                 ContentType = upload.ContentType,
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
-                DownloadCount = upload.DownloadCount,
+                DownloadCount = upload.SeenCount,
                 FileName = upload.FileName,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
             };
@@ -262,7 +262,7 @@ namespace UploadR.Services
 
             foreach (var upload in uploads)
             {
-                upload.DownloadCount++;
+                upload.SeenCount++;
                 upload.LastSeen = DateTime.Now;
             }
             
@@ -276,7 +276,7 @@ namespace UploadR.Services
                 ContentType = upload.ContentType,
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
-                DownloadCount = upload.DownloadCount,
+                DownloadCount = upload.SeenCount,
                 FileName = upload.FileName,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
             }).ToListAsync();
@@ -341,7 +341,7 @@ namespace UploadR.Services
             {
                 if (!upload.Removed)
                 {
-                    upload.DownloadCount++;
+                    upload.SeenCount++;
                     upload.LastSeen = DateTime.Now;
                     db.Uploads.Update(upload);
                     await db.SaveChangesAsync();

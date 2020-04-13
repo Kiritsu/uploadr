@@ -1,6 +1,8 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using UploadR.Services;
 
 namespace UploadR
 {
@@ -19,7 +21,7 @@ namespace UploadR
                     var port = Environment.GetEnvironmentVariable("UPLOADR_PORT") ?? "8888";
 
                     webBuilder.UseStartup<Startup>()
-                        .UseUrls($"http://localhost:{port}/");
+                        .UseUrls($"http://{host}:{port}/");
                 });
     }
 }

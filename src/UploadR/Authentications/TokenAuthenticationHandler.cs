@@ -83,7 +83,7 @@ namespace UploadR.Authentications
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Guid.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimToken, token),
                 new Claim(ClaimTypes.Role, user.Type.ToString())
@@ -93,7 +93,7 @@ namespace UploadR.Authentications
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", user.Id, token);
+            _logger.LogInformation("User '{0}' just authenticated. (Token: {1})", user.Guid, token);
             return AuthenticateResult.Success(ticket);
         }
     }

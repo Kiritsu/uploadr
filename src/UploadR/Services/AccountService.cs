@@ -103,7 +103,7 @@ namespace UploadR.Services
 
             if (cascade)
             {
-                var uploads = db.Uploads.Where(x => x.AuthorGuid == user.Id);
+                var uploads = db.Uploads.Where(x => x.AuthorGuid == user.Guid);
                 db.Uploads.RemoveRange(uploads);
             }
 
@@ -139,7 +139,7 @@ namespace UploadR.Services
 
             await db.Users.AddAsync(new User
             {
-                Id = userId,
+                Guid = userId,
                 CreatedAt = DateTime.Now,
                 Disabled = false,
                 Email = email,
@@ -183,7 +183,7 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
             
             _logger.Log(LogLevel.Information, 
-                $"An account has been verified: [Id:{user.Id};Email:{user.Email}]");
+                $"An account has been verified: [Id:{user.Guid};Email:{user.Email}]");
             
             return true;
         }
