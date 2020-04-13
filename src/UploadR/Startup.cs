@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
+using UploadR.Database.Models;
 using UploadR.Services;
 
 namespace UploadR
@@ -78,6 +79,9 @@ namespace UploadR
             });
 
             services.AddControllers();
+            
+            services.AddSingleton<ExpiryCheckService<Upload>>();
+            services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<Upload>>());
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

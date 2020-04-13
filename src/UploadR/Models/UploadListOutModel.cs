@@ -1,4 +1,6 @@
-﻿using UploadR.Enums;
+﻿using System;
+using System.Text.Json.Serialization;
+using UploadR.Enums;
 
 namespace UploadR.Models
 {
@@ -36,6 +38,14 @@ namespace UploadR.Models
         ///     Whether a password is needed to see that file.
         /// </summary>
         public bool HasPassword { get; set; }
+        
+        /// <summary>
+        ///     Gets the time this file expire in.
+        /// </summary>
+        [JsonIgnore]
+        public TimeSpan ExpireAfter { get; set; }
+
+        public int ExpireAfterMilliseconds => (int)ExpireAfter.TotalMilliseconds;
         
         /// <summary>
         ///     Status code of the file.

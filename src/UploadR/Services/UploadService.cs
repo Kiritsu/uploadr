@@ -42,10 +42,12 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="file">File to check.</param>
         /// <param name="password">Password to apply to that file.</param>
+        /// <param name="expireAfter">The time the file expire in.</param>
         /// <param name="upload">Out parameter representing a valid or not upload.</param>
         public bool TryCreateUpload(
             IFormFile file, 
             string password,
+            TimeSpan expireAfter,
             out UploadOutModel upload)
         {
             upload = new UploadOutModel
@@ -54,7 +56,8 @@ namespace UploadR.Services
                 Size = file.Length,
                 HasPassword = !string.IsNullOrWhiteSpace(password),
                 ContentType = file.ContentType,
-                StatusCode = UploadStatusCode.Ok
+                StatusCode = UploadStatusCode.Ok,
+                ExpireAfter = expireAfter
             };
 
             if (upload.Size > _uploadConfiguration.SizeMax)
@@ -82,7 +85,7 @@ namespace UploadR.Services
             
             return true;
         }
-        
+
         /// <summary>
         ///     Upload the list of uploads to the server. It will check whether the uploads are valid.
         ///     It returns a model which indicates the succeeded uploads and failed ones.
@@ -90,10 +93,12 @@ namespace UploadR.Services
         /// <param name="userGuid">Id of the user uploading the files.</param>
         /// <param name="files">Files to upload.</param>
         /// <param name="password">Password of the files. Can be null.</param>
+        /// <param name="expireAfter">Time the file expire in.</param>
         public async Task<UploadListOutModel> UploadAsync(
-            Guid userGuid, 
-            IEnumerable<IFormFile> files, 
-            string password)
+            Guid userGuid,
+            IEnumerable<IFormFile> files,
+            string password,
+            TimeSpan expireAfter)
         {
             var model = new UploadListOutModel();
             var failed = new List<UploadOutModel>();
@@ -104,7 +109,7 @@ namespace UploadR.Services
 
             foreach (var file in files)
             {
-                if (TryCreateUpload(file, password, out var upload))
+                if (TryCreateUpload(file, password, expireAfter, out var upload))
                 {
                     var name = Guid.NewGuid();
                     upload.Filename = name.ToString().Replace("-", "") 
@@ -129,7 +134,8 @@ namespace UploadR.Services
                         FileName = upload.Filename,
                         CreatedAt = DateTime.Now,
                         LastSeen = DateTime.Now,
-                        SeenCount = 0
+                        SeenCount = 0,
+                        ExpiryTime = upload.ExpireAfter
                     });
 
                     await using var fs = File.Create(
@@ -149,6 +155,9 @@ namespace UploadR.Services
             }
 
             await db.SaveChangesAsync();
+            
+            var ecs = _services.GetService<ExpiryCheckService<Upload>>();
+            await ecs.RestartAsync();
             
             model.SucceededUploads = succeeded.ToArray();
             model.FailedUploads = failed.ToArray();
