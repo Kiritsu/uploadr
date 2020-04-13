@@ -71,7 +71,8 @@ namespace UploadR.Services
                 var expiryLeft = WatchedItem.CreatedAt + WatchedItem.ExpiryTime - now;
                 if (expiryLeft <= TimeSpan.Zero)
                 {
-                    _logger.LogError($"Item {WatchedItem.Guid} must have expired at {(now + expiryLeft):g} ({expiryLeft:g} ago).");
+                    _logger.LogError(
+                        $"Item {WatchedItem.Guid} must have expired at {(now + expiryLeft):g} ({expiryLeft:g} ago).");
                     
                     WatchedItem.Removed = true;
                     db.Update(WatchedItem);
@@ -80,7 +81,8 @@ namespace UploadR.Services
                     continue;
                 }
                 
-                _logger.LogDebug($"Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
+                _logger.LogDebug(
+                    $"Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
                 
                 await Task.Delay(expiryLeft, stoppingToken);
                 db.Update(WatchedItem);
