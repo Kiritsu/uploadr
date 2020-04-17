@@ -3,7 +3,7 @@
 namespace UploadR.Controllers
 {
     [Route("api/[controller]"), ApiController]
-    public class ShortenedUrlController : UploadRController
+    public class ShortenController : UploadRController
     {
         
     }
