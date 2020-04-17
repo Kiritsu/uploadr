@@ -11,7 +11,7 @@ using UploadR.Database.Models;
 
 namespace UploadR.Services
 {
-    public class ExpiryCheckService<T> : BackgroundService where T : EntityBase
+    public class ExpiryCheckService<T> : IHostedService, IDisposable where T : EntityBase
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<ExpiryCheckService<T>> _logger;
@@ -29,7 +29,7 @@ namespace UploadR.Services
             _logger = logger;
         }
 
-        public override Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting the ExpiryCheck service.");
             
@@ -52,7 +52,7 @@ namespace UploadR.Services
             return _currentTask.IsCompleted ? _currentTask : Task.CompletedTask;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -61,7 +61,7 @@ namespace UploadR.Services
                 
                 WatchedItem = await db.Set<T>()
                     .OrderBy(x => x.ExpiryTime)
-                    .FirstOrDefaultAsync(x => x.ExpiryTime > TimeSpan.Zero && !x.Removed, stoppingToken) as T;
+                    .FirstOrDefaultAsync(x => x.ExpiryTime > TimeSpan.Zero && !x.Removed, stoppingToken);
 
                 if (WatchedItem is null)
                 {
@@ -93,7 +93,7 @@ namespace UploadR.Services
             }
         }
 
-        public override async Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Stopping the ExpiryCheck service completely.");
             
@@ -112,9 +112,8 @@ namespace UploadR.Services
             }
         }
 
-        public override void Dispose()
+        public void Dispose()
         {
-            base.Dispose();
             _tokenSource?.Dispose();
         }
     }
