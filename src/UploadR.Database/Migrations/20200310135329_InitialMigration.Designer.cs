@@ -2,14 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using UploadR.Database;
 
 namespace UploadR.Database.Migrations
 {
     [DbContext(typeof(UploadRContext))]
-    partial class UploadRContextModelSnapshot : ModelSnapshot
+    [Migration("20200310135329_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,13 +41,13 @@ namespace UploadR.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("created_at")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 4, 13, 6, 54, 11, 504, DateTimeKind.Local).AddTicks(3443));
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<TimeSpan>("ExpiryTime")
+                    b.Property<long>("DownloadCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("expiry_time")
-                        .HasColumnType("interval")
-                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
+                        .HasColumnName("download_count")
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
 
                     b.Property<string>("FileName")
                         .IsRequired()
@@ -54,7 +58,7 @@ namespace UploadR.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("last_seen")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 4, 13, 6, 54, 11, 504, DateTimeKind.Local).AddTicks(4074));
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Password")
                         .HasColumnName("password_hash")
@@ -66,12 +70,6 @@ namespace UploadR.Database.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<long>("SeenCount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("seen_count")
-                        .HasColumnType("bigint")
-                        .HasDefaultValue(0L);
-
                     b.HasKey("Guid")
                         .HasName("pk_upload_guid");
 
@@ -82,7 +80,7 @@ namespace UploadR.Database.Migrations
 
             modelBuilder.Entity("UploadR.Database.Models.User", b =>
                 {
-                    b.Property<Guid>("Guid")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("guid")
                         .HasColumnType("uuid");
@@ -91,7 +89,7 @@ namespace UploadR.Database.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnName("created_at")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 4, 13, 6, 54, 11, 489, DateTimeKind.Local).AddTicks(3467));
+                        .HasDefaultValueSql("now()");
 
                     b.Property<bool>("Disabled")
                         .ValueGeneratedOnAdd()
@@ -106,16 +104,16 @@ namespace UploadR.Database.Migrations
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnName("api_token")
+                        .HasColumnName("api_token_hash")
                         .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .ValueGeneratedOnAdd()
                         .HasColumnName("account_type")
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(0);
 
-                    b.HasKey("Guid")
+                    b.HasKey("Id")
                         .HasName("pk_user_guid");
 
                     b.ToTable("users");

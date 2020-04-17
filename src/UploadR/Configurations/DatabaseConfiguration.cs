@@ -2,7 +2,7 @@
 
 namespace UploadR.Configurations
 {
-    public sealed class DatabaseConfiguration : IDatabaseConfiguration
+    public class DatabaseConfiguration : IDatabaseConfiguration
     {
         public string Hostname { get; set; }
         public int Port { get; set; }

@@ -1,41 +1,52 @@
 {
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": true,
+    "StackBlockedRequests": false,
+    "RealIpHeader": "X-Real-IP",
+    "ClientIdHeader": "X-ClientId",
+    "HttpStatusCode": 429,
+    "IpWhitelist": [
+      "127.0.0.1"
+    ],
+    "GeneralRules": [
+      {
+        "Endpoint": "POST:/api/account",
+        "Period": "60m",
+        "Limit": 3
+      },
+      {
+        "Endpoint": "PATCH:/api/account/reset",
+        "Period": "30m",
+        "Limit": 3
+      },
+      {
+        "Endpoint": "DELETE:/api/upload/*",
+        "Period": "1s",
+        "Limit": 1
+      },
+      {
+        "Endpoint": "POST:/api/upload/",
+        "Period": "1s",
+        "Limit": 1
+      },
+      {
+        "Endpoint": "GET:/api/upload/",
+        "Period": "3s",
+        "Limit": 5
+      }
+    ]
+  },
   "Database": {
     "Hostname": "localhost",
     "Port": 5432,
-    "Database": "sharey",
-    "Username": "sharey",
-    "Password": "1234",
-    "UseSsl": true
+    "Database": "uploadr",
+    "Username": "uploadr",
+    "Password": "1234"
   },
-  "Routes": {
-    "UserRegisterRoute": true
-  },
-  "Files": {
+  "Upload": {
+    "SizeMax": 4242424242,
     "SizeMin": 0,
-    "SizeMax": 80000000,
-    "FileExtensions": [
-      "jpg",
-      "png",
-      "gif",
-      "mp3",
-      "pdf"
-    ]
-  },
-  "Email": {
-    "Server": "localhost",
-    "Sender": "noreply@alnmrc.com",
-    "Port": 25,
-    "UseSsl": false,
-    "Auth": null,
-    "Password": null,
-    "Timeout": 10
-  },
-  "OneTimeToken": {
-    "Timeout": 30,
-    "AntiSpam": {
-      "Enabled": true,
-      "MaxTry": 5,
-      "Timeout": 30
-    }
+    "EnabledTypes": null,
+    "UploadsPath": "C:\\temp\\uploads"
   }
 }

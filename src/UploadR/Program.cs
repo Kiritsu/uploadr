@@ -1,6 +1,6 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace UploadR
 {
@@ -11,19 +11,15 @@ namespace UploadR
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
-        {
-            return Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
-                    webBuilder.ConfigureLogging(x =>
-                    {
-                        x.AddConsole();
-                        x.SetMinimumLevel(LogLevel.Debug);
-                    });
-                    webBuilder.UseUrls("https://*:8899");
+                    var host = Environment.GetEnvironmentVariable("UPLOADR_HOST") ?? "localhost";
+                    var port = Environment.GetEnvironmentVariable("UPLOADR_PORT") ?? "8888";
+
+                    webBuilder.UseStartup<Startup>()
+                        .UseUrls($"http://{host}:{port}/");
                 });
-        }
     }
 }

@@ -7,12 +7,12 @@ namespace UploadR.Database.Models
     public sealed class User
     {
         /// <summary>
-        ///     Unique GUID of this user.
+        ///     Id of the user.
         /// </summary>
         public Guid Guid { get; set; }
 
         /// <summary>
-        ///     Date this user was created.
+        ///     Date time this user was created.
         /// </summary>
         public DateTime CreatedAt { get; set; }
 
@@ -27,7 +27,7 @@ namespace UploadR.Database.Models
         public bool Disabled { get; set; }
 
         /// <summary>
-        ///     Available user's token.
+        ///     User's API token hash.
         /// </summary>
         public string Token { get; set; }
 

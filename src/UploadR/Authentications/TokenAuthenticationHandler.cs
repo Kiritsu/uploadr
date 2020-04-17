@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using UploadR.Database;
-using UploadR.Extensions;
 
 namespace UploadR.Authentications
 {
@@ -21,13 +20,21 @@ namespace UploadR.Authentications
         private readonly UploadRContext _database;
         private readonly ILogger<TokenAuthenticationHandler> _logger;
 
-        public TokenAuthenticationHandler(IOptionsMonitor<TokenAuthenticationOptions> options, ILoggerFactory logger,
-            UrlEncoder encoder, ISystemClock clock, UploadRContext database) : base(options, logger, encoder, clock)
+        public TokenAuthenticationHandler(
+            IOptionsMonitor<TokenAuthenticationOptions> options, 
+            ILoggerFactory logger,
+            UrlEncoder encoder, 
+            ISystemClock clock, 
+            UploadRContext database) : base(options, logger, encoder, clock)
         {
             _database = database;
             _logger = logger.CreateLogger<TokenAuthenticationHandler>();
         }
 
+        /// <summary>
+        ///     Tries to gather the token from the header 'Authentication'.
+        /// </summary>
+        /// <param name="token">Out value representing the token in the header.</param>
         private bool TryGetTokenByHeader(out string token)
         {
             token = null;
@@ -40,32 +47,31 @@ namespace UploadR.Authentications
             token = values.First();
             return true;
         }
-
-        private bool TryGetTokenFromSession(out string token)
-        {
-            token = null;
-
-            if (!Request.HttpContext.Session.IsAvailable)
-            {
-                return false;
-            }
-
-            token = Request.HttpContext.Session.Get<string>("UserToken");
-            return token != null;
-        }
-
+        
+        /// <summary>
+        ///     Tries to authenticates the user from the request.
+        ///     This check if a token is passed in the headers. 
+        /// </summary>
+        /// <returns></returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!TryGetTokenByHeader(out var token) && !TryGetTokenFromSession(out token))
+            if (!TryGetTokenByHeader(out var token))
             {
-                return AuthenticateResult.Fail("Missing Authorization.");
+                return AuthenticateResult.Fail("Missing authorization.");
+            }
+
+            _logger.LogDebug($"Given token: [{token}]");
+
+            if (!Guid.TryParse(token, out _))
+            {
+                _logger.LogWarning("Invalid token format.");
             }
 
             var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
             if (user is null)
             {
-                _logger.LogWarning("Invalid Token.");
-                return AuthenticateResult.Fail("Invalid Token.");
+                _logger.LogWarning("Invalid token.");
+                return AuthenticateResult.Fail("Invalid token.");
             }
 
             if (user.Disabled)

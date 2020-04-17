@@ -11,9 +11,11 @@ namespace UploadR.Authentications
 
     public sealed class AdminRequirementHandler : AuthorizationHandler<AdminRequirement>
     {
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AdminRequirement requirement)
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context, AdminRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && context.User.IsInRole(AccountType.Admin.ToString()))
+            if (context.User.Identity.IsAuthenticated && 
+                context.User.IsInRole(AccountType.Admin.ToString()))
             {
                 context.Succeed(requirement);
             }
@@ -33,11 +35,37 @@ namespace UploadR.Authentications
 
     public sealed class UserRequirementHandler : AuthorizationHandler<UserRequirement>
     {
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, UserRequirement requirement)
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context, UserRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated)
+            if (context.User.Identity.IsAuthenticated && 
+                !context.User.IsInRole(AccountType.Unverified.ToString()))
             {
                 context.Succeed(requirement);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    public sealed class UnverifiedRequirement : IAuthorizationRequirement
+    {
+        public const string PolicyName = "RequireUnverifiedPrivileges";
+    }
+    
+    public sealed class UnverifiedRequirementHandler : AuthorizationHandler<UnverifiedRequirement>
+    {
+        protected override Task HandleRequirementAsync(
+            AuthorizationHandlerContext context, UnverifiedRequirement requirement)
+        {
+            if (context.User.Identity.IsAuthenticated && 
+                context.User.IsInRole(AccountType.Unverified.ToString()))
+            {
+                context.Succeed(requirement);
+            }
+            else
+            {
+                context.Fail(); // hard fail
             }
 
             return Task.CompletedTask;

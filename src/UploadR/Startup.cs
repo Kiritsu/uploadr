@@ -1,6 +1,6 @@
 using System;
-using System.IO;
-using MailKit.Net.Smtp;
+using System.Security.Cryptography;
+using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,120 +12,90 @@ using Microsoft.Extensions.Hosting;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
-using UploadR.Interfaces;
-using UploadR.Providers;
+using UploadR.Database.Models;
 using UploadR.Services;
 
 namespace UploadR
 {
     public class Startup
     {
+        public IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
-            var envVariableConf = Environment.GetEnvironmentVariable("UPLOADR_CONFIGURATION");
-
-            var configPath = !string.IsNullOrWhiteSpace(envVariableConf) && File.Exists(envVariableConf)
-                ? envVariableConf
-                : "uploadr.json";
-
-            if (!File.Exists(configPath))
-            {
-                throw new FileNotFoundException("Unable to find config path. Setup UPLOADR_CONFIGURATION env variable first.");
-            }
+            var path = Environment.GetEnvironmentVariable("UPLOADR_PATH")
+                ?? "uploadr.json";
 
             var cfg = new ConfigurationBuilder()
                 .AddConfiguration(configuration)
-                .AddJsonFile(configPath, false)
+                .AddJsonFile(path, false)
                 .Build();
 
             Configuration = cfg;
         }
 
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<DatabaseConfiguration>(x => Configuration.GetSection("Database").Bind(x));
-            services.Configure<RoutesConfiguration>(x => Configuration.GetSection("Routes").Bind(x));
-            services.Configure<FilesConfiguration>(x => Configuration.GetSection("Files").Bind(x));
-            services.Configure<OneTimeTokenConfiguration>(x => Configuration.GetSection("OneTimeToken").Bind(x));
-            services.Configure<EmailConfiguration>(x => Configuration.GetSection("Email").Bind(x));
+            services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
+            services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+            services.AddMemoryCache();
+            services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+            services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            services.AddSingleton<QuickAuthService>();
-            services.AddSingleton<EmailService>();
-            services.AddSingleton<SmtpClient>();
-            services.AddSingleton<Random>();
-            services.AddSingleton<RateLimiterService<QuickAuthService>>();
-            services.AddSingleton<UploadsService>();
-            services.AddSingleton<UserService>();
-
+            services.Configure<DatabaseConfiguration>(Configuration.GetSection("Database"));
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
-            services.AddSingleton<IRoutesConfigurationProvider, RoutesConfigurationProvider>();
-            services.AddSingleton<IFilesConfigurationProvider, FilesConfigurationProvider>();
-            services.AddSingleton<IOneTimeTokenConfigurationProvider, OneTimeTokenConfigurationProvider>();
-            services.AddSingleton<IEmailConfigurationProvider, EmailConfigurationProvider>();
+            
+            services.Configure<UploadConfiguration>(Configuration.GetSection("Upload"));
+            services.AddSingleton<UploadConfigurationProvider>();
+
+            services.AddSingleton<SHA512Managed>();
+            
+            services.AddSingleton<AccountService>();
+            services.AddSingleton<UploadService>();
 
             services.AddSingleton<ConnectionStringProvider>();
-            services.AddDbContext<UploadRContext>(ServiceLifetime.Transient);
-
+            services.AddDbContext<UploadRContext>(ServiceLifetime.Scoped);
+            
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
-                .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(TokenAuthenticationHandler.AuthenticationSchemeName, null);
+                .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(
+                    TokenAuthenticationHandler.AuthenticationSchemeName, null);
 
             services.AddSingleton<IAuthorizationHandler, AdminRequirementHandler>();
             services.AddSingleton<IAuthorizationHandler, UserRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, UnverifiedRequirementHandler>();
+            
             services.AddAuthorization(auth =>
             {
-                auth.AddPolicy(AdminRequirement.PolicyName, policy => policy.Requirements.Add(new AdminRequirement()));
-                auth.AddPolicy(UserRequirement.PolicyName, policy => policy.Requirements.Add(new UserRequirement()));
+                auth.AddPolicy(AdminRequirement.PolicyName, 
+                    policy => policy.Requirements.Add(new AdminRequirement()));
+                auth.AddPolicy(UserRequirement.PolicyName, 
+                    policy => policy.Requirements.Add(new UserRequirement()));
+                auth.AddPolicy(UnverifiedRequirement.PolicyName,
+                    policy => policy.Requirements.Add(new UnverifiedRequirement()));
 
                 auth.DefaultPolicy = auth.GetPolicy(UserRequirement.PolicyName);
             });
 
-            services.AddHttpContextAccessor();
-
-            services.AddSession(options =>
-            {
-                options.Cookie.Name = "UploadRSession";
-                options.Cookie.IsEssential = true;
-                options.Cookie.HttpOnly = true;
-            });
-
-            services.AddControllersWithViews()
-                .AddControllersAsServices();
+            services.AddControllers();
+            
+            services.AddSingleton<ExpiryCheckService<Upload>>();
+            services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<Upload>>());
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/");
-                app.UseHsts();
-            }
 
-            app.UseHttpsRedirection()
-                .UseStaticFiles()
-                .UseCookiePolicy()
-                .UseSession()
-                .UseAuthentication()
-                .UseRouting()
-                .UseAuthorization()
-                .UseEndpoints(endpoints =>
-                    endpoints.MapControllerRoute(
-                        name: "default",
-                        pattern: "{controller=Index}/{action=Index}/{id?}"));
+            app.UseIpRateLimiting();
+            app.UseAuthentication();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
 
             using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
             using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();

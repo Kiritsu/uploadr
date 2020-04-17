@@ -2,7 +2,8 @@
 {
     public enum AccountType
     {
-        User,
-        Admin
+        Unverified = 0,
+        User = 1,
+        Admin = 2
     }
 }

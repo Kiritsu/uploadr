@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UploadR.Database", "src\UploadR.Database\UploadR.Database.csproj", "{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UploadR", "src\UploadR\UploadR.csproj", "{BD1F8225-1994-410E-A595-AEC91F5312F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UploadR", "src\UploadR\UploadR.csproj", "{836609FD-69AD-4DAC-BD6A-A7D0047FF155}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{336CA9EF-C7E6-4D5C-97DD-00F6F670AF90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BD1F8225-1994-410E-A595-AEC91F5312F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{836609FD-69AD-4DAC-BD6A-A7D0047FF155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{836609FD-69AD-4DAC-BD6A-A7D0047FF155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{836609FD-69AD-4DAC-BD6A-A7D0047FF155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{836609FD-69AD-4DAC-BD6A-A7D0047FF155}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

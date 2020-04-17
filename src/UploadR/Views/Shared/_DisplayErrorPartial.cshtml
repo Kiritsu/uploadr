@@ -1,7 +1,0 @@
-﻿@{
-    var error = ViewData["ErrorMessage"] as string ?? TempData["ErrorMessage"] as string;
-    if (!string.IsNullOrWhiteSpace(error))
-    {
-        <p class="alert alert-danger">@error</p>
-    }
-}
