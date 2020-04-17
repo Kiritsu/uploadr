@@ -9,6 +9,7 @@ namespace UploadR.Database
     {
         public DbSet<Upload> Uploads { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ShortenedUrl> ShortenedUrls { get; set; }
 
         private readonly string _connectionString;
 
@@ -135,6 +136,71 @@ namespace UploadR.Database
                 .HasColumnName("content_type");
 
             modelBuilder.Entity<Upload>()
+                .Property(x => x.Password)
+                .HasColumnName("password_hash");
+            #endregion
+            
+            #region ShortenedUrls
+            modelBuilder.Entity<ShortenedUrl>()
+                .ToTable("shortenedurls");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.Guid)
+                .IsRequired()
+                .HasColumnType("uuid")
+                .HasColumnName("guid");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .HasKey(x => x.Guid)
+                .HasName("pk_shortenedurl_guid");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.AuthorGuid)
+                .IsRequired()
+                .HasColumnType("uuid")
+                .HasColumnName("author_guid");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.CreatedAt)
+                .IsRequired()
+                .HasDefaultValue(DateTime.Now)
+                .HasColumnName("created_at");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.LastSeen)
+                .IsRequired()
+                .HasDefaultValue(DateTime.Now)
+                .HasColumnName("last_seen");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.ExpiryTime)
+                .IsRequired()
+                .HasDefaultValue(TimeSpan.Zero)
+                .HasColumnName("expiry_time");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.SeenCount)
+                .IsRequired()
+                .HasDefaultValue(0)
+                .HasColumnName("seen_count");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.Removed)
+                .IsRequired()
+                .HasDefaultValue(false)
+                .HasColumnName("removed");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.Url)
+                .IsRequired()
+                .HasColumnName("url");
+
+            modelBuilder.Entity<ShortenedUrl>()
+                .Property(x => x.Shorten)
+                .IsRequired()
+                .HasColumnName("shorten");
+
+            modelBuilder.Entity<ShortenedUrl>()
                 .Property(x => x.Password)
                 .HasColumnName("password_hash");
             #endregion
