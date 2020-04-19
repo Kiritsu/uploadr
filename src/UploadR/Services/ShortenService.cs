@@ -235,6 +235,11 @@ namespace UploadR.Services
             string password,
             TimeSpan expireAfter)
         {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
+        
             if (expireAfter == TimeSpan.Zero)
             {
                 expireAfter = _shortenConfiguration.DefaultExpiry;
