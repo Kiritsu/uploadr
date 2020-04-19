@@ -46,7 +46,16 @@
   "Upload": {
     "SizeMax": 4242424242,
     "SizeMin": 0,
+    "DefaultExpiry": 0,
+    "BulkLimit": 100,
     "EnabledTypes": null,
     "UploadsPath": "C:\\temp\\uploads"
+  },
+  "Shorten": {
+    "SizeMax": 32,
+    "SizeMin": 0,
+    "DefaultSize": 8,
+    "DefaultExpiry": 0,
+    "BulkLimit": 100
   }
 }

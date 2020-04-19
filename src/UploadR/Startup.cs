@@ -48,12 +48,16 @@ namespace UploadR
             services.AddSingleton<IDatabaseConfigurationProvider, DatabaseConfigurationProvider>();
             
             services.Configure<UploadConfiguration>(Configuration.GetSection("Upload"));
-            services.AddSingleton<UploadConfigurationProvider>();
+            services.AddSingleton<EntityConfigurationProvider<UploadConfiguration>>();
+            
+            services.Configure<ShortenConfiguration>(Configuration.GetSection("Shorten"));
+            services.AddSingleton<EntityConfigurationProvider<ShortenConfiguration>>();
 
             services.AddSingleton<SHA512Managed>();
             
             services.AddSingleton<AccountService>();
             services.AddSingleton<UploadService>();
+            services.AddSingleton<ShortenService>();
 
             services.AddSingleton<ConnectionStringProvider>();
             services.AddDbContext<UploadRContext>(ServiceLifetime.Scoped);
@@ -82,6 +86,9 @@ namespace UploadR
             
             services.AddSingleton<ExpiryCheckService<Upload>>();
             services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<Upload>>());
+            
+            services.AddSingleton<ExpiryCheckService<ShortenedUrl>>();
+            services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<ShortenedUrl>>());
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

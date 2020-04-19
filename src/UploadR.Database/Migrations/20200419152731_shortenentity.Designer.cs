@@ -2,14 +2,18 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using UploadR.Database;
 
 namespace UploadR.Database.Migrations
 {
     [DbContext(typeof(UploadRContext))]
-    partial class UploadRContextModelSnapshot : ModelSnapshot
+    [Migration("20200419152731_shortenentity")]
+    partial class shortenentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
