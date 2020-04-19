@@ -65,7 +65,7 @@ namespace UploadR.Services
 
                 if (WatchedItem is null)
                 {
-                    _logger.LogDebug("No item is expirying. Putting the service on hold. Waiting for restart.");
+                    _logger.LogInformation("No item is expirying. Putting the service on hold. Waiting for restart.");
                     break;
                 }
 
@@ -83,7 +83,7 @@ namespace UploadR.Services
                     continue;
                 }
                 
-                _logger.LogDebug(
+                _logger.LogInformation(
                     $"Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
                 
                 await Task.Delay(expiryLeft, stoppingToken);

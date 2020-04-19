@@ -150,8 +150,9 @@ namespace UploadR.Services
                 }
                 
                 _logger.LogInformation(
-                    $"Upload by {userGuid}: [name:{upload.Filename};size:{upload.Size}b;" +
-                    $"haspassword:{upload.HasPassword};success_code:{upload.StatusCode}]");
+                    $"Upload by {userGuid}: [name:{upload.Filename};size:{upload.Size}B;" +
+                    $"haspassword:{upload.HasPassword};success_code:{upload.StatusCode};" +
+                    $"expire_in_ms:{upload.ExpireAfterMilliseconds}]");
             }
 
             await db.SaveChangesAsync();
