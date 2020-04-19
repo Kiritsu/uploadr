@@ -31,8 +31,15 @@ namespace UploadR.Controllers
         public async Task<IActionResult> ShortenAsync(
             [FromForm] ShortenModel model)
         {
-            return Json(await _shortenService.ShortenAsync(
-                UserGuid, model.Url, model.Proposal, model.Password, model.ExpireAfter));
+            var result = await _shortenService.ShortenAsync(
+                UserGuid, model.Url, model.Proposal, model.Password, model.ExpireAfter);
+
+            if (result is null)
+            {
+                return BadRequest();
+            }
+            
+            return Json(result);
         }
 
         /// <summary>
