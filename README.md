@@ -11,6 +11,8 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 
 > `GET /api/upload/{string|guid:filename}{string:password}` - Gets an upload by its name or guid. Password can be specified if the file requires a password.
 
+> `GET /api/shorten/{string:shortenedName}{string:password}` - Redirects to the target of this shortened url.
+
 ## Authenticated requests (Unverified)
 > `POST /api/account/verify` - Verifies an unverified account.
 
@@ -29,6 +31,15 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 
 > `GET /api/upload/uploads` - Gets details of every upload created by the current authenticated user.
 
+> `POST /api/shorten/` - Creates a shortened url. Requires `ShortenModel` form.
+
+> `DELETE /api/shorten/{string|guid:shortenedId}` - Removes a shortened url by its name or guid.
+
+> `GET /api/shorten/{string|guid:shortenedId}/details` - Gets a shortened url's details by its name or guid.
+
+> `GET /api/shorten/shortens` - Gets details of every  shortened url created by the current authenticated user.
+
+
 ## Authenticated requests (Admin)
 > `PATCH /api/account/{userId}/block` - Blocks a user by its id.
 
@@ -39,6 +50,11 @@ UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
 > `DELETE /api/upload/{string|guid:filename}` - Removes an upload by its name or guid.
 
 > `GET /api/upload/{guid:userguid}/uploads` - Gets details of every upload created by the given user guid.
+
+> `DELETE /api/shorten/{string|guid:shortenedId}` - Removes a shortened url by its name or guid.
+
+> `GET /api/shorten/{guid:userguid}/shortens` - Gets details of every shortened urls created by the given user guid.
+
 
 
 # Requirements

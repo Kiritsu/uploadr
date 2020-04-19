@@ -72,6 +72,30 @@ namespace UploadR.Controllers
         }
         
         /// <summary>
+        ///     Gets the details of all the shortened urls created by the current user.
+        /// </summary>
+        /// <param name="limit">Amount of shortened urls to lookup.</param>
+        /// <param name="afterId">Guid that defines the start of the query.</param>
+        [HttpGet("shortens"), Authorize]
+        public async Task<IActionResult> GetUserDetailsBulkAsync(
+            [FromQuery(Name = "limit")] int limit = 100,
+            [FromQuery(Name = "afterGuid")] string afterId = null)
+        {
+            if (!Guid.TryParse(afterId, out var afterGuid))
+            {
+                return BadRequest();
+            }
+            
+            var result = await _shortenService.GetDetailsBulkAsync(UserGuid, limit, afterGuid);
+            if (result is null)
+            {
+                return BadRequest();
+            }
+            
+            return Json(result);
+        }
+        
+        /// <summary>
         ///     Gets the details of all the shortened urls created by the specified user.
         /// </summary>
         /// <param name="userId">Id of the user to lookup.</param>
