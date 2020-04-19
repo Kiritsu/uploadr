@@ -45,6 +45,9 @@ namespace UploadR.Models
         [JsonIgnore]
         public TimeSpan ExpireAfter { get; set; }
 
+        /// <summary>
+        ///     Gets the time in milliseconds this file expires in.
+        /// </summary>
         public int ExpireAfterMilliseconds => (int)ExpireAfter.TotalMilliseconds;
         
         /// <summary>

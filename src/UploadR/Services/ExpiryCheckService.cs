@@ -31,7 +31,7 @@ namespace UploadR.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Starting the ExpiryCheck service.");
+            _logger.LogInformation($"[{typeof(T).Name}] Starting the ExpiryCheck service.");
             
             return RestartAsync();
         }
@@ -65,7 +65,7 @@ namespace UploadR.Services
 
                 if (WatchedItem is null)
                 {
-                    _logger.LogInformation("No item is expirying. Putting the service on hold. Waiting for restart.");
+                    _logger.LogInformation($"[{typeof(T).Name}] No item is expirying. Putting the service on hold. Waiting for restart.");
                     break;
                 }
 
@@ -74,7 +74,7 @@ namespace UploadR.Services
                 if (expiryLeft <= TimeSpan.Zero)
                 {
                     _logger.LogError(
-                        $"Item {WatchedItem.Guid} must have expired at {(now + expiryLeft):g} ({expiryLeft:g} ago).");
+                        $"[{typeof(T).Name}] Item {WatchedItem.Guid} must have expired at {(now + expiryLeft):g} ({expiryLeft:g} ago).");
                     
                     WatchedItem.Removed = true;
                     db.Update(WatchedItem);
@@ -84,7 +84,7 @@ namespace UploadR.Services
                 }
                 
                 _logger.LogInformation(
-                    $"Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
+                    $"[{typeof(T).Name}] Item {WatchedItem.Guid} must expire at {now + expiryLeft} (in {expiryLeft:g}).");
                 
                 await Task.Delay(expiryLeft, stoppingToken);
                 
@@ -95,7 +95,7 @@ namespace UploadR.Services
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Stopping the ExpiryCheck service completely.");
+            _logger.LogInformation($"[{typeof(T).Name}] Stopping the ExpiryCheck service completely.");
             
             if (_currentTask == null)
             {

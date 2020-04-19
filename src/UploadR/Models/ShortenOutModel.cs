@@ -21,11 +21,14 @@ namespace UploadR.Models
         public bool HasPassword { get; set; }
         
         /// <summary>
-        ///     Gets the time this file expire in.
+        ///     Gets the time this file expires in.
         /// </summary>
         [JsonIgnore]
         public TimeSpan ExpireAfter { get; set; }
 
+        /// <summary>
+        ///     Gets the time in milliseconds this file expires in.
+        /// </summary>
         public int ExpireAfterMilliseconds => (int)ExpireAfter.TotalMilliseconds;
     }
 }

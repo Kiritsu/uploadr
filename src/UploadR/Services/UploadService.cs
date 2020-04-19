@@ -22,14 +22,14 @@ namespace UploadR.Services
     {
         private readonly IServiceProvider _services;
         private readonly SHA512Managed _sha512Managed;
-        private readonly ILogger<AccountService> _logger;
+        private readonly ILogger<UploadService> _logger;
         private readonly UploadConfiguration _uploadConfiguration;
         
         public UploadService(
             IServiceProvider services, 
             SHA512Managed sha512Managed,
-            ILogger<AccountService> logger, 
-            UploadConfigurationProvider uploadConfigurationProvider)
+            ILogger<UploadService> logger, 
+            EntityConfigurationProvider<UploadConfiguration> uploadConfigurationProvider)
         {
             _services = services;
             _sha512Managed = sha512Managed;
@@ -57,7 +57,9 @@ namespace UploadR.Services
                 HasPassword = !string.IsNullOrWhiteSpace(password),
                 ContentType = file.ContentType,
                 StatusCode = UploadStatusCode.Ok,
-                ExpireAfter = expireAfter
+                ExpireAfter = expireAfter == TimeSpan.Zero 
+                    ? _uploadConfiguration.DefaultExpiry 
+                    : expireAfter
             };
 
             if (upload.Size > _uploadConfiguration.SizeMax)
@@ -171,14 +173,14 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="userGuid">Id of the user requesting deletion.</param>
         /// <param name="filename">Name of the file to delete.</param>
-        public async Task<ResultCode> DeleteUploadAsync(
+        public async Task<ResultCode> DeleteAsync(
             Guid userGuid, 
             string filename)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            var upload = await GetUploadByNameAsync(filename);
+            var upload = await GetByNameAsync(filename);
             if (upload is null)
             {
                 return ResultCode.NotFound;
@@ -211,10 +213,10 @@ namespace UploadR.Services
         ///     Gets the details of an upload by its name or guid.
         /// </summary>
         /// <param name="filename">Name of the file to see the details.</param>
-        public async Task<UploadDetailsModel> GetUploadDetailsAsync(
+        public async Task<UploadDetailsModel> GetDetailsAsync(
             string filename)
         {
-            var upload = await GetUploadByNameAsync(filename);
+            var upload = await GetByNameAsync(filename);
             if (upload is null)
             {
                 return null;
@@ -227,24 +229,25 @@ namespace UploadR.Services
                 ContentType = upload.ContentType,
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
-                DownloadCount = upload.SeenCount,
+                SeenCount = upload.SeenCount,
                 FileName = upload.FileName,
-                HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
+                HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
+                ExpireAfter = upload.ExpiryTime
             };
         }
 
         /// <summary>
         ///     Gets the details of every upload created by a userId.
         /// </summary>
-        /// <param name="userGuid">Name of the file to see the details.</param>
+        /// <param name="userGuid">User guid to see the details from.</param>
         /// <param name="limit">Amount of uploads to lookup.</param>
         /// <param name="afterGuid">Guid that defines the start of the query.</param>
-        public async Task<IReadOnlyList<UploadDetailsModel>> GetUploadsDetailsAsync(
+        public async Task<IReadOnlyList<UploadDetailsModel>> GetDetailsBulkAsync(
             Guid userGuid, 
             int limit, 
             Guid afterGuid)
         {
-            if (limit > 100)
+            if (limit > _uploadConfiguration.BulkLimit)
             {
                 return null;
             }
@@ -257,7 +260,7 @@ namespace UploadR.Services
                 return null;
             }
 
-            var uploads = db.Uploads.Where(x => x.AuthorGuid == userGuid);
+            var uploads = db.Uploads.Where(x => x.AuthorGuid == userGuid && !x.Removed);
             uploads = uploads.OrderBy(x => x.CreatedAt);
             
             var firstUpload = await uploads.FirstOrDefaultAsync(x => x.Guid == afterGuid);
@@ -286,9 +289,10 @@ namespace UploadR.Services
                 ContentType = upload.ContentType,
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
-                DownloadCount = upload.SeenCount,
+                SeenCount = upload.SeenCount,
                 FileName = upload.FileName,
-                HasPassword = !string.IsNullOrWhiteSpace(upload.Password)
+                HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
+                ExpireAfter = upload.ExpiryTime
             }).ToListAsync();
         }
 
@@ -297,11 +301,11 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="filename">Name of the file to get the content.</param>
         /// <param name="password">Password of the file, if any is set.</param>
-        public async Task<(byte[] Content, string Type)> GetUploadAsync(
+        public async Task<(byte[] Content, string Type)> GetAsync(
             string filename, 
             string password)
         {
-            var upload = await GetUploadByNameAsync(filename);
+            var upload = await GetByNameAsync(filename);
             if (upload is null)
             {
                 return (Array.Empty<byte>(), string.Empty);
@@ -331,7 +335,7 @@ namespace UploadR.Services
         ///     Check if the given upload exists and is not removed.
         /// </summary>
         /// <param name="filename">Name or guid of the upload.</param>
-        private async Task<Upload> GetUploadByNameAsync(
+        private async Task<Upload> GetByNameAsync(
             string filename)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
@@ -376,10 +380,15 @@ namespace UploadR.Services
         /// </summary>
         /// <param name="userGuid">Id of the user.</param>
         /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
-        public async Task<UploadBulkDeleteModel> DeleteUploadsAsync(
+        public async Task<UploadBulkDeleteModel> DeleteBulkAsync(
             Guid userGuid, 
-            IEnumerable<string> uploadIds)
+            string[] uploadIds)
         {
+            if (uploadIds.Length > _uploadConfiguration.BulkLimit)
+            {
+                return null;
+            }
+            
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             

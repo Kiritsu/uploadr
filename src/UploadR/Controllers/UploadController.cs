@@ -31,7 +31,8 @@ namespace UploadR.Controllers
         public async Task<IActionResult> UploadAsync(
             [FromForm] UploadModel model)
         {
-            return Json(await _uploadService.UploadAsync(UserGuid, Request.Form.Files, model.Password, model.ExpireAfter));
+            return Json(await _uploadService.UploadAsync(
+                UserGuid, Request.Form.Files, model.Password, model.ExpireAfter));
         }
 
         /// <summary>
@@ -39,10 +40,10 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
         [HttpDelete("{filename}"), Authorize]
-        public async Task<IActionResult> DeleteUploadAsync(
+        public async Task<IActionResult> DeleteAsync(
             string filename)
         {
-            var result = await _uploadService.DeleteUploadAsync(UserGuid, filename);
+            var result = await _uploadService.DeleteAsync(UserGuid, filename);
 
             return result switch
             {
@@ -58,15 +59,16 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
         [HttpDelete, Authorize]
-        public async Task<IActionResult> DeleteUploadsAsync(
+        public async Task<IActionResult> DeleteBulkAsync(
             string[] uploadIds)
         {
-            if (uploadIds.Length > 100)
+            var result = await _uploadService.DeleteBulkAsync(UserGuid, uploadIds);
+            if (result is null)
             {
                 return BadRequest();
             }
             
-            return Json(await _uploadService.DeleteUploadsAsync(UserGuid, uploadIds));
+            return Json(result);
         }
 
         /// <summary>
@@ -74,10 +76,10 @@ namespace UploadR.Controllers
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
         [HttpGet("{filename}/details"), Authorize]
-        public async Task<IActionResult> GetUploadDetailsAsync(
+        public async Task<IActionResult> GetDetailsAsync(
             string filename)
         {
-            var result = await _uploadService.GetUploadDetailsAsync(filename);
+            var result = await _uploadService.GetDetailsAsync(filename);
             if (result is null)
             {
                 return NotFound();
@@ -93,7 +95,7 @@ namespace UploadR.Controllers
         /// <param name="limit">Amount of uploads to lookup.</param>
         /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("{userId}/uploads"), Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetUserUploadsDetailsAsync(
+        public async Task<IActionResult> GetUserDetailsBulkAsync(
             string userId,
             [FromQuery(Name = "limit")] int limit = 100,
             [FromQuery(Name = "afterGuid")] string afterId = null)
@@ -104,7 +106,7 @@ namespace UploadR.Controllers
                 return BadRequest();
             }
             
-            var result = await _uploadService.GetUploadsDetailsAsync(userGuid, limit, afterGuid);
+            var result = await _uploadService.GetDetailsBulkAsync(userGuid, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();
@@ -119,7 +121,7 @@ namespace UploadR.Controllers
         /// <param name="limit">Amount of uploads to lookup.</param>
         /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("uploads"), Authorize]
-        public async Task<IActionResult> GetUserUploadsDetailsAsync(
+        public async Task<IActionResult> GetUserDetailsBulkAsync(
             [FromQuery(Name = "limit")] int limit = 100,
             [FromQuery(Name = "afterGuid")] string afterId = null)
         {
@@ -128,7 +130,7 @@ namespace UploadR.Controllers
                 return BadRequest();
             }
             
-            var result = await _uploadService.GetUploadsDetailsAsync(UserGuid, limit, afterGuid);
+            var result = await _uploadService.GetDetailsBulkAsync(UserGuid, limit, afterGuid);
             if (result is null)
             {
                 return BadRequest();
@@ -138,16 +140,16 @@ namespace UploadR.Controllers
         }
 
         /// <summary>
-        ///     Gets the details of an upload.
+        ///     Gets an upload.
         /// </summary>
         /// <param name="filename">Complete name of the file or its guid.</param>
         /// <param name="password">Password of the file, if any is set.</param>
         [HttpGet("{filename}")]
-        public async Task<IActionResult> GetUploadContentAsync(
+        public async Task<IActionResult> GetAsync(
             string filename, 
             [FromQuery(Name = "password")] string password = null)
         {
-            var (content, type) = await _uploadService.GetUploadAsync(filename, password);
+            var (content, type) = await _uploadService.GetAsync(filename, password);
 
             if (content.Length != 0)
             {
