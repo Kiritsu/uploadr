@@ -27,7 +27,7 @@ namespace UploadR.Controllers
         ///     Upload the given files to the server. Returns a model representing failed and succeeded uploads.
         /// </summary>
         /// <param name="model">Model containing the password to put on every upload. Null if no password.</param>
-        [HttpPost, Authorize]
+        [HttpPost, Authorize, DisableRequestSizeLimit]
         public async Task<IActionResult> UploadAsync(
             [FromForm] UploadModel model)
         {
