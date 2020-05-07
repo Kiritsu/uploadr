@@ -9,7 +9,7 @@ namespace UploadR.Services
 
         public EntityConfigurationProvider(IOptions<T> options)
         {
-            _configuration = (T)options.Value;
+            _configuration = options.Value;
         }
 
         public T GetConfiguration()

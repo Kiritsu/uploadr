@@ -59,7 +59,7 @@ namespace UploadR.Database
             modelBuilder.Entity<User>()
                 .Property(x => x.Type)
                 .IsRequired()
-                .HasDefaultValue(AccountType.User)
+                .HasDefaultValue(AccountType.Unverified)
                 .HasColumnName("account_type");
 
             modelBuilder.Entity<User>()

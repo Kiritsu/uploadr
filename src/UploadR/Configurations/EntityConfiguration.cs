@@ -4,9 +4,9 @@ namespace UploadR.Configurations
 {
     public class EntityConfiguration
     {
-        public int SizeMax { get; set; }
-        public int SizeMin { get; set; }
+        public long SizeMax { get; set; }
+        public long SizeMin { get; set; }
         public TimeSpan DefaultExpiry { get; set; }
-        public int BulkLimit { get; set; }
+        public long BulkLimit { get; set; }
     }
 }

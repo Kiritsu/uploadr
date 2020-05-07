@@ -31,7 +31,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> UploadAsync(
             [FromForm] UploadModel model)
         {
-            return Json(await _uploadService.UploadAsync(
+            return Json(await _uploadService.CreateAsync(
                 UserGuid, Request.Form.Files, model.Password, model.ExpireAfter));
         }
 

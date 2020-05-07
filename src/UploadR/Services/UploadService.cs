@@ -44,7 +44,7 @@ namespace UploadR.Services
         /// <param name="password">Password to apply to that file.</param>
         /// <param name="expireAfter">The time the file expire in.</param>
         /// <param name="upload">Out parameter representing a valid or not upload.</param>
-        public bool TryCreateUpload(
+        public bool TryCreate(
             IFormFile file, 
             string password,
             TimeSpan expireAfter,
@@ -96,7 +96,7 @@ namespace UploadR.Services
         /// <param name="files">Files to upload.</param>
         /// <param name="password">Password of the files. Can be null.</param>
         /// <param name="expireAfter">Time the file expire in.</param>
-        public async Task<UploadListOutModel> UploadAsync(
+        public async Task<UploadListOutModel> CreateAsync(
             Guid userGuid,
             IEnumerable<IFormFile> files,
             string password,
@@ -111,7 +111,7 @@ namespace UploadR.Services
 
             foreach (var file in files)
             {
-                if (TryCreateUpload(file, password, expireAfter, out var upload))
+                if (TryCreate(file, password, expireAfter, out var upload))
                 {
                     var name = Guid.NewGuid();
                     upload.Filename = name.ToString().Replace("-", "") 
@@ -207,6 +207,58 @@ namespace UploadR.Services
                 $"[authorguid:{upload.AuthorGuid};guid:{upload.Guid}]");
 
             return ResultCode.Ok;
+        }
+        
+        /// <summary>
+        ///     Deletes all the given uploads by their GUIDs.
+        /// </summary>
+        /// <param name="userGuid">Id of the user.</param>
+        /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
+        public async Task<UploadBulkDeleteModel> DeleteBulkAsync(
+            Guid userGuid, 
+            string[] uploadIds)
+        {
+            if (uploadIds.Length > _uploadConfiguration.BulkLimit)
+            {
+                return null;
+            }
+            
+            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            
+            var model = new UploadBulkDeleteModel();
+            var succeeded = new List<string>();
+            var failed = new List<string>();
+            
+            var uploads = await db.Uploads.Where(x => x.AuthorGuid == userGuid).ToListAsync();
+            foreach (var uploadId in uploadIds)
+            {
+                var upload = uploads.FirstOrDefault(x => x.Guid.ToString() == uploadId);
+                if (upload is null || upload.Removed)
+                {
+                    failed.Add(uploadId);
+                }
+                else
+                {
+                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+                    
+                    succeeded.Add(uploadId);
+                    
+                    upload.Removed = true;
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+
+                    db.Uploads.Update(upload);
+                }
+            }
+            
+            await db.SaveChangesAsync();
+
+            model.FailedDeletes = failed;
+            model.SucceededDeletes = succeeded;
+            return model;
         }
 
         /// <summary>
@@ -373,58 +425,6 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
             
             return null;
-        }
-
-        /// <summary>
-        ///     Deletes all the given uploads by their GUIDs.
-        /// </summary>
-        /// <param name="userGuid">Id of the user.</param>
-        /// <param name="uploadIds">Ids of the uploads to delete. Limited to 100.</param>
-        public async Task<UploadBulkDeleteModel> DeleteBulkAsync(
-            Guid userGuid, 
-            string[] uploadIds)
-        {
-            if (uploadIds.Length > _uploadConfiguration.BulkLimit)
-            {
-                return null;
-            }
-            
-            using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            
-            var model = new UploadBulkDeleteModel();
-            var succeeded = new List<string>();
-            var failed = new List<string>();
-            
-            var uploads = await db.Uploads.Where(x => x.AuthorGuid == userGuid).ToListAsync();
-            foreach (var uploadId in uploadIds)
-            {
-                var upload = uploads.FirstOrDefault(x => x.Guid.ToString() == uploadId);
-                if (upload is null || upload.Removed)
-                {
-                    failed.Add(uploadId);
-                }
-                else
-                {
-                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
-                    
-                    succeeded.Add(uploadId);
-                    
-                    upload.Removed = true;
-                    if (File.Exists(path))
-                    {
-                        File.Delete(path);
-                    }
-
-                    db.Uploads.Update(upload);
-                }
-            }
-            
-            await db.SaveChangesAsync();
-
-            model.FailedDeletes = failed;
-            model.SucceededDeletes = succeeded;
-            return model;
         }
     }
 }
