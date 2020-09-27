@@ -93,6 +93,10 @@ namespace UploadR
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
+            db.Database.Migrate();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -103,10 +107,6 @@ namespace UploadR
             app.UseRouting();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
-
-            using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            db.Database.Migrate();
         }
     }
 }
