@@ -22,8 +22,6 @@ namespace UploadR
     {
         public IConfiguration Configuration { get; }
 
-        public string Test = "test";
-
         public Startup(IConfiguration configuration)
         {
             var path = Environment.GetEnvironmentVariable("UPLOADR_PATH")
