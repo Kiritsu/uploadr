@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace UploadR.Utilities
 {
-    public class RegexUtilities
+    public static class RegexUtilities
     {
         public static bool IsValidEmail(string email)
         {
@@ -28,6 +28,7 @@ namespace UploadR.Utilities
             }
             catch (RegexMatchTimeoutException e)
             {
+                // todo not sure how to test this
                 return false;
             }
             catch (ArgumentException e)
