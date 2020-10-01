@@ -1,5 +1,3 @@
-using System;
-using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -9,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using System;
+using System.Security.Cryptography;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
