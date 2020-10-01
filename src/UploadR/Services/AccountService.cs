@@ -43,11 +43,9 @@ namespace UploadR.Services
             
             await db.SaveChangesAsync();
             
-            _logger.Log(LogLevel.Debug, 
-                $"User account token reset [Email:{user.Email};Token:{user.Token}]");
+            _logger.LogDebug("User account token reset [Email:{email};Token:{token}]", user.Email, user.Token);
             
-            _logger.Log(LogLevel.Information,
-                $"User account token reset [Email:{user.Email}]");
+            _logger.LogInformation("User account token reset [Email:{email}]", user.Email);
             
             return ResultCode.Ok;
         }
@@ -76,8 +74,7 @@ namespace UploadR.Services
             user.Disabled = block;
             db.Users.Update(user);
             
-            _logger.Log(LogLevel.Information,
-                $"User account state changed [Email:{user.Email};Blocked:{user.Disabled}]");
+            _logger.LogInformation("User account state changed [Email:{email};Blocked:{disabled}]", user.Email, user.Disabled);
             
             await db.SaveChangesAsync();
             return ResultCode.Ok;
@@ -109,8 +106,7 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
             
-            _logger.Log(LogLevel.Information,
-                $"User account removed [Email:{user.Email};DeleteUploads:{cascade}]");
+            _logger.LogInformation("User account removed [Email:{email};DeleteUploads:{cascade}]", user.Email, cascade);
 
             return ResultCode.Ok;
         }
@@ -149,11 +145,9 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
 
-            _logger.Log(LogLevel.Debug, 
-                $"A new account has been created: [Id:{userId};Email:{email};Token:{token}]");
+            _logger.LogDebug("A new account has been created: [Id:{userId};Email:{email};Token:{token}]", userId, email, token);
             
-            _logger.Log(LogLevel.Information,
-                $"A new account has been created: [Id:{userId};Email:{email}]");
+            _logger.LogDebug("A new account has been created: [Id:{userId};Email:{email}]", userId, email);
             
             return ResultCode.Ok;
         }
@@ -182,8 +176,7 @@ namespace UploadR.Services
             db.Users.Update(user);
             await db.SaveChangesAsync();
             
-            _logger.Log(LogLevel.Information, 
-                $"An account has been verified: [Id:{user.Guid};Email:{user.Email}]");
+            _logger.LogInformation("An account has been verified: [Id:{guid};Email:{email}]", user.Guid, user.Email);
             
             return true;
         }

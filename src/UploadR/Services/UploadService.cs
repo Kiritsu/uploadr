@@ -150,11 +150,15 @@ namespace UploadR.Services
                 {
                     failed.Add(upload);
                 }
-                
+
                 _logger.LogInformation(
-                    $"Upload by {userGuid}: [name:{upload.Filename};size:{upload.Size}B;" +
-                    $"haspassword:{upload.HasPassword};success_code:{upload.StatusCode};" +
-                    $"expire_in_ms:{upload.ExpireAfterMilliseconds}]");
+                    "Upload by {userGuid}: [name:{filename};size:{size}B;haspassword:{hasPassword};success_code:{statusCode};expire_in_ms:{expireAfterMilliseconds}]",
+                    userGuid,
+                    upload.Filename,
+                    upload.Size,
+                    upload.HasPassword,
+                    upload.StatusCode,
+                    upload.ExpireAfterMilliseconds);
             }
 
             await db.SaveChangesAsync();
@@ -203,8 +207,10 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
 
             _logger.LogInformation(
-                $"Upload deleted by {userGuid}: " +
-                $"[authorguid:{upload.AuthorGuid};guid:{upload.Guid}]");
+                "Upload deleted by {userGuid}: [authorguid:{authorGuid};guid:{uploadGuid}]",
+                userGuid,
+                upload.AuthorGuid,
+                upload.Guid);
 
             return ResultCode.Ok;
         }

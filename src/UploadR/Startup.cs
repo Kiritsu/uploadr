@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
@@ -20,6 +21,8 @@ namespace UploadR
     public class Startup
     {
         public IConfiguration Configuration { get; }
+
+        public string Test = "test";
 
         public Startup(IConfiguration configuration)
         {
@@ -83,7 +86,7 @@ namespace UploadR
             });
 
             services.AddControllers();
-            
+
             services.AddSingleton<ExpiryCheckService<Upload>>();
             services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<Upload>>());
             
