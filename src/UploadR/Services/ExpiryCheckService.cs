@@ -89,7 +89,7 @@ namespace UploadR.Services
                 }
 
                 _logger.LogInformation(
-                    "[{name}] Item {guild} must expire at {expiresAt} (in {expiryLeft:g}).",
+                    "[{name}] Item {guid} must expire at {expiresAt} (in {expiryLeft:g}).",
                     typeof(T).Name,
                     WatchedItem.Guid,
                     now + expiryLeft,

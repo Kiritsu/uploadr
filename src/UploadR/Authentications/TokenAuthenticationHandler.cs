@@ -93,7 +93,7 @@ namespace UploadR.Authentications
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{guild}' just authenticated. (Token: {token})", user.Guid, token);
+            _logger.LogInformation("User '{guid}' just authenticated. (Token: {token})", user.Guid, token);
             return AuthenticateResult.Success(ticket);
         }
     }
