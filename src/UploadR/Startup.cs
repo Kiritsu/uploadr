@@ -60,7 +60,13 @@ namespace UploadR
             services.AddSingleton<ShortenService>();
 
             services.AddSingleton<ConnectionStringProvider>();
-            services.AddDbContext<UploadRContext>(ServiceLifetime.Scoped);
+            services.AddDbContext<UploadRContext>(
+                (provider, builder) =>
+                {
+                    var connectionString = provider.GetRequiredService<ConnectionStringProvider>().ConnectionString;
+                    builder.UseNpgsql(connectionString);
+                },
+                optionsLifetime: ServiceLifetime.Singleton);
             
             services.AddAuthentication(TokenAuthenticationHandler.AuthenticationSchemeName)
                 .AddScheme<TokenAuthenticationOptions, TokenAuthenticationHandler>(
