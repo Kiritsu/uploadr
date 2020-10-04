@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\UploadR\UploadR.csproj" />
+      <ProjectReference Include="..\UploadR\UploadR.csproj" />
     </ItemGroup>
 
 </Project>
