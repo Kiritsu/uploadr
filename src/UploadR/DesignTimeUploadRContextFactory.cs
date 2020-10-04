@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Microsoft.EntityFrameworkCore;
+using System.IO;
 using Microsoft.EntityFrameworkCore.Design;
 using Newtonsoft.Json.Linq;
 using UploadR.Configurations;
@@ -10,7 +11,10 @@ namespace UploadR
     {
         public UploadRContext CreateDbContext(string[] args)
         {
-            return new UploadRContext(new ConnectionStringProvider(new DesignTimeDatabaseConfigurationProvider()));
+            var connectionStringProvider = new ConnectionStringProvider(new DesignTimeDatabaseConfigurationProvider());
+            var builder = new DbContextOptionsBuilder()
+                .UseNpgsql(connectionStringProvider.ConnectionString);
+            return new UploadRContext(builder.Options);
         }
     }
 

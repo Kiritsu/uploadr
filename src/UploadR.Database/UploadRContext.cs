@@ -11,16 +11,8 @@ namespace UploadR.Database
         public DbSet<User> Users { get; set; }
         public DbSet<ShortenedUrl> ShortenedUrls { get; set; }
 
-        private readonly string _connectionString;
-
-        public UploadRContext(ConnectionStringProvider csp)
+        public UploadRContext(DbContextOptions options) : base(options)
         {
-            _connectionString = csp.ConnectionString;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseNpgsql(_connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
