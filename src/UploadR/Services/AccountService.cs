@@ -145,8 +145,7 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
 
-            _logger.LogDebug("A new account has been created: [Id:{userId};Email:{email};Token:{token}]", userId, email, token);
-            
+            _logger.LogTrace("A new account has been created: [Id:{userId};Email:{email};Token:{token}]", userId, email, token);
             _logger.LogDebug("A new account has been created: [Id:{userId};Email:{email}]", userId, email);
             
             return ResultCode.Ok;

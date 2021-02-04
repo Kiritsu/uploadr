@@ -90,6 +90,9 @@ namespace UploadR
 
             services.AddControllers();
 
+            services.AddSingleton<DatabaseMigrationCheckService>();
+            services.AddSingleton<IHostedService>(x => x.GetService<DatabaseMigrationCheckService>());
+            
             services.AddSingleton<ExpiryCheckService<Upload>>();
             services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<Upload>>());
             
@@ -99,10 +102,6 @@ namespace UploadR
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            using var scope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            db.Database.Migrate();
-            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

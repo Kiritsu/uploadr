@@ -15,6 +15,7 @@ namespace UploadR.Services
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<ExpiryCheckService<T>> _logger;
+        private readonly DatabaseMigrationCheckService _dmcs;
 
         private CancellationTokenSource _tokenSource;
         private Task _currentTask;
@@ -23,10 +24,12 @@ namespace UploadR.Services
 
         public ExpiryCheckService(
             IServiceProvider services,
-            ILogger<ExpiryCheckService<T>> logger)
+            ILogger<ExpiryCheckService<T>> logger,
+            DatabaseMigrationCheckService dmcs)
         {
             _services = services;
             _logger = logger;
+            _dmcs = dmcs;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -54,6 +57,8 @@ namespace UploadR.Services
 
         protected async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await _dmcs.WaitForReadyAsync();
+            
             while (!stoppingToken.IsCancellationRequested)
             {
                 using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
