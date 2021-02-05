@@ -37,8 +37,17 @@ namespace UploadR
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRazorPages().AddRazorRuntimeCompilation();
+            services.AddSession(options =>
+            {
+                options.Cookie.Name = "uploadr";
+                options.Cookie.IsEssential = true;
+                options.Cookie.HttpOnly = true;
+            });
+
             services.AddControllersWithViews();
-            
+            services.AddRouting(options => options.LowercaseUrls = true);
+
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
@@ -118,6 +127,8 @@ namespace UploadR
             }
 
             app.UseStaticFiles();
+            app.UseSession();
+            app.UseCookiePolicy();
             app.UseIpRateLimiting();
             app.UseAuthentication();
             app.UseRouting();
@@ -128,8 +139,6 @@ namespace UploadR
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-            
-            //app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }
 }

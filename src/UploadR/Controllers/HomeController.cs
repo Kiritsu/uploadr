@@ -9,7 +9,7 @@ using UploadR.Models;
 
 namespace UploadR.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : UploadRController
     {
         private readonly ILogger<HomeController> _logger;
 

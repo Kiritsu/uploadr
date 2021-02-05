@@ -1,0 +1,28 @@
+@import "_variables.scss";
+
+// Colors
+$link-color: $awesome;
+$link-hover-color: darken($orange, 15%);
+
+$body-bg: $gray-100;
+$body-color: $gray-900;
+
+$table-dark-bg: $awesome;
+$card-cap-bg: $awesome-light;
+$card-cap-color: $gray-100;
+
+$pagination-color: $awesome;
+$pagination-hover-color: darken($orange, 15%);
+
+// Toast
+$toast-background-color: rgba($white, 1);
+
+// Cards
+$card-bg: $white;
+
+// Lists
+$list-group-bg: $gray-700;
+$list-group-color: $gray-200;
+$list-group-hover-bg: $gray-600;
+
+@import "../lib/bootstrap/scss/bootstrap.scss";
