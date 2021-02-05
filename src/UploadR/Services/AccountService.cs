@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +7,7 @@ using UploadR.Database;
 using UploadR.Database.Enums;
 using UploadR.Database.Models;
 using UploadR.Enums;
+using UploadR.Models;
 using UploadR.Utilities;
 
 namespace UploadR.Services
@@ -40,12 +40,10 @@ namespace UploadR.Services
 
             user.Token = Guid.NewGuid().ToString();
             db.Users.Update(user);
-            
             await db.SaveChangesAsync();
             
-            _logger.LogDebug("User account token reset [Email:{email};Token:{token}]", user.Email, user.Token);
-            
-            _logger.LogInformation("User account token reset [Email:{email}]", user.Email);
+            _logger.LogDebug("User account token reset [Email:{Email};Token:{Token}]", user.Email, user.Token);
+            _logger.LogInformation("User account token reset [Email:{Email}]", user.Email);
             
             return ResultCode.Ok;
         }
@@ -73,10 +71,10 @@ namespace UploadR.Services
             
             user.Disabled = block;
             db.Users.Update(user);
-            
-            _logger.LogInformation("User account state changed [Email:{email};Blocked:{disabled}]", user.Email, user.Disabled);
-            
             await db.SaveChangesAsync();
+            
+            _logger.LogInformation("User account state changed [Email:{Email};Blocked:{Disabled}]", user.Email, user.Disabled);
+
             return ResultCode.Ok;
         }
 
@@ -84,8 +82,7 @@ namespace UploadR.Services
         ///     Deletes an account with the given token.
         /// </summary>
         /// <param name="userGuid">Token of that account.</param>
-        /// <param name="cascade">Whether to delete or not the uploads of that account.</param>
-        public async Task<ResultCode> DeleteAccountAsync(Guid userGuid, bool cascade = false)
+        public async Task<ResultCode> DeleteAccountAsync(Guid userGuid)
         {
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
@@ -96,17 +93,15 @@ namespace UploadR.Services
                 return ResultCode.NotFound;
             }
 
-            db.Users.Remove(user);
-
-            if (cascade)
+            if (user.Type == AccountType.Admin)
             {
-                var uploads = db.Uploads.Where(x => x.AuthorGuid == user.Guid);
-                db.Uploads.RemoveRange(uploads);
+                return ResultCode.Unauthorized;
             }
 
+            db.Users.Remove(user);
             await db.SaveChangesAsync();
             
-            _logger.LogInformation("User account removed [Email:{email};DeleteUploads:{cascade}]", user.Email, cascade);
+            _logger.LogInformation("User account removed [Email:{Email}]", user.Email);
 
             return ResultCode.Ok;
         }
@@ -114,20 +109,30 @@ namespace UploadR.Services
         /// <summary>
         ///     Creates a new account with the given email.
         /// </summary>
-        /// <param name="email">Email associated with the new account.</param>
-        public async Task<ResultCode> CreateAccountAsync(string email)
+        /// <param name="model">Model received for the creation of the new account.</param>
+        public async Task<ResultCode> CreateAccountAsync(AccountCreateModel model)
         {
-            if (!RegexUtilities.IsValidEmail(email))
+            if (!string.IsNullOrWhiteSpace(model.Email))
             {
-                return ResultCode.Invalid;
+                if (!RegexUtilities.IsValidEmail(model.Email))
+                {
+                    return ResultCode.Invalid;
+                }
             }
 
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
-            if (await db.Users.AnyAsync(x => x.Email.ToLower() == email.ToLower()))
+            if (!string.IsNullOrWhiteSpace(model.Email))
             {
-                return ResultCode.EmailInUse;
+                if (await db.Users.AnyAsync(x => x.Email.ToLower() == model.Email.ToLower()))
+                {
+                    return ResultCode.EmailInUse;
+                }
+            }
+            else
+            {
+                model.Email = "anonymous";
             }
 
             var userId = Guid.NewGuid();
@@ -138,15 +143,15 @@ namespace UploadR.Services
                 Guid = userId,
                 CreatedAt = DateTime.Now,
                 Disabled = false,
-                Email = email,
+                Email = model.Email,
                 Type = AccountType.Unverified,
                 Token = token.ToString()
             });
 
             await db.SaveChangesAsync();
 
-            _logger.LogTrace("A new account has been created: [Id:{userId};Email:{email};Token:{token}]", userId, email, token);
-            _logger.LogDebug("A new account has been created: [Id:{userId};Email:{email}]", userId, email);
+            _logger.LogTrace("A new account has been created: [Id:{UserId};Email:{Email};Token:{Token}]", userId, model.Email, token);
+            _logger.LogDebug("A new account has been created: [Id:{UserId};Email:{Email}]", userId, model.Email);
             
             return ResultCode.Ok;
         }
@@ -175,7 +180,7 @@ namespace UploadR.Services
             db.Users.Update(user);
             await db.SaveChangesAsync();
             
-            _logger.LogInformation("An account has been verified: [Id:{guid};Email:{email}]", user.Guid, user.Email);
+            _logger.LogInformation("An account has been verified: [Id:{Guid};Email:{Email}]", user.Guid, user.Email);
             
             return true;
         }

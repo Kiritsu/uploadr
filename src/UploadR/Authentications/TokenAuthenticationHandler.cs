@@ -39,7 +39,7 @@ namespace UploadR.Authentications
         {
             token = null;
 
-            if (!Request.Headers.TryGetValue("X-Token", out var values) || values.Count == 0)
+            if (!Request.Headers.TryGetValue("Authorization", out var values) || values.Count == 0)
             {
                 return false;
             }
@@ -60,23 +60,23 @@ namespace UploadR.Authentications
                 return AuthenticateResult.Fail("Missing authorization.");
             }
 
-            _logger.LogDebug("Given token: [{token}]", token);
+            _logger.LogDebug("Given token: [{Token}]", token);
 
             if (!Guid.TryParse(token, out _))
             {
-                _logger.LogWarning("Invalid token format.");
+                _logger.LogWarning("Invalid token format");
             }
 
             var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
             if (user is null)
             {
-                _logger.LogWarning("Invalid token.");
+                _logger.LogWarning("Invalid token");
                 return AuthenticateResult.Fail("Invalid token.");
             }
 
             if (user.Disabled)
             {
-                _logger.LogWarning("User blocked.");
+                _logger.LogWarning("User blocked");
                 return AuthenticateResult.Fail("User blocked.");
             }
 
@@ -93,7 +93,7 @@ namespace UploadR.Authentications
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{guid}' just authenticated. (Token: {token})", user.Guid, token);
+            _logger.LogInformation("User '{Guid}' just authenticated. (Token: {Token})", user.Guid, token);
             return AuthenticateResult.Success(ticket);
         }
     }

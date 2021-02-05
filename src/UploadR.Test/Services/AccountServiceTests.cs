@@ -8,6 +8,7 @@ using UploadR.Database;
 using UploadR.Database.Enums;
 using UploadR.Database.Models;
 using UploadR.Enums;
+using UploadR.Models;
 using UploadR.Services;
 
 namespace UploadR.Test
@@ -59,7 +60,7 @@ namespace UploadR.Test
         public async Task TearDownAsync()
         {
             using var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             // we need to delete the db to make sure it's not shared between tests
             await context.Database.EnsureDeletedAsync();
         }
@@ -78,7 +79,7 @@ namespace UploadR.Test
             Assert.AreEqual(ResultCode.Ok, result);
 
             var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreNotEqual(User.Token, user.Token);
         }
@@ -106,7 +107,7 @@ namespace UploadR.Test
             Assert.AreEqual(ResultCode.Ok, result);
 
             var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreEqual(blocked, user.Disabled);
         }
@@ -120,7 +121,7 @@ namespace UploadR.Test
             Assert.AreEqual(ResultCode.Ok, result);
 
             var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreEqual(blocked, user.Disabled);
         }
@@ -128,60 +129,55 @@ namespace UploadR.Test
         [Test]
         public async Task TestDeleteAccountNotFoundAsync()
         {
-            var result = await _service.DeleteAccountAsync(Guid.NewGuid(), true);
+            var result = await _service.DeleteAccountAsync(Guid.NewGuid());
             Assert.AreEqual(ResultCode.NotFound, result);
         }
         
         [Test]
         public async Task TestDeleteAccountNotCascadeAsync()
         {
-            var result = await _service.DeleteAccountAsync(User.Guid, false);
+            var result = await _service.DeleteAccountAsync(User.Guid);
             Assert.AreEqual(ResultCode.Ok, result);
             
             var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             var user = await context.Users.FindAsync(User.Guid);
             Assert.Null(user);
             var upload = await context.Uploads.FindAsync(Upload.Guid);
             Assert.NotNull(upload);
         }
-        
-        [Test]
-        public async Task TestDeleteAccountCascadeAsync()
-        {
-            var result = await _service.DeleteAccountAsync(User.Guid, true);
-            Assert.AreEqual(ResultCode.Ok, result);
-            
-            var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
-            var user = await context.Users.FindAsync(User.Guid);
-            Assert.Null(user);
-            var upload = await context.Uploads.FindAsync(Upload.Guid);
-            Assert.Null(upload);
-        }
-        
+
         [Test]
         public async Task TestCreateAccountWithInvalidEmailAsync()
         {
-            var result = await _service.CreateAccountAsync(InvalidEmail);
+            var result = await _service.CreateAccountAsync(new AccountCreateModel
+            {
+                Email = InvalidEmail
+            });
             Assert.AreEqual(ResultCode.Invalid, result);
         }
         
         [Test]
         public async Task TestCreateAccountEmailInUseAsync()
         {
-            var result = await _service.CreateAccountAsync(InUseEmail);
+            var result = await _service.CreateAccountAsync(new AccountCreateModel
+            {
+                Email = InUseEmail
+            });
             Assert.AreEqual(ResultCode.EmailInUse, result);
         }
         
         [Test]
         public async Task TestCreateAccountNotInUseEmailAsync()
         {
-            var result = await _service.CreateAccountAsync(NotInUseEmail);
+            var result = await _service.CreateAccountAsync(new AccountCreateModel
+            {
+                Email = NotInUseEmail
+            });
             Assert.AreEqual(ResultCode.Ok, result);
 
             using var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
             var foundEmail = await context.Users.AnyAsync(user => user.Email == NotInUseEmail);
             Assert.True(foundEmail);
@@ -222,7 +218,7 @@ namespace UploadR.Test
             Assert.True(result);
 
             using var scope = _provider.CreateScope();
-            await using var context = scope.ServiceProvider.GetService<UploadRContext>();
+            await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreEqual(AccountType.User, user.Type);

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using UploadR.Database;
@@ -9,9 +10,10 @@ using UploadR.Database;
 namespace UploadR.Database.Migrations
 {
     [DbContext(typeof(UploadRContext))]
-    partial class UploadRContextModelSnapshot : ModelSnapshot
+    [Migration("20210205112613_MissingPropsAndFacultativeEmail")]
+    partial class MissingPropsAndFacultativeEmail
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,8 +35,8 @@ namespace UploadR.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2021, 2, 5, 12, 26, 12, 724, DateTimeKind.Local).AddTicks(855))
+                        .HasColumnName("created_at");
 
                     b.Property<TimeSpan>("ExpiryTime")
                         .ValueGeneratedOnAdd()
@@ -45,8 +47,8 @@ namespace UploadR.Database.Migrations
                     b.Property<DateTime>("LastSeen")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("last_seen")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2021, 2, 5, 12, 26, 12, 724, DateTimeKind.Local).AddTicks(1329))
+                        .HasColumnName("last_seen");
 
                     b.Property<string>("Password")
                         .HasColumnType("text")
@@ -101,8 +103,8 @@ namespace UploadR.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2021, 2, 5, 12, 26, 12, 722, DateTimeKind.Local).AddTicks(4588))
+                        .HasColumnName("created_at");
 
                     b.Property<TimeSpan>("ExpiryTime")
                         .ValueGeneratedOnAdd()
@@ -118,8 +120,8 @@ namespace UploadR.Database.Migrations
                     b.Property<DateTime>("LastSeen")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("last_seen")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2021, 2, 5, 12, 26, 12, 722, DateTimeKind.Local).AddTicks(5334))
+                        .HasColumnName("last_seen");
 
                     b.Property<string>("Password")
                         .HasColumnType("text")
@@ -155,8 +157,8 @@ namespace UploadR.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2021, 2, 5, 12, 26, 12, 709, DateTimeKind.Local).AddTicks(4934))
+                        .HasColumnName("created_at");
 
                     b.Property<bool>("Disabled")
                         .ValueGeneratedOnAdd()

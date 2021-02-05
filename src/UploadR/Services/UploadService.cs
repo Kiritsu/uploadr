@@ -152,7 +152,7 @@ namespace UploadR.Services
                 }
 
                 _logger.LogInformation(
-                    "Upload by {userGuid}: [name:{filename};size:{size}B;haspassword:{hasPassword};success_code:{statusCode};expire_in_ms:{expireAfterMilliseconds}]",
+                    "Upload by {UserGuid}: [name:{Filename};size:{Size}B;haspassword:{HasPassword};success_code:{StatusCode};expire_in_ms:{ExpireAfterMilliseconds}]",
                     userGuid,
                     upload.Filename,
                     upload.Size,
@@ -163,7 +163,7 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
             
-            var ecs = _services.GetService<ExpiryCheckService<Upload>>();
+            var ecs = _services.GetRequiredService<ExpiryCheckService<Upload>>();
             await ecs.RestartAsync();
             
             model.SucceededUploads = succeeded.ToArray();
@@ -196,6 +196,7 @@ namespace UploadR.Services
                 return ResultCode.Unauthorized;
             }
 
+            upload.LastSeen = DateTime.Now;
             upload.Removed = true;
             var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
             if (File.Exists(path))
@@ -207,7 +208,7 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Upload deleted by {userGuid}: [authorguid:{authorGuid};guid:{uploadGuid}]",
+                "Upload deleted by {UserGuid}: [authorguid:{AuthorGuid};guid:{UploadGuid}]",
                 userGuid,
                 upload.AuthorGuid,
                 upload.Guid);
@@ -250,6 +251,7 @@ namespace UploadR.Services
                     
                     succeeded.Add(uploadId);
                     
+                    upload.LastSeen = DateTime.Now;
                     upload.Removed = true;
                     if (File.Exists(path))
                     {
@@ -386,7 +388,7 @@ namespace UploadR.Services
             }
 
             var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
-            return (File.ReadAllBytes(path), upload.ContentType);
+            return (await File.ReadAllBytesAsync(path), upload.ContentType);
         }
 
         /// <summary>
@@ -426,6 +428,7 @@ namespace UploadR.Services
                 return null;
             }
             
+            upload.LastSeen = DateTime.Now;
             upload.Removed = true;
             db.Uploads.Update(upload);
             await db.SaveChangesAsync();

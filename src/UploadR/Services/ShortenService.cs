@@ -210,11 +210,12 @@ namespace UploadR.Services
             }
 
             shorten.Removed = true;
+            shorten.LastSeen = DateTime.Now;
             db.ShortenedUrls.Update(shorten);
             await db.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Shortened url deleted by {userGuid}: [authorguid:{authorGuid};guid:{shortenGuid}]",
+                "Shortened url deleted by {UserGuid}: [authorguid:{AuthorGuid};guid:{ShortenGuid}]",
                 userGuid,
                 shorten.AuthorGuid,
                 shorten.Guid);
@@ -296,11 +297,11 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
             
-            var ecs = _services.GetService<ExpiryCheckService<ShortenedUrl>>();
+            var ecs = _services.GetRequiredService<ExpiryCheckService<ShortenedUrl>>();
             await ecs.RestartAsync();
 
             _logger.LogInformation(
-                "Upload by {userGuid}: [url:{url};shorten:{shorten}B;haspassword:{hasPassword};expire_in_ms:{expiry}]",
+                "Upload by {UserGuid}: [url:{Url};shorten:{Shorten}B;haspassword:{HasPassword};expire_in_ms:{Expiry}]",
                 userGuid,
                 entry.Entity.Url,
                 entry.Entity.Shorten,

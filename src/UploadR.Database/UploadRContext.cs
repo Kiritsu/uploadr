@@ -34,12 +34,11 @@ namespace UploadR.Database
             modelBuilder.Entity<User>()
                 .Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValue(DateTime.Now)
+                .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<User>()
                 .Property(x => x.Email)
-                .IsRequired()
                 .HasColumnName("email");
 
             modelBuilder.Entity<User>()
@@ -61,6 +60,13 @@ namespace UploadR.Database
 
             modelBuilder.Entity<User>()
                 .HasMany(x => x.Uploads)
+                .WithOne(x => x.Author)
+                .HasForeignKey(x => x.AuthorGuid)
+                .HasConstraintName("fkey_user_authorid")
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<User>()
+                .HasMany(x => x.Shortens)
                 .WithOne(x => x.Author)
                 .HasForeignKey(x => x.AuthorGuid)
                 .HasConstraintName("fkey_user_authorid")
@@ -90,13 +96,13 @@ namespace UploadR.Database
             modelBuilder.Entity<Upload>()
                 .Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValue(DateTime.Now)
+                .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<Upload>()
                 .Property(x => x.LastSeen)
                 .IsRequired()
-                .HasDefaultValue(DateTime.Now)
+                .HasDefaultValueSql("now()")
                 .HasColumnName("last_seen");
 
             modelBuilder.Entity<Upload>()
@@ -155,13 +161,13 @@ namespace UploadR.Database
             modelBuilder.Entity<ShortenedUrl>()
                 .Property(x => x.CreatedAt)
                 .IsRequired()
-                .HasDefaultValue(DateTime.Now)
+                .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");
 
             modelBuilder.Entity<ShortenedUrl>()
                 .Property(x => x.LastSeen)
                 .IsRequired()
-                .HasDefaultValue(DateTime.Now)
+                .HasDefaultValueSql("now()")
                 .HasColumnName("last_seen");
 
             modelBuilder.Entity<ShortenedUrl>()
