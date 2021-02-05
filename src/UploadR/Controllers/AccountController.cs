@@ -58,7 +58,7 @@ namespace UploadR.Controllers
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -81,7 +81,7 @@ namespace UploadR.Controllers
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -104,7 +104,7 @@ namespace UploadR.Controllers
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -120,7 +120,7 @@ namespace UploadR.Controllers
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Unauthorized => Unauthorized(),
+                ResultCode.Unauthorized => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -142,7 +142,7 @@ namespace UploadR.Controllers
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Unauthorized => Unauthorized(),
+                ResultCode.Unauthorized => Forbid(),
                 _ => BadRequest()
             };
         }

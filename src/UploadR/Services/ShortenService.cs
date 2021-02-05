@@ -52,7 +52,7 @@ namespace UploadR.Services
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
 
             var shorten = 
-                await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Shorten == shortenName);
+                await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Identifier == shortenName);
 
             if (shorten is null || shorten.Removed)
             {
@@ -92,7 +92,7 @@ namespace UploadR.Services
         public async Task<IReadOnlyList<ShortenDetailsModel>> GetDetailsBulkAsync(
             Guid userGuid,
             int limit,
-            Guid afterGuid)
+            Guid? afterGuid)
         {
             if (limit > _shortenConfiguration.BulkLimit)
             {
@@ -110,13 +110,17 @@ namespace UploadR.Services
             var shortens = db.ShortenedUrls.Where(x => x.AuthorGuid == userGuid && !x.Removed);
             shortens = shortens.OrderBy(x => x.CreatedAt);
             
-            var firstUpload = await shortens.FirstOrDefaultAsync(x => x.Guid == afterGuid);
-            if (firstUpload is null)
+            var firstShorten = await shortens.FirstOrDefaultAsync(x => x.Guid == afterGuid);
+            if (firstShorten is null)
             {
-                return null;
+                firstShorten = shortens.FirstOrDefault();
+                if (firstShorten is null)
+                {
+                    return null;
+                }
             }
             
-            var createdAt = firstUpload.CreatedAt;
+            var createdAt = firstShorten.CreatedAt;
             shortens = shortens.Where(x => x.CreatedAt > createdAt);
             shortens = shortens.Take(limit);
 
@@ -138,7 +142,7 @@ namespace UploadR.Services
                 LastSeen = shorten.LastSeen,
                 SeenCount = shorten.SeenCount,
                 ShortenedGuid = shorten.Guid,
-                ShortenedUrl = shorten.Shorten
+                ShortenedUrl = shorten.Identifier
             }).ToListAsync();
         }
         
@@ -154,7 +158,7 @@ namespace UploadR.Services
 
             var shorten = Guid.TryParse(shortenId, out var guid) 
                 ? await db.ShortenedUrls.FindAsync(guid) 
-                : await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Shorten == shortenId);
+                : await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Identifier == shortenId);
 
             if (shorten is null || shorten.Removed)
             {
@@ -175,7 +179,7 @@ namespace UploadR.Services
                 LastSeen = shorten.LastSeen,
                 SeenCount = shorten.SeenCount,
                 ShortenedGuid = shorten.Guid,
-                ShortenedUrl = shorten.Shorten
+                ShortenedUrl = shorten.Identifier
             };
         }
 
@@ -193,7 +197,7 @@ namespace UploadR.Services
 
             var shorten = Guid.TryParse(shortenId, out var guid) 
                 ? await db.ShortenedUrls.FindAsync(guid) 
-                : await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Shorten == shortenId);
+                : await db.ShortenedUrls.FirstOrDefaultAsync(x => x.Identifier == shortenId);
             
             if (shorten is null || shorten.Removed)
             {
@@ -267,7 +271,7 @@ namespace UploadR.Services
             }
             
             var all = await db.ShortenedUrls.ToListAsync();
-            while (all.Any(x => x.Shorten == model.ShortenedUrl))
+            while (all.Any(x => x.Identifier == model.ShortenedUrl))
             {
                 model.ShortenedUrl = GetRandomName(_shortenConfiguration.DefaultSize);
             }
@@ -286,7 +290,7 @@ namespace UploadR.Services
                 Guid = Guid.NewGuid(),
                 Password = passwordHash,
                 Removed = false,
-                Shorten = model.ShortenedUrl,
+                Identifier = model.ShortenedUrl,
                 Url = model.BaseUrl,
                 CreatedAt = DateTime.Now,
                 AuthorGuid = userGuid,
@@ -304,7 +308,7 @@ namespace UploadR.Services
                 "Shorten by {UserGuid}: [url:{Url};shorten:{Shorten};haspassword:{HasPassword};expire_in_ms:{Expiry}]",
                 userGuid,
                 entry.Entity.Url,
-                entry.Entity.Shorten,
+                entry.Entity.Identifier,
                 !string.IsNullOrWhiteSpace(entry.Entity.Password),
                 entry.Entity.ExpiryTime.TotalMilliseconds);
             

@@ -49,7 +49,7 @@ namespace UploadR.Controllers
             {
                 ResultCode.Ok => Ok(),
                 ResultCode.NotFound => BadRequest(),
-                ResultCode.Unauthorized => Unauthorized(),
+                ResultCode.Unauthorized => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -96,17 +96,16 @@ namespace UploadR.Controllers
         /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("{userId}/uploads"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserDetailsBulkAsync(
-            string userId,
+            Guid? userId,
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterId = null)
+            [FromQuery(Name = "afterGuid")] Guid? afterId = null)
         {
-            if (!Guid.TryParse(userId, out var userGuid) 
-                || !Guid.TryParse(afterId, out var afterGuid))
+            if (!userId.HasValue)
             {
                 return BadRequest();
             }
             
-            var result = await _uploadService.GetDetailsBulkAsync(userGuid, limit, afterGuid);
+            var result = await _uploadService.GetDetailsBulkAsync(userId.Value, limit, afterId);
             if (result is null)
             {
                 return BadRequest();
@@ -123,14 +122,9 @@ namespace UploadR.Controllers
         [HttpGet("uploads"), Authorize]
         public async Task<IActionResult> GetUserDetailsBulkAsync(
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterId = null)
+            [FromQuery(Name = "afterGuid")] Guid? afterId = null)
         {
-            if (!Guid.TryParse(afterId, out var afterGuid))
-            {
-                return BadRequest();
-            }
-            
-            var result = await _uploadService.GetDetailsBulkAsync(UserGuid, limit, afterGuid);
+            var result = await _uploadService.GetDetailsBulkAsync(UserGuid, limit, afterId);
             if (result is null)
             {
                 return BadRequest();
@@ -161,7 +155,7 @@ namespace UploadR.Controllers
                 return NotFound();
             }
 
-            return Unauthorized();
+            return Forbid();
         }
     }
 }

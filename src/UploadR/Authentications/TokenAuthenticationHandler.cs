@@ -57,7 +57,7 @@ namespace UploadR.Authentications
         {
             if (!TryGetTokenByHeader(out var token))
             {
-                return AuthenticateResult.Fail("Missing authorization.");
+                return AuthenticateResult.NoResult();
             }
 
             _logger.LogDebug("Given token: [{Token}]", token);

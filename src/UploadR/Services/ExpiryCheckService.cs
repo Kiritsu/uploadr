@@ -11,7 +11,7 @@ using UploadR.Database.Models;
 
 namespace UploadR.Services
 {
-    public class ExpiryCheckService<T> : IHostedService, IDisposable where T : EntityBase
+    public class ExpiryCheckService<T> : IHostedService, IDisposable where T : BaseEntity
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<ExpiryCheckService<T>> _logger;

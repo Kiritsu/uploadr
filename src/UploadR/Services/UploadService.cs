@@ -52,7 +52,7 @@ namespace UploadR.Services
         {
             upload = new UploadOutModel
             {
-                Filename = file.FileName ?? "unknown",
+                Filename = file.FileName,
                 Size = file.Length,
                 HasPassword = !string.IsNullOrWhiteSpace(password),
                 ContentType = file.ContentType,
@@ -133,7 +133,7 @@ namespace UploadR.Services
                         Removed = false,
                         AuthorGuid = userGuid,
                         ContentType = upload.ContentType,
-                        FileName = upload.Filename,
+                        Identifier = upload.Filename,
                         CreatedAt = DateTime.Now,
                         LastSeen = DateTime.Now,
                         SeenCount = 0,
@@ -198,7 +198,7 @@ namespace UploadR.Services
 
             upload.LastSeen = DateTime.Now;
             upload.Removed = true;
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -247,7 +247,7 @@ namespace UploadR.Services
                 }
                 else
                 {
-                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
                     
                     succeeded.Add(uploadId);
                     
@@ -290,7 +290,7 @@ namespace UploadR.Services
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
                 SeenCount = upload.SeenCount,
-                FileName = upload.FileName,
+                FileName = upload.Identifier,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
                 ExpireAfter = upload.ExpiryTime
             };
@@ -305,7 +305,7 @@ namespace UploadR.Services
         public async Task<IReadOnlyList<UploadDetailsModel>> GetDetailsBulkAsync(
             Guid userGuid, 
             int limit, 
-            Guid afterGuid)
+            Guid? afterGuid)
         {
             if (limit > _uploadConfiguration.BulkLimit)
             {
@@ -326,7 +326,11 @@ namespace UploadR.Services
             var firstUpload = await uploads.FirstOrDefaultAsync(x => x.Guid == afterGuid);
             if (firstUpload is null)
             {
-                return null;
+                firstUpload = uploads.FirstOrDefault();
+                if (firstUpload is null)
+                {
+                    return null;
+                }
             }
             
             var createdAt = firstUpload.CreatedAt;
@@ -350,7 +354,7 @@ namespace UploadR.Services
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
                 SeenCount = upload.SeenCount,
-                FileName = upload.FileName,
+                FileName = upload.Identifier,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
                 ExpireAfter = upload.ExpiryTime
             }).ToListAsync();
@@ -387,7 +391,7 @@ namespace UploadR.Services
                 }
             }
 
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
             return (await File.ReadAllBytesAsync(path), upload.ContentType);
         }
 
@@ -403,14 +407,14 @@ namespace UploadR.Services
 
             var upload = Guid.TryParse(filename, out var fileGuid) 
                 ? await db.Uploads.FindAsync(fileGuid) 
-                : db.Uploads.FirstOrDefault(x => x.FileName == filename);
+                : db.Uploads.FirstOrDefault(x => x.Identifier == filename);
 
             if (upload is null)
             {
                 return null;
             }
             
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
             if (File.Exists(path))
             {
                 if (!upload.Removed)

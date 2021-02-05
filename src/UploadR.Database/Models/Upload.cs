@@ -1,12 +1,7 @@
 ﻿namespace UploadR.Database.Models
 {
-    public sealed class Upload : EntityBase
+    public sealed class Upload : BaseEntity
     {
-        /// <summary>
-        ///     Name of the upload.
-        /// </summary>
-        public string FileName { get; set; }
-
         /// <summary>
         ///     Type of the upload.
         /// </summary>

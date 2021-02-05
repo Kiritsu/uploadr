@@ -2,7 +2,7 @@
 
 namespace UploadR.Database.Models
 {
-    public class EntityBase
+    public class BaseEntity
     {
         /// <summary>
         ///     Id of the upload.
@@ -52,5 +52,10 @@ namespace UploadR.Database.Models
         ///     Amount of time this entity was seen.
         /// </summary>
         public long SeenCount { get; set; }
+        
+        /// <summary>
+        ///     Name or second identifier.
+        /// </summary>
+        public string Identifier { get; set; }
     }
 }

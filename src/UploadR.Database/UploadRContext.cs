@@ -124,7 +124,7 @@ namespace UploadR.Database
                 .HasColumnName("removed");
 
             modelBuilder.Entity<Upload>()
-                .Property(x => x.FileName)
+                .Property(x => x.Identifier)
                 .IsRequired()
                 .HasColumnName("file_name");
 
@@ -194,7 +194,7 @@ namespace UploadR.Database
                 .HasColumnName("url");
 
             modelBuilder.Entity<ShortenedUrl>()
-                .Property(x => x.Shorten)
+                .Property(x => x.Identifier)
                 .IsRequired()
                 .HasColumnName("shorten");
 

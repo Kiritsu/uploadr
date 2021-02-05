@@ -117,7 +117,6 @@ namespace UploadR
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseIpRateLimiting();
             app.UseAuthentication();
