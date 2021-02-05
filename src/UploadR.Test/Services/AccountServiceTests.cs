@@ -18,13 +18,13 @@ namespace UploadR.Test
         private const string InvalidEmail = "Allan Good";
         private const string InUseEmail = "Kieran@cool.com";
         private const string NotInUseEmail = "unit@test.co.uk";
-        
+
         private static readonly User User = new User
         {
             Guid = Guid.NewGuid(),
             Token = Guid.NewGuid().ToString()
         };
-        
+
         private static readonly User Admin = new User
         {
             Guid = Guid.NewGuid(),
@@ -37,14 +37,14 @@ namespace UploadR.Test
             Guid = Guid.NewGuid(),
             AuthorGuid = User.Guid
         };
-        
+
         private AccountService _service;
         private IServiceProvider _provider;
 
         [SetUp]
         public async Task InitialiseAsync()
         {
-             _provider = new ServiceCollection()
+            _provider = new ServiceCollection()
                 .AddDbContext<UploadRContext>(builder => builder.UseInMemoryDatabase("uploadr"))
                 .BuildServiceProvider();
             _service = new AccountService(_provider, new NullLogger<AccountService>());
@@ -55,7 +55,7 @@ namespace UploadR.Test
             await context.Uploads.AddAsync(Upload);
             await context.SaveChangesAsync();
         }
-        
+
         [TearDown]
         public async Task TearDownAsync()
         {
@@ -64,14 +64,14 @@ namespace UploadR.Test
             // we need to delete the db to make sure it's not shared between tests
             await context.Database.EnsureDeletedAsync();
         }
-        
+
         [Test]
         public async Task TestResetUserTokenNotFoundAsync()
         {
             var result = await _service.ResetUserTokenAsync(Guid.NewGuid());
             Assert.AreEqual(ResultCode.NotFound, result);
         }
-        
+
         [Test]
         public async Task TestResetUserTokenAsync()
         {
@@ -83,26 +83,26 @@ namespace UploadR.Test
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreNotEqual(User.Token, user.Token);
         }
-        
+
         [Test]
         public async Task TestToggleAcccountStateNotFoundAsync()
         {
             var result = await _service.ToggleAccountStateAsync(Guid.NewGuid(), true);
             Assert.AreEqual(ResultCode.NotFound, result);
         }
-        
+
         [Test]
         public async Task TestToggleAccountStateAdminAsync()
         {
             var result = await _service.ToggleAccountStateAsync(Admin.Guid, true);
             Assert.AreEqual(ResultCode.Invalid, result);
         }
-        
+
         [Test]
         public async Task TestToggleAccountStateBlockedAsync()
         {
             const bool blocked = true;
-            
+
             var result = await _service.ToggleAccountStateAsync(User.Guid, blocked);
             Assert.AreEqual(ResultCode.Ok, result);
 
@@ -111,12 +111,12 @@ namespace UploadR.Test
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreEqual(blocked, user.Disabled);
         }
-        
+
         [Test]
         public async Task TestToggleAccountStateUnblockedAsync()
         {
             const bool blocked = false;
-            
+
             var result = await _service.ToggleAccountStateAsync(User.Guid, blocked);
             Assert.AreEqual(ResultCode.Ok, result);
 
@@ -125,20 +125,20 @@ namespace UploadR.Test
             var user = await context.Users.FindAsync(User.Guid);
             Assert.AreEqual(blocked, user.Disabled);
         }
-        
+
         [Test]
         public async Task TestDeleteAccountNotFoundAsync()
         {
             var result = await _service.DeleteAccountAsync(Guid.NewGuid());
             Assert.AreEqual(ResultCode.NotFound, result);
         }
-        
+
         [Test]
         public async Task TestDeleteAccountNotCascadeAsync()
         {
             var result = await _service.DeleteAccountAsync(User.Guid);
             Assert.AreEqual(ResultCode.Ok, result);
-            
+
             var scope = _provider.CreateScope();
             await using var context = scope.ServiceProvider.GetRequiredService<UploadRContext>();
             var user = await context.Users.FindAsync(User.Guid);
@@ -156,7 +156,7 @@ namespace UploadR.Test
             });
             Assert.AreEqual(ResultCode.Invalid, result);
         }
-        
+
         [Test]
         public async Task TestCreateAccountEmailInUseAsync()
         {
@@ -166,7 +166,7 @@ namespace UploadR.Test
             });
             Assert.AreEqual(ResultCode.EmailInUse, result);
         }
-        
+
         [Test]
         public async Task TestCreateAccountNotInUseEmailAsync()
         {
@@ -182,21 +182,21 @@ namespace UploadR.Test
             var foundEmail = await context.Users.AnyAsync(user => user.Email == NotInUseEmail);
             Assert.True(foundEmail);
         }
-        
+
         [Test]
         public async Task TestVerifyAccountWithEmptyTokenAsync()
         {
             var result = await _service.VerifyAccountAsync(string.Empty);
             Assert.False(result);
         }
-        
+
         [Test]
         public async Task TestVerifyAccountWithNullTokenAsync()
         {
             var result = await _service.VerifyAccountAsync(null);
             Assert.False(result);
         }
-        
+
         [Test]
         public async Task TestVerifyAccountUserNotFoundAsync()
         {
@@ -210,7 +210,7 @@ namespace UploadR.Test
             var result = await _service.VerifyAccountAsync(Admin.Token);
             Assert.False(result);
         }
-        
+
         [Test]
         public async Task TestVerifyAccountUnverifiedAccountAsync()
         {

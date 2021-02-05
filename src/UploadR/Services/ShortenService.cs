@@ -301,7 +301,7 @@ namespace UploadR.Services
             await ecs.RestartAsync();
 
             _logger.LogInformation(
-                "Upload by {UserGuid}: [url:{Url};shorten:{Shorten}B;haspassword:{HasPassword};expire_in_ms:{Expiry}]",
+                "Shorten by {UserGuid}: [url:{Url};shorten:{Shorten};haspassword:{HasPassword};expire_in_ms:{Expiry}]",
                 userGuid,
                 entry.Entity.Url,
                 entry.Entity.Shorten,
