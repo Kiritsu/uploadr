@@ -10,28 +10,63 @@
     ],
     "GeneralRules": [
       {
-        "Endpoint": "POST:/api/account",
-        "Period": "60m",
-        "Limit": 3
+        "Endpoint": "POST:/api/v2/account",
+        "Period": "180m",
+        "Limit": 2
       },
       {
-        "Endpoint": "PATCH:/api/account/reset",
+        "Endpoint": "PATCH:/api/v2/account/token",
         "Period": "30m",
-        "Limit": 3
+        "Limit": 2
       },
       {
-        "Endpoint": "DELETE:/api/upload/*",
-        "Period": "1s",
-        "Limit": 1
+        "Endpoint": "DELETE:/api/v2/upload/*",
+        "Period": "5s",
+        "Limit": 5
       },
       {
-        "Endpoint": "POST:/api/upload/",
-        "Period": "1s",
-        "Limit": 1
+        "Endpoint": "POST:/api/v2/upload/",
+        "Period": "5s",
+        "Limit": 5
       },
       {
-        "Endpoint": "GET:/api/upload/",
+        "Endpoint": "GET:/api/v2/upload/",
         "Period": "3s",
+        "Limit": 5
+      },
+	  {
+        "Endpoint": "GET:/api/v2/upload/uploads",
+        "Period": "5s",
+        "Limit": 5
+      },
+	  {
+        "Endpoint": "GET:/api/v2/upload/*/details",
+        "Period": "5s",
+        "Limit": 5
+      },
+	  {
+        "Endpoint": "DELETE:/api/v2/shorten/*",
+        "Period": "5s",
+        "Limit": 5
+      },
+      {
+        "Endpoint": "POST:/api/v2/shorten/",
+        "Period": "5s",
+        "Limit": 5
+      },
+      {
+        "Endpoint": "GET:/api/v2/shorten/",
+        "Period": "3s",
+        "Limit": 5
+      },
+	  {
+        "Endpoint": "GET:/api/v2/shorten/shortens",
+        "Period": "5s",
+        "Limit": 5
+      },
+	  {
+        "Endpoint": "GET:/api/v2/shorten/*/details",
+        "Period": "5s",
         "Limit": 5
       }
     ]
@@ -44,7 +79,7 @@
     "Password": "1234"
   },
   "Upload": {
-    "SizeMax": 4242424242,
+    "SizeMax": 4294967296,
     "SizeMin": 0,
     "DefaultExpiry": 0,
     "BulkLimit": 100,
@@ -53,7 +88,7 @@
   },
   "Shorten": {
     "SizeMax": 32,
-    "SizeMin": 0,
+    "SizeMin": 1,
     "DefaultSize": 8,
     "DefaultExpiry": 0,
     "BulkLimit": 100
