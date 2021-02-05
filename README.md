@@ -2,14 +2,13 @@
 
 [![Build Status](https://dev.azure.com/allanmercou/uploadr/_apis/build/status/Kiritsu.uploadr?branchName=master)](https://dev.azure.com/allanmercou/uploadr/_build/latest?definitionId=7&branchName=master)
 
-UploadR is a simple server-side uploading service made with ASP.NET Core 3.1.
+UploadR is a simple server-side uploading service made with ASP.NET Core 5.
 
 # Requirements
 
 In order to use UploadR, you need the following components:
-- ASP.NET Core 3.1
+- ASP.NET Core 5
 - PostgreSQL Server
-- Angular 8
 
 # Configuration
 
