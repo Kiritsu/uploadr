@@ -8,7 +8,7 @@ using UploadR.Services;
 
 namespace UploadR.Controllers
 {
-    [Route("api/[controller]"), ApiController]
+    [Route("api/v2/[controller]"), ApiController]
     public class UploadController : UploadRController
     {
         private readonly UploadService _uploadService;
