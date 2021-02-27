@@ -33,9 +33,6 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" onclick="toggleTheme()" href="#">@(isDarkTheme ? "Light" : "Dark") Theme</a>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -47,8 +44,8 @@
     </main>
 </div>
 <footer class="footer text-muted mt-lg-5">
-    <div class="container text-center">
-        &copy; 2021 - UploadR - <a asp-controller="Home" asp-action="Privacy">Privacy</a> - Open Source on <a href="https://github.com/Kiritsu/UploadR">GitHub</a>
+    <div class="text-center">
+        &copy; 2021 - UploadR - <a asp-controller="Home" asp-action="Privacy">Privacy</a> - Open Source on <a href="https://github.com/Kiritsu/UploadR">GitHub</a> and licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a> | <a onclick="toggleTheme()" href="#" data-toggle="tooltip" data-placement="top" title="This website is optimized for the Dark theme.">@(isDarkTheme ? "Light" : "Dark") Theme</a>
     </div>
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>

@@ -1,5 +1,3 @@
-using System;
-
 namespace UploadR.Models
 {
     public class ErrorViewModel

@@ -38,9 +38,9 @@ CREATE DATABASE uploadr WITH OWNER 'uploadr';
 
 # Using UploadR
 
-You need `Visual Studio 2019` or the `.NET Core 3.1 SDK` in order to build UploadR.
+You need `Visual Studio 2019` or the `.NET 5 SDK` in order to build UploadR.
 If you are building from a terminal, use the following command:
 ```
-dotnet publish -c Release -f netcoreapp3.1 -r [RUNTIME]
+dotnet publish -c Release -r [RUNTIME]
 ```
 You can replace [RUNTIME] by either `win-x64`, `linux-x64`, etc. depending on the target operating system. See Microsoft documentation for .NET Core runtime if you have troubles.
