@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
@@ -44,7 +42,7 @@ namespace UploadR.Authentications
                 return false;
             }
 
-            token = values.First();
+            token = values[0];
             return true;
         }
         
@@ -52,48 +50,41 @@ namespace UploadR.Authentications
         ///     Tries to authenticates the user from the request.
         ///     This check if a token is passed in the headers. 
         /// </summary>
-        /// <returns></returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            if (!TryGetTokenByHeader(out var token))
+            if (!TryGetTokenByHeader(out var token) || token is null)
             {
                 return AuthenticateResult.NoResult();
             }
 
-            _logger.LogDebug("Given token: [{Token}]", token);
-
-            if (!Guid.TryParse(token, out _))
-            {
-                _logger.LogWarning("Invalid token format");
-            }
-
+            _logger.LogDebug("Parsed token: [{Token}]", token);
+            
             var user = await _database.Users.FirstOrDefaultAsync(x => x.Token == token);
             if (user is null)
             {
-                _logger.LogWarning("Invalid token");
-                return AuthenticateResult.Fail("Invalid token.");
+                _logger.LogDebug("Invalid token");
+                return AuthenticateResult.Fail("Invalid token");
             }
 
             if (user.Disabled)
             {
-                _logger.LogWarning("User blocked");
-                return AuthenticateResult.Fail("User blocked.");
+                _logger.LogDebug("Blocked user '{Guid}' attempted to log-in", user.Guid);
+                return AuthenticateResult.Fail("User blocked");
             }
 
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Guid.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimToken, token),
-                new Claim(ClaimTypes.Role, user.Type.ToString())
+                new Claim(ClaimTypes.Role, user.Type.ToString()),
+                new Claim(ClaimToken, token!)
             };
 
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, Scheme.Name);
 
-            _logger.LogInformation("User '{Guid}' just authenticated. (Token: {Token})", user.Guid, token);
+            _logger.LogDebug("User '{Guid}' just authenticated (Token: {Token})", user.Guid, token);
             return AuthenticateResult.Success(ticket);
         }
     }
