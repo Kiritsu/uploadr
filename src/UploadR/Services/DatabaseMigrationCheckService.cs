@@ -29,7 +29,6 @@ namespace UploadR.Services
 
             using var scope = _services.GetRequiredService<IServiceScopeFactory>().CreateScope();
             await using var db = scope.ServiceProvider.GetRequiredService<UploadRContext>();
-            _logger.LogInformation("Connection String: {String}", db.Database.GetConnectionString());
             await db.Database.MigrateAsync(cancellationToken);
 
             _isReady = true;

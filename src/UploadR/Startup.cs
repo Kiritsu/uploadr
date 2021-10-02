@@ -68,7 +68,7 @@ namespace UploadR
             services.AddDbContext<UploadRContext>(
                 (provider, builder) =>
                 {
-                    var connectionString = "Server=uploadr-postgres; Port=5432; Database=uploadr; User Id=uploadr; Password=1234";
+                    var connectionString = provider.GetRequiredService<ConnectionStringProvider>().ConnectionString;
                     builder.UseNpgsql(connectionString);
                 },
                 optionsLifetime: ServiceLifetime.Singleton);

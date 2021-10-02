@@ -9,5 +9,6 @@ RUN dotnet restore
 RUN dotnet build
 RUN dotnet publish -c Release -o /app/publish
 
-RUN chmod +x ./entrypoint.sh
-RUN /bin/bash ./entrypoint.sh
+ENV UPLOADR_PATH=./publish/uploadr.json
+
+ENTRYPOINT ["dotnet", "./publish/UploadR.dll", "/Database:Hostname=uploadr-postgres"]
