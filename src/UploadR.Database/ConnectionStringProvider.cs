@@ -9,7 +9,7 @@ namespace UploadR.Database
         public ConnectionStringProvider(IDatabaseConfigurationProvider databaseConfiguration)
         {
             var config = databaseConfiguration.GetConfiguration();
-            
+
             ConnectionString = new NpgsqlConnectionStringBuilder
             {
                 Host = config.Hostname,
