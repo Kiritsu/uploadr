@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
@@ -23,15 +24,7 @@ namespace UploadR
 
         public Startup(IConfiguration configuration)
         {
-            var path = Environment.GetEnvironmentVariable("UPLOADR_PATH")
-                       ?? "uploadr.json";
-
-            var cfg = new ConfigurationBuilder()
-                .AddConfiguration(configuration)
-                .AddJsonFile(path, false)
-                .Build();
-
-            Configuration = cfg;
+            Configuration = configuration;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -75,7 +68,7 @@ namespace UploadR
             services.AddDbContext<UploadRContext>(
                 (provider, builder) =>
                 {
-                    var connectionString = provider.GetRequiredService<ConnectionStringProvider>().ConnectionString;
+                    var connectionString = "Server=uploadr-postgres; Port=5432; Database=uploadr; User Id=uploadr; Password=1234";
                     builder.UseNpgsql(connectionString);
                 },
                 optionsLifetime: ServiceLifetime.Singleton);

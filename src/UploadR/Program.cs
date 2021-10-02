@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace UploadR
@@ -13,6 +14,13 @@ namespace UploadR
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(configurationBuilder =>
+                {
+                    var path = Environment.GetEnvironmentVariable("UPLOADR_PATH") ?? "./uploadr.json";
+
+                    configurationBuilder.AddJsonFile(path, false)
+                        .AddCommandLine(args);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     var host = Environment.GetEnvironmentVariable("UPLOADR_HOST") ?? "localhost";

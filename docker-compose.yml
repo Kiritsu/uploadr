@@ -1,0 +1,19 @@
+﻿services:
+  uploadr-postgres:
+    image: postgres
+    container_name: uploadr-postgres
+    environment:
+      - POSTGRES_DB=uploadr
+      - POSTGRES_USER=uploadr
+      - POSTGRES_PASSWORD=1234
+    volumes:
+      - database-data:/var/lib/postgresql/data
+
+  uploadr-app:
+    build: .
+    container_name: uploadr-app
+    depends_on:
+      - uploadr-postgres
+        
+volumes:
+  database-data:
