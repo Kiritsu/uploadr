@@ -11,7 +11,7 @@ using UploadR.Database.Models;
 
 namespace UploadR.Services
 {
-    public class ExpiryCheckService<T> : IHostedService, IDisposable where T : EntityBase
+    public class ExpiryCheckService<T> : IHostedService, IDisposable where T : BaseEntity
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<ExpiryCheckService<T>> _logger;
@@ -34,7 +34,7 @@ namespace UploadR.Services
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[{name}] Starting the ExpiryCheck service.", typeof(T).Name);
+            _logger.LogInformation("[{Name}] Starting the ExpiryCheck service", typeof(T).Name);
             
             return RestartAsync();
         }
@@ -71,7 +71,7 @@ namespace UploadR.Services
                 if (WatchedItem is null)
                 {
                     _logger.LogInformation(
-                        "[{name}] No item is expirying. Putting the service on hold. Waiting for restart.",
+                        "[{Name}] No item is expirying. Putting the service on hold. Waiting for restart",
                         typeof(T).Name);
                     break;
                 }
@@ -81,7 +81,7 @@ namespace UploadR.Services
                 if (expiryLeft <= TimeSpan.Zero)
                 {
                     _logger.LogError(
-                        "[{name}] Item {guid} must have expired at {guid:g} ({expiryLeft:g} ago).",
+                        "[{Name}] Item {ItemGuid} must have expired {ExpiryLeft:g} ago",
                         typeof(T).Name,
                         WatchedItem.Guid,
                         now + expiryLeft);
@@ -94,7 +94,7 @@ namespace UploadR.Services
                 }
 
                 _logger.LogInformation(
-                    "[{name}] Item {guid} must expire at {expiresAt} (in {expiryLeft:g}).",
+                    "[{Name}] Item {ItemGuid} must expire at {ExpiresAt} (in {ExpiryLeft:g})",
                     typeof(T).Name,
                     WatchedItem.Guid,
                     now + expiryLeft,
@@ -109,7 +109,7 @@ namespace UploadR.Services
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("[{name}] Stopping the ExpiryCheck service completely.", typeof(T).Name);
+            _logger.LogInformation("[{Name}] Stopping the ExpiryCheck service completely", typeof(T).Name);
             
             if (_currentTask == null)
             {

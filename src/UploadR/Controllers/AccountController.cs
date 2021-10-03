@@ -10,7 +10,7 @@ using UploadR.Services;
 
 namespace UploadR.Controllers
 {
-    [Route("api/[controller]"), ApiController]
+    [Route("api/v2/[controller]"), ApiController]
     public class AccountController : UploadRController
     {
         private readonly AccountService _accountService;
@@ -28,7 +28,7 @@ namespace UploadR.Controllers
         /// <summary>
         ///     Route to reset the current user's api token.
         /// </summary>
-        [HttpPatch("reset"), Authorize]
+        [HttpPatch("token"), Authorize]
         public async Task<IActionResult> ResetTokenAsync()
         {
             var result = await _accountService.ResetUserTokenAsync(UserGuid);
@@ -44,21 +44,21 @@ namespace UploadR.Controllers
         ///    Route to reset a user's api token. 
         /// </summary>
         /// <param name="userId">User id to reset.</param>
-        [HttpPatch("{userId}/reset"), Authorize(Roles = "Admin")]
+        [HttpPatch("{userId}/token"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> ResetUserTokenAsync(
-            string userId)
+            Guid? userId)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (!userId.HasValue)
             {
                 return BadRequest();
             }
             
-            var result = await _accountService.ResetUserTokenAsync(userGuid);
+            var result = await _accountService.ResetUserTokenAsync(userId.Value);
             
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -69,19 +69,19 @@ namespace UploadR.Controllers
         /// <param name="userId">User id to block.</param>
         [HttpPatch("{userId}/block"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> BlockAccountAsync(
-            string userId)
+            Guid? userId)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (!userId.HasValue)
             {
                 return BadRequest();
             }
-            
-            var result = await _accountService.ToggleAccountStateAsync(userGuid, true);
+
+            var result = await _accountService.ToggleAccountStateAsync(userId.Value, true);
 
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -92,19 +92,19 @@ namespace UploadR.Controllers
         /// <param name="userId">User id to unblock.</param>
         [HttpPatch("{userId}/unblock"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> UnblockAccountAsync(
-            string userId)
+            Guid? userId)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (!userId.HasValue)
             {
                 return BadRequest();
             }
-            
-            var result = await _accountService.ToggleAccountStateAsync(userGuid, false);
+
+            var result = await _accountService.ToggleAccountStateAsync(userId.Value, false);
             
             return result switch
             {
                 ResultCode.Ok => Ok(),
-                ResultCode.Invalid => Unauthorized(),
+                ResultCode.Invalid => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -112,16 +112,37 @@ namespace UploadR.Controllers
         /// <summary>
         ///     Route to delete the current authenticated account.
         /// </summary>
-        /// <param name="cascade">Whether to delete or not the uploads made by that account.</param>
         [HttpDelete, Authorize]
-        public async Task<IActionResult> DeleteAccountAsync(
-            [FromQuery(Name = "cascade")] bool cascade = false)
+        public async Task<IActionResult> DeleteAccountAsync()
         {
-            var result = await _accountService.DeleteAccountAsync(UserGuid, cascade);
+            var result = await _accountService.DeleteAccountAsync(UserGuid);
 
             return result switch
             {
                 ResultCode.Ok => Ok(),
+                ResultCode.Unauthorized => Forbid(),
+                _ => BadRequest()
+            };
+        }
+        
+        /// <summary>
+        ///     Route to delete the current authenticated account.
+        /// </summary>
+        [HttpDelete("{userId}"), Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteAccountAsync(
+            Guid? userId)
+        {
+            if (!userId.HasValue)
+            {
+                return BadRequest();
+            }
+            
+            var result = await _accountService.DeleteAccountAsync(userId.Value);
+
+            return result switch
+            {
+                ResultCode.Ok => Ok(),
+                ResultCode.Unauthorized => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -134,12 +155,7 @@ namespace UploadR.Controllers
         public async Task<IActionResult> CreateAccountAsync(
             [FromForm] AccountCreateModel accountCreateModel)
         {
-            if (string.IsNullOrWhiteSpace(accountCreateModel.Email))
-            {
-                return BadRequest();
-            }
-
-            var result = await _accountService.CreateAccountAsync(accountCreateModel.Email);
+            var result = await _accountService.CreateAccountAsync(accountCreateModel);
 
             return result switch
             {

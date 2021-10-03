@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -7,8 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using UploadR.Authentications;
 using UploadR.Configurations;
 using UploadR.Database;
@@ -23,19 +24,23 @@ namespace UploadR
 
         public Startup(IConfiguration configuration)
         {
-            var path = Environment.GetEnvironmentVariable("UPLOADR_PATH")
-                ?? "uploadr.json";
-
-            var cfg = new ConfigurationBuilder()
-                .AddConfiguration(configuration)
-                .AddJsonFile(path, false)
-                .Build();
-
-            Configuration = cfg;
+            Configuration = configuration;
         }
 
+        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRazorPages().AddRazorRuntimeCompilation();
+            services.AddSession(options =>
+            {
+                options.Cookie.Name = "uploadr";
+                options.Cookie.IsEssential = true;
+                options.Cookie.HttpOnly = true;
+            });
+
+            services.AddControllersWithViews();
+            services.AddRouting(options => options.LowercaseUrls = true);
+
             services.Configure<IpRateLimitOptions>(Configuration.GetSection("IpRateLimiting"));
             services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
@@ -85,7 +90,7 @@ namespace UploadR
                 auth.AddPolicy(UnverifiedRequirement.PolicyName,
                     policy => policy.Requirements.Add(new UnverifiedRequirement()));
 
-                auth.DefaultPolicy = auth.GetPolicy(UserRequirement.PolicyName);
+                auth.DefaultPolicy = auth.GetPolicy(UserRequirement.PolicyName)!;
             });
 
             services.AddControllers();
@@ -100,18 +105,33 @@ namespace UploadR
             services.AddSingleton<IHostedService>(x => x.GetService<ExpiryCheckService<ShortenedUrl>>());
         }
 
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
 
+            app.UseStaticFiles();
+            app.UseSession();
+            app.UseCookiePolicy();
             app.UseIpRateLimiting();
             app.UseAuthentication();
             app.UseRouting();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => endpoints.MapControllers());
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }

@@ -1,0 +1,56 @@
+﻿@{
+    var isDarkTheme = ((string) ViewData["uploadr_theme"] ?? "dark") == "dark";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"] - UploadR</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css"/>
+    @if (isDarkTheme)
+    {
+        <link rel="stylesheet" href="~/css/app-dark.css"/>
+    }
+    else
+    {
+        <link rel="stylesheet" href="~/css/app-light.css"/>
+    }
+</head>
+<body>
+<header>
+    <nav class="navbar @(isDarkTheme ? "navbar-dark" : "navbar-light") navbar-expand-sm navbar-toggleable-sm">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">UploadR</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse d-sm-inline-flex">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<div class="container mb-5">
+    <main role="main">
+        @RenderBody()
+    </main>
+</div>
+<footer class="footer text-muted mt-lg-5">
+    <div class="text-center">
+        &copy; 2021 - UploadR - <a asp-controller="Home" asp-action="Privacy">Privacy</a> - Open Source on <a href="https://github.com/Kiritsu/UploadR">GitHub</a> and licensed under <a href="https://www.apache.org/licenses/LICENSE-2.0.html">Apache License 2.0</a> | <a onclick="toggleTheme()" href="#" data-toggle="tooltip" data-placement="top" title="This website is optimized for the Dark theme.">@(isDarkTheme ? "Light" : "Dark") Theme</a>
+    </div>
+</footer>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

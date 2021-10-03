@@ -8,7 +8,7 @@ using UploadR.Services;
 
 namespace UploadR.Controllers
 {
-    [Route("api/[controller]"), ApiController]
+    [Route("api/v2/[controller]"), ApiController]
     public class ShortenController : UploadRController
     {
         private readonly ShortenService _shortenService;
@@ -56,7 +56,7 @@ namespace UploadR.Controllers
             {
                 ResultCode.Ok => Ok(),
                 ResultCode.NotFound => BadRequest(),
-                ResultCode.Unauthorized => Unauthorized(),
+                ResultCode.Unauthorized => Forbid(),
                 _ => BadRequest()
             };
         }
@@ -86,14 +86,9 @@ namespace UploadR.Controllers
         [HttpGet("shortens"), Authorize]
         public async Task<IActionResult> GetUserDetailsBulkAsync(
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterId = null)
+            [FromQuery(Name = "afterGuid")] Guid? afterId = null)
         {
-            if (!Guid.TryParse(afterId, out var afterGuid))
-            {
-                return BadRequest();
-            }
-            
-            var result = await _shortenService.GetDetailsBulkAsync(UserGuid, limit, afterGuid);
+            var result = await _shortenService.GetDetailsBulkAsync(UserGuid, limit, afterId);
             if (result is null)
             {
                 return BadRequest();
@@ -110,17 +105,16 @@ namespace UploadR.Controllers
         /// <param name="afterId">Guid that defines the start of the query.</param>
         [HttpGet("{userId}/shortens"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUserDetailsBulkAsync(
-            string userId,
+            Guid? userId,
             [FromQuery(Name = "limit")] int limit = 100,
-            [FromQuery(Name = "afterGuid")] string afterId = null)
+            [FromQuery(Name = "afterGuid")] Guid? afterId = null)
         {
-            if (!Guid.TryParse(userId, out var userGuid) 
-                || !Guid.TryParse(afterId, out var afterGuid))
+            if (!userId.HasValue)
             {
                 return BadRequest();
             }
             
-            var result = await _shortenService.GetDetailsBulkAsync(userGuid, limit, afterGuid);
+            var result = await _shortenService.GetDetailsBulkAsync(userId.Value, limit, afterId);
             if (result is null)
             {
                 return BadRequest();
@@ -144,7 +138,7 @@ namespace UploadR.Controllers
             return content switch
             {
                 ResultCode.NotFound => NotFound(),
-                ResultCode.Unauthorized => Unauthorized(),
+                ResultCode.Unauthorized => Forbid(),
                 ResultCode.Ok => Redirect(url),
                 _ => BadRequest()
             };

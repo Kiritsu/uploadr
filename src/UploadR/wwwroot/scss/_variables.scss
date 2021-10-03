@@ -1,0 +1,31 @@
+// Library imports
+@import "../lib/bootstrap/scss/_functions.scss";
+@import "../lib/bootstrap/scss/_mixins.scss";
+@import "../lib/bootstrap/scss/_variables.scss";
+
+// Varialbes override
+$enable-responsive-font-sizes: true;
+$enable-shadows: false;
+$enable-rounded: false;
+$font-family-base: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+
+// Colors 
+$white: #fff;
+$gray-100: #f8f9fa;
+$gray-200: #e9ecef;
+$gray-300: #dee2e6;
+$gray-400: #ced4da;
+$gray-500: #adb5bd;
+$gray-600: #6c757d;
+$gray-700: #495057;
+$gray-800: #343a40;
+$gray-900: #212529;
+$black: #000;
+
+// My colors
+$awesome: #265B6A;
+$awesome-light: #447684;
+$awesome-lighter: #6B949F;
+
+// Themes
+$theme-colors: ( "primary": $awesome );

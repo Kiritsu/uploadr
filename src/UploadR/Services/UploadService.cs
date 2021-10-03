@@ -52,7 +52,7 @@ namespace UploadR.Services
         {
             upload = new UploadOutModel
             {
-                Filename = file.FileName ?? "unknown",
+                Filename = file.FileName,
                 Size = file.Length,
                 HasPassword = !string.IsNullOrWhiteSpace(password),
                 ContentType = file.ContentType,
@@ -133,7 +133,7 @@ namespace UploadR.Services
                         Removed = false,
                         AuthorGuid = userGuid,
                         ContentType = upload.ContentType,
-                        FileName = upload.Filename,
+                        Identifier = upload.Filename,
                         CreatedAt = DateTime.Now,
                         LastSeen = DateTime.Now,
                         SeenCount = 0,
@@ -152,7 +152,7 @@ namespace UploadR.Services
                 }
 
                 _logger.LogInformation(
-                    "Upload by {userGuid}: [name:{filename};size:{size}B;haspassword:{hasPassword};success_code:{statusCode};expire_in_ms:{expireAfterMilliseconds}]",
+                    "Upload by {UserGuid}: [name:{Filename};size:{Size}B;haspassword:{HasPassword};success_code:{StatusCode};expire_in_ms:{ExpireAfterMilliseconds}]",
                     userGuid,
                     upload.Filename,
                     upload.Size,
@@ -163,7 +163,7 @@ namespace UploadR.Services
 
             await db.SaveChangesAsync();
             
-            var ecs = _services.GetService<ExpiryCheckService<Upload>>();
+            var ecs = _services.GetRequiredService<ExpiryCheckService<Upload>>();
             await ecs.RestartAsync();
             
             model.SucceededUploads = succeeded.ToArray();
@@ -196,8 +196,9 @@ namespace UploadR.Services
                 return ResultCode.Unauthorized;
             }
 
+            upload.LastSeen = DateTime.Now;
             upload.Removed = true;
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -207,7 +208,7 @@ namespace UploadR.Services
             await db.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Upload deleted by {userGuid}: [authorguid:{authorGuid};guid:{uploadGuid}]",
+                "Upload deleted by {UserGuid}: [authorguid:{AuthorGuid};guid:{UploadGuid}]",
                 userGuid,
                 upload.AuthorGuid,
                 upload.Guid);
@@ -246,10 +247,11 @@ namespace UploadR.Services
                 }
                 else
                 {
-                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+                    var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
                     
                     succeeded.Add(uploadId);
                     
+                    upload.LastSeen = DateTime.Now;
                     upload.Removed = true;
                     if (File.Exists(path))
                     {
@@ -288,7 +290,7 @@ namespace UploadR.Services
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
                 SeenCount = upload.SeenCount,
-                FileName = upload.FileName,
+                FileName = upload.Identifier,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
                 ExpireAfter = upload.ExpiryTime
             };
@@ -303,7 +305,7 @@ namespace UploadR.Services
         public async Task<IReadOnlyList<UploadDetailsModel>> GetDetailsBulkAsync(
             Guid userGuid, 
             int limit, 
-            Guid afterGuid)
+            Guid? afterGuid)
         {
             if (limit > _uploadConfiguration.BulkLimit)
             {
@@ -324,7 +326,11 @@ namespace UploadR.Services
             var firstUpload = await uploads.FirstOrDefaultAsync(x => x.Guid == afterGuid);
             if (firstUpload is null)
             {
-                return null;
+                firstUpload = uploads.FirstOrDefault();
+                if (firstUpload is null)
+                {
+                    return null;
+                }
             }
             
             var createdAt = firstUpload.CreatedAt;
@@ -348,7 +354,7 @@ namespace UploadR.Services
                 CreatedAt = upload.CreatedAt,
                 LastSeen = upload.LastSeen,
                 SeenCount = upload.SeenCount,
-                FileName = upload.FileName,
+                FileName = upload.Identifier,
                 HasPassword = !string.IsNullOrWhiteSpace(upload.Password),
                 ExpireAfter = upload.ExpiryTime
             }).ToListAsync();
@@ -385,8 +391,8 @@ namespace UploadR.Services
                 }
             }
 
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
-            return (File.ReadAllBytes(path), upload.ContentType);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
+            return (await File.ReadAllBytesAsync(path), upload.ContentType);
         }
 
         /// <summary>
@@ -401,14 +407,14 @@ namespace UploadR.Services
 
             var upload = Guid.TryParse(filename, out var fileGuid) 
                 ? await db.Uploads.FindAsync(fileGuid) 
-                : db.Uploads.FirstOrDefault(x => x.FileName == filename);
+                : db.Uploads.FirstOrDefault(x => x.Identifier == filename);
 
             if (upload is null)
             {
                 return null;
             }
             
-            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.FileName);
+            var path = Path.Combine(_uploadConfiguration.UploadsPath, upload.Identifier);
             if (File.Exists(path))
             {
                 if (!upload.Removed)
@@ -426,6 +432,7 @@ namespace UploadR.Services
                 return null;
             }
             
+            upload.LastSeen = DateTime.Now;
             upload.Removed = true;
             db.Uploads.Update(upload);
             await db.SaveChangesAsync();

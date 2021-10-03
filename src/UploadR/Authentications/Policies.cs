@@ -14,7 +14,7 @@ namespace UploadR.Authentications
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context, AdminRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && 
+            if (context.User.Identity!.IsAuthenticated && 
                 context.User.IsInRole(AccountType.Admin.ToString()))
             {
                 context.Succeed(requirement);
@@ -38,7 +38,7 @@ namespace UploadR.Authentications
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context, UserRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && 
+            if (context.User.Identity!.IsAuthenticated && 
                 !context.User.IsInRole(AccountType.Unverified.ToString()))
             {
                 context.Succeed(requirement);
@@ -58,7 +58,7 @@ namespace UploadR.Authentications
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context, UnverifiedRequirement requirement)
         {
-            if (context.User.Identity.IsAuthenticated && 
+            if (context.User.Identity!.IsAuthenticated && 
                 context.User.IsInRole(AccountType.Unverified.ToString()))
             {
                 context.Succeed(requirement);

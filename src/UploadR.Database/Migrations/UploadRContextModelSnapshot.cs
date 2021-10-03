@@ -2,9 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using UploadR.Database;
 
 namespace UploadR.Database.Migrations
 {
@@ -15,64 +12,64 @@ namespace UploadR.Database.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                .HasAnnotation("ProductVersion", "3.1.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .UseIdentityByDefaultColumns()
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.2");
 
             modelBuilder.Entity("UploadR.Database.Models.ShortenedUrl", b =>
                 {
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("guid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
 
                     b.Property<Guid>("AuthorGuid")
-                        .HasColumnName("author_guid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_guid");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("created_at")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 5, 7, 7, 14, 46, 748, DateTimeKind.Local).AddTicks(3801));
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<TimeSpan>("ExpiryTime")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("expiry_time")
                         .HasColumnType("interval")
-                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0))
+                        .HasColumnName("expiry_time");
+
+                    b.Property<string>("Identifier")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("shorten");
 
                     b.Property<DateTime>("LastSeen")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("last_seen")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 5, 7, 7, 14, 46, 748, DateTimeKind.Local).AddTicks(4116));
+                        .HasColumnName("last_seen")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Password")
-                        .HasColumnName("password_hash")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<bool>("Removed")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("removed")
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(false)
+                        .HasColumnName("removed");
 
                     b.Property<long>("SeenCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("seen_count")
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L);
-
-                    b.Property<string>("Shorten")
-                        .IsRequired()
-                        .HasColumnName("shorten")
-                        .HasColumnType("text");
+                        .HasDefaultValue(0L)
+                        .HasColumnName("seen_count");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnName("url")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("url");
 
                     b.HasKey("Guid")
                         .HasName("pk_shortenedurl_guid");
@@ -86,56 +83,56 @@ namespace UploadR.Database.Migrations
                 {
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("guid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
 
                     b.Property<Guid>("AuthorGuid")
-                        .HasColumnName("author_guid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_guid");
 
                     b.Property<string>("ContentType")
                         .IsRequired()
-                        .HasColumnName("content_type")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("content_type");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("created_at")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 5, 7, 7, 14, 46, 746, DateTimeKind.Local).AddTicks(8380));
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<TimeSpan>("ExpiryTime")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("expiry_time")
                         .HasColumnType("interval")
-                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0));
+                        .HasDefaultValue(new TimeSpan(0, 0, 0, 0, 0))
+                        .HasColumnName("expiry_time");
 
-                    b.Property<string>("FileName")
+                    b.Property<string>("Identifier")
                         .IsRequired()
-                        .HasColumnName("file_name")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("file_name");
 
                     b.Property<DateTime>("LastSeen")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("last_seen")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 5, 7, 7, 14, 46, 746, DateTimeKind.Local).AddTicks(8787));
+                        .HasColumnName("last_seen")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("Password")
-                        .HasColumnName("password_hash")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<bool>("Removed")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("removed")
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(false)
+                        .HasColumnName("removed");
 
                     b.Property<long>("SeenCount")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("seen_count")
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L);
+                        .HasDefaultValue(0L)
+                        .HasColumnName("seen_count");
 
                     b.HasKey("Guid")
                         .HasName("pk_upload_guid");
@@ -149,36 +146,35 @@ namespace UploadR.Database.Migrations
                 {
                     b.Property<Guid>("Guid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("guid")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("guid");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("created_at")
                         .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(new DateTime(2020, 5, 7, 7, 14, 46, 734, DateTimeKind.Local).AddTicks(8877));
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<bool>("Disabled")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("disabled")
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasDefaultValue(false)
+                        .HasColumnName("disabled");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnName("email")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("email");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnName("api_token")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("api_token");
 
                     b.Property<int>("Type")
                         .ValueGeneratedOnAdd()
-                        .HasColumnName("account_type")
                         .HasColumnType("integer")
-                        .HasDefaultValue(0);
+                        .HasDefaultValue(0)
+                        .HasColumnName("account_type");
 
                     b.HasKey("Guid")
                         .HasName("pk_user_guid");
@@ -189,10 +185,13 @@ namespace UploadR.Database.Migrations
             modelBuilder.Entity("UploadR.Database.Models.ShortenedUrl", b =>
                 {
                     b.HasOne("UploadR.Database.Models.User", "Author")
-                        .WithMany()
+                        .WithMany("Shortens")
                         .HasForeignKey("AuthorGuid")
+                        .HasConstraintName("fkey_user_authorid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Author");
                 });
 
             modelBuilder.Entity("UploadR.Database.Models.Upload", b =>
@@ -203,6 +202,15 @@ namespace UploadR.Database.Migrations
                         .HasConstraintName("fkey_user_authorid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("UploadR.Database.Models.User", b =>
+                {
+                    b.Navigation("Shortens");
+
+                    b.Navigation("Uploads");
                 });
 #pragma warning restore 612, 618
         }

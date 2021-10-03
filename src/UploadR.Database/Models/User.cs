@@ -40,5 +40,10 @@ namespace UploadR.Database.Models
         ///     Uploads made by this account.
         /// </summary>
         public ICollection<Upload> Uploads { get; set; }
+        
+        /// <summary>
+        ///     Shortens made by this account.
+        /// </summary>
+        public ICollection<ShortenedUrl> Shortens { get; set; }
     }
 }

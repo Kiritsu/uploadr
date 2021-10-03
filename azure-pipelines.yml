@@ -7,7 +7,7 @@ trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-16.04'
+  vmImage: 'windows-latest'
 
 variables:
   solution: '**/*.sln'
@@ -16,22 +16,28 @@ variables:
 steps:
 - task: UseDotNet@2
   inputs:
-    version: 3.1.x
+    version: 5.0.x
+    displayName: 'Install .NET 5'
     
 - script: dotnet restore
-
-- script: dotnet publish --configuration $(buildConfiguration) --runtime linux-x64 --output $(Build.ArtifactStagingDirectory) --verbosity n
+  condition: succeeded()
+  displayName: 'Restore Solution'
 
 - script: dotnet test
+  condition: succeeded()
+  displayName: 'Test Solution'
+
+- script: dotnet build
+  condition: succeeded()
+  displayName: 'Pre-build'
+
+- script: dotnet publish --configuration $(buildConfiguration) --runtime linux-x64 --output $(Build.ArtifactStagingDirectory) --verbosity n
+  condition: succeeded()
+  displayName: 'Publish Solution'
 
 - task: PublishBuildArtifacts@1
+  condition: succeeded()
+  displayName: 'Publish Build Artifact'
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
     artifactName: uploadr
-
-- task: DownloadBuildArtifacts@0
-  inputs:
-    buildType: 'current'
-    downloadType: 'single'
-    artifactName: 'uploadr'
-    downloadPath: '$(System.ArtifactsDirectory)'
